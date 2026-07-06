@@ -217,6 +217,9 @@ skills/               # Runnable, Claude-consumable tools
 commands/             # /design-kit session primer
 scripts/              # doctor.sh (deps) · install-fonts.sh · install.sh (symlink fallback)
 playground/           # Working dogfood example (demo report + chart code + renders)
+eval/                 # Skill smoke test: prompt battery + headless runner + eval protocol
+                      #   (run folders in eval/reports/<stamp>/, gitignored; the
+                      #    <stamp>.md evaluation reports beside them are committed)
 docs/
   followups.md        # Open questions / Word-fidelity limits (cited by skills)
   nil/                # Upstream inspiration — Nil's original spec deliverables (read-only)

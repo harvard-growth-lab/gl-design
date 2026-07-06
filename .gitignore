@@ -21,3 +21,7 @@ Thumbs.db
 # Claude Files
 
 .claude/
+
+# Smoke-test run folders (eval/reports/<stamp>/) stay local; the per-run
+# evaluation reports (eval/reports/<stamp>.md) are committed.
+eval/reports/*/
