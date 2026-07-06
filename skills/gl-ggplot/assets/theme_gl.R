@@ -268,10 +268,14 @@ theme_gl <- function(base_size = NULL, mode = "report") {
             axis.title.x = element_text(margin = margin(t = 15)),
             axis.title.y = element_text(margin = margin(r = 15), angle = 90),
             # Tick label sits 6px (= 4.5pt) outside the axis: 3pt tick + 1.5pt gap.
+            # %+replace% wipes theme_minimal's justification, so restate it:
+            # y ticks right-align (hjust 1) so variable-width labels keep a
+            # constant gap to the axis; x ticks top-align under the axis.
+            # (Eval finding 2026-07-06: labels were rendering ragged-right.)
             axis.text    = element_text(family = "gl_sans", color = gl$ink_2,
                                         size = rel(1.0)),
-            axis.text.x  = element_text(margin = margin(t = 1.5)),
-            axis.text.y  = element_text(margin = margin(r = 1.5)),
+            axis.text.x  = element_text(margin = margin(t = 1.5), vjust = 1),
+            axis.text.y  = element_text(margin = margin(r = 1.5), hjust = 1),
 
             # Axis line + ticks: 1px (lw 0.35) ink-2; ticks 4px (3pt) long,
             # outward. Bottom + left only.
@@ -522,13 +526,16 @@ gl_dark <- function(x) {
 #' Pair with gl_endlabel_room() so labels drawn outside the panel are not
 #' clipped. Falls back to geom_text if ggrepel is not installed.
 gl_endlabel <- function(data, mapping, color, size = gl_text_size,
-                        nudge_x = 0.3, ...) {
+                        nudge_x = 0.3, bg_color = gl$paper, bg_r = 0.1, ...) {
     cols <- gl_dark(color)
     if (requireNamespace("ggrepel", quietly = TRUE)) {
+        # bg.* = thin paper halo so labels stay legible when repel places
+        # them over lines or points (grammar: in-chart labels carry a halo).
         ggrepel::geom_text_repel(data = data, mapping = mapping, colour = cols,
                                  family = "gl_sans", fontface = "bold",
                                  size = size, hjust = 0, direction = "y",
                                  nudge_x = nudge_x, segment.color = NA,
+                                 bg.color = bg_color, bg.r = bg_r,
                                  inherit.aes = FALSE, ...)
     } else {
         geom_text(data = data, mapping = mapping, colour = cols,

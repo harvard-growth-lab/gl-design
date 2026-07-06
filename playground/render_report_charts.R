@@ -691,4 +691,4 @@ elc_scatter |>
          caption = "unused")
 save_fig("full", "electricity-price-vs-gdppc.png")
 
-cat("\nDone! All report charts saved to:", img_dir, "\n")
+cat("\nDone! All report charts saved to:", getOption("gl.fig.dir"), "\n")

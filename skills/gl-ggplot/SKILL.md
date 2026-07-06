@@ -52,7 +52,7 @@ After calling `gl_setup()`, the following are available:
 | `gl_text_size` | `size` for `geom_text`/`geom_label`/`annotate` (≈3.16 = 9pt = Nil's 12px). Already the geom default; it is the **floor** — never pass anything smaller |
 | `gl_zero_line()` | Zero baseline: solid 1px `ink_2` at axis weight (Nil §4). `gl_zero_line()` for y = 0, `gl_zero_line("x")` for x = 0. The bare `geom_hline`/`geom_vline` default (dashed `ink_3`) is for reference *thresholds*, not zero lines |
 | `gl_dark()` | Maps any GL main/light tone to its dark partner — for label/stroke colors (decision rule 2) |
-| `gl_endlabel()` | Direct line-end series labels in the dark tone (wraps `geom_text_repel` with house conventions) |
+| `gl_endlabel()` | Direct line-end series labels (wraps `geom_text_repel` with house conventions: dark tone, 12px floor, paper halo) |
 | `gl_endlabel_room()` | Companion: `clip = "off"` + right margin + no legend, so end labels aren't clipped |
 | `theme_gl()` | The theme function (already applied via `theme_set`) |
 | `scale_color_gl()` | Discrete color scale using GL palettes |
@@ -191,9 +191,16 @@ ggplot(data, aes(x, y)) +
     geom_point(data = \(d) filter(d, focus),               # 3. highlight, painted ONCE —
                fill = highlight, color = highlight_dark,   #    main fill + dark stroke
                alpha = 1) +                                #    alpha = 1, no grey underneath
-    geom_text_repel(data = \(d) filter(d, focus),          # 4. label uses the dark tone
-                    aes(label = name), color = highlight_dark)
+    geom_text_repel(data = \(d) filter(d, focus),          # 4. label: dark tone + paper halo
+                    aes(label = name), color = highlight_dark,
+                    size = gl_text_size, bg.color = gl$paper, bg.r = 0.1)
 ```
+
+**Any text layer drawn over data carries a thin paper halo** —
+`bg.color = gl$paper, bg.r = 0.1` on `geom_text_repel` / `geom_label_repel` —
+so the label stays legible when it lands on points or lines (`gl_endlabel()`
+does this automatically). The halo never replaces the dark-tone rule: the
+glyphs themselves stay in the series' dark tone.
 
 **Why exclude the focus from the backdrop?** The `geom_point` default carries
 `alpha = 0.8` so dense clouds darken on overlap instead of washing out. But that
@@ -206,7 +213,11 @@ opaque, so they can stay one-line overpaints — this only bites `geom_point`.)
 
 Use `highlight` (main blue `#2F87C8` = `c_1`) for the default focus — the
 institutional voice. Use `lead_finding` (main red `#CC4948` = `c_2`) when the
-finding is stark — gains vs. losses, alarm, exception. Use sparingly. For a
+finding is stark — gains vs. losses, alarm, exception. Use sparingly.
+**Red signals valence, not emphasis strength**: a focus series compared
+against peers is the default-blue case however striking its performance;
+reach for red only when the finding itself is negative or alarming (a
+crisis, a loss, a breached threshold). For a
 highlighted **point**, the fill is `highlight`, the **stroke** is
 `highlight_dark` (`#1A5A8E`), and it is drawn **once at `alpha = 1`** (focus rows
 excluded from the muted backdrop — see above); any **label** tied to the focus

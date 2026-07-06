@@ -367,6 +367,13 @@ opacity just dilutes the color.
 - **Zero baseline**: render with axis weight, not gridline weight
 - **Year axis**: when the X axis is just years, omit the axis label — the
   tick labels already say what the dimension is
+- **Tick label alignment**: Y-axis tick labels right-align (flush to the
+  axis), so variable-width labels keep a constant gap to the axis line;
+  X-axis tick labels top-align under the axis
+- **Direct labels drawn over data**: series end-labels, callouts, and any
+  text placed inside the panel carry a thin `paper` halo (radius ≈ 0.1em)
+  so they stay legible over marks. The halo never substitutes for the
+  dark-tone rule — the glyphs themselves stay in the series dark tone
 
 ### 3.6 Sequential vs. diverging — when
 
