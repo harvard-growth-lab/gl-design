@@ -4,7 +4,7 @@ description: Apply the Growth Lab design system to ggplot2 charts. Use this skil
 compatibility: Requires R >= 4.1, systemfonts >= 1.1.0 (for match_fonts), ggplot2 >= 3.3, and ragg. These are floors, not pins — newer is fine, and no upgrade is needed if you already meet them.
 metadata:
   author: taimur-shah
-  version: "2.0"
+  version: "2.1"
 ---
 
 # GL ggplot Design System
@@ -25,10 +25,15 @@ gl_setup()                          # report mode (default) — no title/subtitl
 gl_setup(mode = "slide")            # slide mode — keeps title/subtitle/caption
 ```
 
-This loads fonts (**Source Serif 4** + **Inter** via Google Fonts), sets the
-theme globally, and configures the default discrete color/fill palette. You
-do **not** need to call `theme_set()` or set `ggplot2.discrete.colour`
-yourself — `gl_setup()` handles it.
+This registers the bundled fonts (**Source Serif 4** + **Inter** via
+systemfonts), sets the theme globally, and configures the default discrete
+color/fill palette. You do **not** need to call `theme_set()` or set
+`ggplot2.discrete.colour` yourself — `gl_setup()` handles it.
+
+Base size resolves by mode: **report charts use 9pt** (they are placed 1:1
+into the page, where 9pt renders exactly Nil's specced 12px chart text);
+**slide charts use 12pt** (distance viewing; slides sit outside Nil's
+report-only spec). Override with `gl_setup(base_size = ...)` only with reason.
 
 ## What `gl_setup()` provides
 
@@ -43,15 +48,20 @@ After calling `gl_setup()`, the following are available:
 | `lead_finding_dark` | `gl$c_2_dark` (`#8A2C2B`) — stroke/label for the lead-finding mark |
 | `accent` | `gl$accent` (`#1A5A8E`) — **non-data UI chrome only** (eyebrows, figure labels, links). Do **not** use as a data-mark fill — that is the typography↔data-viz mix-up to avoid |
 | `c_muted` | `gl$c_muted` (`#AFB5BE`) — "everyone-else" gray for de-emphasis |
-| `highlight_sz` | `linewidth` for the highlighted focus line (`0.65`, ~2.4px). Standard/muted lines default to `0.5` (~2px) — the focus is only ~1.3× thicker, per spec §5 (not a 2× jump) |
+| `highlight_sz` | `linewidth` for the highlighted focus line (`0.84` = 2.4px). Standard/muted lines default to `0.70` (= 2px) — the focus is 1.2× thicker, per spec §5 (not a 2× jump) |
+| `gl_text_size` | `size` for `geom_text`/`geom_label`/`annotate` (≈3.16 = 9pt = Nil's 12px). Already the geom default; it is the **floor** — never pass anything smaller |
+| `gl_zero_line()` | Zero baseline: solid 1px `ink_2` at axis weight (Nil §4). `gl_zero_line()` for y = 0, `gl_zero_line("x")` for x = 0. The bare `geom_hline`/`geom_vline` default (dashed `ink_3`) is for reference *thresholds*, not zero lines |
+| `gl_dark()` | Maps any GL main/light tone to its dark partner — for label/stroke colors (decision rule 2) |
+| `gl_endlabel()` | Direct line-end series labels in the dark tone (wraps `geom_text_repel` with house conventions) |
+| `gl_endlabel_room()` | Companion: `clip = "off"` + right margin + no legend, so end labels aren't clipped |
 | `theme_gl()` | The theme function (already applied via `theme_set`) |
 | `scale_color_gl()` | Discrete color scale using GL palettes |
 | `scale_fill_gl()` | Discrete fill scale using GL palettes |
-| `scale_color_gl_gradient()` | Continuous color scale (sequential / diverging) |
-| `scale_fill_gl_gradient()` | Continuous fill scale (sequential / diverging) |
+| `scale_color_gl_gradient()` | Continuous color scale (sequential / diverging; diverging auto-centers on `midpoint = 0`) |
+| `scale_fill_gl_gradient()` | Continuous fill scale (same midpoint behavior) |
 | `gl_palettes` | Named list of all available palettes |
 | `gl_fig` | Named figure sizes for `save_fig()` |
-| `save_fig()` | Save at a named size to `imgs/` at 300 DPI |
+| `save_fig()` | Save at a named size at 300 DPI — to `imgs/` or `dir =` / `options(gl.fig.dir = ...)` |
 
 ### Tokens in `gl`
 
@@ -79,8 +89,8 @@ mirror of `theme_gl.R`. Update here whenever `grammar.md` changes.
 const GL = {
   // Ink ramp
   ink:          '#1A1714',
-  ink_2:        '#2C2823',
-  ink_3:        '#4F4A42',  // axis lines, tick labels, captions — standard axis color
+  ink_2:        '#2C2823',  // axis lines, ticks, tick labels — the standard axis color (Nil §4)
+  ink_3:        '#4F4A42',  // subtitles, captions, reference lines
   ink_4:        '#9A9389',  // faint markers, sparse trendlines
   accent:       '#1A5A8E',  // non-data chrome only (eyebrows, links) — = c_1_dark
   paper:        '#FFFFFF',
@@ -126,13 +136,16 @@ const GL = {
 
 // Dark-mode swap — axes and gridlines only; brand colors stay the same
 const dm = matchMedia('(prefers-color-scheme: dark)').matches;
-const AX = dm ? '#6B6560' : GL.ink_3;   // axis lines + tick labels
+const AX = dm ? '#6B6560' : GL.ink_2;   // axis lines + tick labels (ink_2 per Nil §4)
 const GR = dm ? '#302C28' : GL.gridline; // gridlines
 
-// Font sizes (SVG user units — see Rule 11 for sizing rationale)
-// For a 310-unit wide viewBox in a ~310px column:
-const FS     = 9.5;  // tick labels, axis titles, source line
-const FS_LBL = 10;   // series end-labels, direct data labels
+// Font sizes (SVG user units). Nil §3: ALL chart text is 12px at render size —
+// that is both the spec value and the floor. SVG font-size is in viewBox user
+// units, so if the viewBox renders at a different pixel width, rescale:
+//   font-size = 12 × (viewBox_width / render_width_px)
+// For a viewBox rendered 1:1 (e.g. 310 units in a 310px column):
+const FS     = 12;   // tick labels, axis titles, source line (weight 400/500)
+const FS_LBL = 12;   // series end-labels, direct data labels (weight 600, dark tone)
 ```
 
 ## Core rules
@@ -144,6 +157,8 @@ to individual plots. The only per-chart theme adjustments allowed are:
 
 - `legend.position = "right"` (when >6 categories — more than the default palette)
 - `guides(color = guide_legend(nrow = 2))` (when bottom legend clips)
+- the gridline flip for horizontal-bar charts (rule 13)
+- `gl_endlabel_room()` when using direct end labels (rule 13)
 
 ### 2. Highlight with the mute-then-paint technique
 
@@ -170,11 +185,12 @@ occlude the focus dot.
 
 ```r
 ggplot(data, aes(x, y)) +
-    geom_point(data = \(d) filter(d, !focus), alpha = 0.3) + # 1. muted backdrop, focus EXCLUDED
-    geom_smooth() +                                        # 2. trend
+    geom_point(data = \(d) filter(d, !focus)) +            # 1. muted backdrop (0.8 default,
+                                                           #    same as Nil's samples), focus EXCLUDED
+    geom_smooth() +                                        # 2. trend (ink_4 default)
     geom_point(data = \(d) filter(d, focus),               # 3. highlight, painted ONCE —
                fill = highlight, color = highlight_dark,   #    main fill + dark stroke
-               alpha = 1, size = 3) +                       #    alpha = 1, no grey underneath
+               alpha = 1) +                                #    alpha = 1, no grey underneath
     geom_text_repel(data = \(d) filter(d, focus),          # 4. label uses the dark tone
                     aes(label = name), color = highlight_dark)
 ```
@@ -246,8 +262,8 @@ this warning before writing the chart code:**
 
 **Untyped geoms default to muted, not a saturated color** — this is the
 GL popout pattern: paint everyone in `c_muted` first (no aesthetic mapping
-needed), then re-paint the focus series in `highlight` or `accent`.
-Authors opt *in* to color, never out of it.
+needed), then re-paint the focus series in `highlight` (or `lead_finding`
+for stark emphasis). Authors opt *in* to color, never out of it.
 
 ```r
 data |>
@@ -261,21 +277,23 @@ After `gl_setup()` the relevant defaults are:
 
 | Geom | Default |
 |------|---------|
-| `geom_line` / `geom_path` / `geom_step` | colour = `c_muted_dark` |
-| `geom_point` | **shape 21**, fill = `c_muted`, colour (stroke) = `c_muted_dark`, 0.8 alpha — every point has a fill + a 1px darker stroke |
+| `geom_line` / `geom_path` / `geom_step` | colour = `c_muted`, 2px — the muted backdrop of the pop-up pattern (Nil §11) |
+| `geom_point` | **shape 21**, fill = `c_muted`, colour (stroke) = `c_muted_dark` 1px, 0.8 alpha, size 3 (Nil §5: 5–7px radius) — every point has a fill + a darker stroke |
 | `geom_col` / `geom_bar` | fill = `c_muted`, **1px `paper` stroke** (gives the stacked-segment separation; invisible on a single bar) |
 | `geom_area` | fill = `c_muted`, no stroke (stacked areas stay gapless) |
-| `geom_smooth` | line `c_muted_dark`, ribbon `c_muted_light` |
+| `geom_smooth` | line `ink_4` (grammar §1: trendlines), ribbon `c_muted_light` |
 | `geom_ribbon` | fill = `c_muted_light`, alpha 0.5 |
-| `geom_boxplot` | **recedes**: `c_muted_light` fill, `c_muted` outline (background distribution) |
-| `geom_hline` / `geom_vline` | dashed `ink_3` (reference line) |
-| `geom_text` / `geom_label` | `ink_2`, sans family |
+| `geom_boxplot` / `geom_violin` | **recede**: `c_muted_light` fill, `c_muted` outline — not a dark outline (Nil §11b) |
+| `geom_sf` | 0.5px `ink_3` borders between regions (Nil §10) |
+| `geom_hline` / `geom_vline` | dashed `ink_3` (reference **threshold** — a zero baseline is `gl_zero_line()`, see rule 12) |
+| `geom_text` / `geom_label` | `ink_2`, sans family, size = `gl_text_size` (the 12px floor) |
 
-The line/point grey is *darker* than the bar grey because lines and points
-read as "the data" — a single-series time series should feel substantive.
-Bars are typically a row of comparators where one will be highlighted, so
-they sit on a softer backdrop. For an institutional-voice single-series
-chart where the line should be blue, override: `geom_line(color = accent)`.
+Every muted mark shares `c_muted` so the backdrop reads as one recessive
+layer, and any label tied to it takes `c_muted_dark` — never the same hex
+as the mark. A **single-series** chart is a focus series with no backdrop:
+opt into color explicitly with `geom_line(color = highlight)` (the main
+blue — Nil's samples draw every line series in the main tone; `accent` is
+never a data color).
 
 ### 4. Use `scale_color_gl()` / `scale_fill_gl()` for named palettes
 
@@ -323,9 +341,16 @@ For continuous data (e.g. choropleth fill), use `*_gl_gradient()`:
 ```r
 states |>
     ggplot(aes(geometry = geom, fill = gdp_per_cap)) +
-    geom_sf() +
+    geom_sf() +      # 0.5px ink_3 region borders come from the geom default
     scale_fill_gl_gradient("sequential_1")
 ```
+
+**Diverging palettes center themselves on `midpoint = 0`.** The boundary
+between the two hues must sit at the data's reference point (Nil decision
+rule 9) — a plain `gradientn` would put it at the middle of the data *range*,
+so on data from −5 to +20 the red/blue boundary would land at +7.5 and the
+chart would lie. Pass `midpoint =` for a non-zero reference (e.g. a baseline
+mean), or `midpoint = NA` to disable when binning by hand.
 
 ### 5. Save figures at named sizes
 
@@ -346,6 +371,11 @@ save_fig("half", "small-sidebar-chart.png")
 | `half` | 3.167 × 3.0" | Side-by-side pair |
 | `half_tall` | 3.167 × 5.0" | Tall narrow chart |
 | `slide` | 10 × 5.625" | 16:9 slide deck (Marp, PowerPoint) |
+
+Figures land in `imgs/` by default. To redirect a whole script, set
+`options(gl.fig.dir = "path/to/dir")` once at the top (or pass `dir =` per
+call) — do **not** redefine `save_fig()`, which silently loses the ragg
+device and the tabular-figure rendering with it.
 
 ### 6. Log scale for GDP per capita
 
@@ -404,14 +434,14 @@ the stroke — so pair a dark color scale with a main fill scale:
 
 ```r
 ggplot(data, aes(x, y, color = group, fill = group)) +
-    geom_point(shape = 21, size = 3, alpha = 0.8, stroke = 0.6) +
+    geom_point() +                        # shape 21, size 3, 1px stroke, 0.8 alpha — all defaults
     scale_fill_gl("categorical") +        # main tone — circle body
     scale_color_gl("categorical_dark")    # dark tone — stroke
 ```
 
 For a single-focus scatter, draw the focus point **once at `alpha = 1`** (and keep
 it out of the muted backdrop layer):
-`geom_point(shape = 21, fill = gl$c_1, color = gl$c_1_dark, alpha = 1, stroke = 0.6)`.
+`geom_point(fill = gl$c_1, color = gl$c_1_dark, alpha = 1)`.
 The 0.8 default opacity is for the overlapping *backdrop* cloud, not the highlight.
 
 Single-layer marks (bars, treemap tiles, choropleths) stay at full opacity —
@@ -452,38 +482,64 @@ geom_point(aes(x = total), fill = gl$c_muted_light, color = gl$paper,
            size = 2.2, stroke = 0.7)
 ```
 
-### 11. Minimum font size — 12px everywhere
+### 11. Chart text is 12px — the spec value and the floor
 
-**12px is the floor for every text element inside a visualization.** This
-applies without exception to:
+Nil §3 sets **every text element inside a chart at 12px** (only the chart
+title is larger, at 14px). 12px is simultaneously the target and the floor:
 
-- Axis tick labels
-- Axis titles (the rotated Y label and the X label)
+- Axis tick labels and axis titles
 - Direct series labels, callout annotations, and line-end labels
 - Legend text
 - Figure labels (eyebrows) and chart source lines
 
-Never go below 12px, even when space is tight. If labels crowd at 12px,
+Never go below it, even when space is tight. If labels crowd at 12px,
 reduce the number of ticks, abbreviate the label text, or resize the figure
 — do not shrink the type.
 
-In ggplot2, `base_size = 12` in `theme_gl()` already sets the floor; do not
-override any `element_text(size = ...)` below 12.
+**Units differ by layer — don't eyeball the numbers.** Report figures are
+saved at physical size and placed 1:1 into the page, where CSS px is an
+absolute unit (96px = 1in). The conversions:
 
-**In D3 / SVG widgets**, the 12px rule applies to the *rendered output*
-(exported PNG at 300 DPI). SVG `font-size` attributes are in viewBox user
-units and scale with the container — setting `font-size="12"` on a 320-unit
-viewBox that renders at 600px produces 22px text visually. Instead, size
-relative to the viewBox so the text lands near 12px at the intended render
-width. For a 310-unit wide viewBox in a ~310px column, use:
+| Spec (px) | Theme (`element_text`, pt = px × 0.75) | Geoms (`size`, = pt / 2.845) |
+|-----------|------------------------------------------|-------------------------------|
+| 12px chart text | 9pt — the report-mode `base_size` | `gl_text_size` (≈ 3.16) — the geom default |
+| 14px chart title | 10.5pt (`rel(14/12)`) | — |
 
-| Role | SVG font-size |
-|------|--------------|
-| Tick labels, axis titles, source line | `9.5` |
-| Series end-labels, direct data labels | `10` |
+So in report mode everything is already right: `base_size = 9` and the
+`geom_text`/`geom_label` default of `gl_text_size` both render exactly 12px
+on the page. The failure mode is passing a hand-picked `size = 3` or
+`size = 2.5` to a text geom (both below the floor) or overriding
+`element_text(size = ...)` downward — don't. Pass `size = gl_text_size` when
+a text layer needs an explicit size (e.g. `geom_text_repel`, whose defaults
+the theme cannot reach).
 
-These values give ~10–11px at a 310px column. If the viewBox width changes,
-rescale: `font-size = 12 × (viewBox_width / render_width_px)`.
+Line widths follow the same discipline (`linewidth` × 2.845 = px): 1px
+axis/gridline/baseline = `0.35`, 2px standard line = `0.70`, 2.4px focus =
+`highlight_sz` (0.84).
+
+**In D3 / SVG widgets**, `font-size` is in viewBox user units and scales
+with the container. All chart text is 12px *at render size*, so:
+`font-size = 12 × (viewBox_width / render_width_px)` — for a viewBox
+rendered 1:1, that is simply `12` (see the GL constants block above).
+
+### 12. Same geom, different jobs — pick by role, not by geom
+
+The spec assigns different treatments to the *role* a mark plays, so the
+same geom is styled differently by context. The defaults cover the most
+common role; the others are one explicit call:
+
+| Role | Treatment | How |
+|------|-----------|-----|
+| Reference **threshold** (a target, a safety line) | dashed 1px `ink_3` | `geom_hline(yintercept = 3)` — the default |
+| **Zero baseline** (part of the frame of reference) | **solid** 1px `ink_2`, axis weight — never dashed, never gridline weight (Nil §4) | `gl_zero_line()` / `gl_zero_line("x")` |
+| **Trend** (regression, smoother) | `ink_4` line, soft ribbon | `geom_smooth()` — the default |
+| **Muted backdrop** (the "everyone else" of the pop-up) | `c_muted`, standard 2px | bare `geom_line()` / `geom_col()` / `geom_point()` — the default |
+| **Single series** (no backdrop — the chart *is* the focus) | main blue, standard 2px | `geom_line(color = highlight)` |
+| **Focus over a backdrop** | main blue (or red), 2.4px | `geom_line(color = highlight, linewidth = highlight_sz)` |
+
+Two easy mistakes this table exists to prevent: a dashed zero baseline
+(zero is frame, not annotation), and a backdrop painted with `accent` or a
+dark tone (backdrops are `c_muted`; dark tones belong to strokes and text).
 
 ### 13. Axis & title conventions
 
@@ -501,7 +557,17 @@ rescale: `font-size = 12 × (viewBox_width / render_width_px)`.
   — it reads as a finding statement. The subtitle does **not** end in a period.
 - **Gridlines default to horizontal (Y) only.** For horizontal-bar charts, flip
   to vertical so the reader can estimate bar lengths:
-  `theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.4), panel.grid.major.y = element_blank())`.
+  `theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35), panel.grid.major.y = element_blank())`.
+- **Prefer direct end labels over a legend** when the reader tracks 1–4 series
+  (Nil §3, §11). Filter each series to its last point, then:
+
+  ```r
+  ends <- data |> group_by(series) |> filter(year == max(year)) |> ungroup()
+  ... +
+  gl_endlabel(data = ends, mapping = aes(x = year, y = value, label = series),
+              color = ends$main_tone) +    # main tones in — dark tones drawn
+  gl_endlabel_room()                       # clip off + right margin + no legend
+  ```
 - **Tabular figures — enabled.** The spec asks for
   `font-variant-numeric: tabular-nums` on all numerals (Decision Rule 11). Fonts
   are registered through `systemfonts` (not `showtext`), so every Inter family
@@ -530,6 +596,36 @@ data |>
                alpha = 1, size = 2)
 ```
 
+### 15. Choropleths and maps
+
+- Region borders: **0.5px `ink_3`** between polygons (Nil §10) — this is the
+  `geom_sf` default after `gl_setup()`, so plain `geom_sf()` is correct.
+- Fill: `scale_fill_gl_gradient("sequential_1")` for ordered values (darker =
+  higher); a `diverging_*` palette **only** when the data has a real midpoint —
+  the scale centers itself on `midpoint = 0` (see rule 4). Never diverging on a
+  purely positive scale.
+- Match the ramp's step count to the data when binning: three steps for coarse
+  signals, seven+ for fine gradients.
+
+### 16. Radar charts and treemaps — no helper, follow the tokens
+
+There is no `theme_gl` helper for these; when improvising (e.g. `ggradar`,
+`treemapify`, or raw grid), apply Nil's values directly:
+
+**Radar (Nil §9):** series polygon fill `gl$c_1` at **`alpha = 0.25`** (the
+one place fills drop below 0.8 — gridlines must read through), stroke `gl$c_1`
+full opacity 2px round join; vertex dots 3px `gl$c_1`, no stroke; grid rings
+1px `gl$gridline` with the **outermost ring `gl$ink_3`**; axis lines 1px
+`gl$ink_3`; axis labels Inter 12px / 500 / `ink_2` outside the ring; a second
+entity is `gl$c_muted` at the same opacities, drawn *under* the focus.
+
+**Treemap (Nil §8):** tiles in main tones at **full opacity, no stroke**
+(tiles abut directly); labels Inter, white on dark tiles with a dark-text
+fallback on light tiles, value + share on a second line. For product-space /
+trade data use the sector palettes (`scale_fill_gl("hs_sectors")`), otherwise
+categorical order. The pop-up variant colors only the focus tile and leaves
+the rest `c_muted`.
+
 ## Complete example
 
 ```r
@@ -544,7 +640,7 @@ focus_country <- "Mongolia"
 
 trade_data |>
     ggplot(aes(x = year, y = export_value, group = country)) +
-    geom_line(color = c_muted, linewidth = 0.5) +
+    geom_line() +                            # muted backdrop — the default
     geom_line(data = \(d) filter(d, country == focus_country),
               color = highlight, linewidth = highlight_sz) +
     scale_y_continuous(labels = scales::dollar) +
@@ -591,15 +687,27 @@ gl$ink                           # "#1A1714"
 - [ ] Overlapping marks (scatter, radar) use 0.8 fill+stroke opacity
 - [ ] Related categories use one hue's tones (two/three-tone) before reaching
       for multiple colors
-- [ ] Stacked bars have a 1px paper gap (`geom_col(color = gl$paper, linewidth = 0.5)`),
-      ordered largest-share-at-bottom; stacked areas stay edge-to-edge
-- [ ] Highlighted focus line is only ~1.3× the muted line (`highlight_sz`), not a 2× jump
-- [ ] Sequential ramp for ordered values; diverging only with a real midpoint
-- [ ] All text in the visualization is ≥ 12px: tick labels, axis titles, direct labels, legend text, source line — no exceptions
+- [ ] Stacked bars have the 1px paper gap (the `geom_col` default), ordered
+      largest-share-at-bottom; stacked areas stay edge-to-edge — no white stroke
+- [ ] Highlighted focus line is 1.2× the muted line (`highlight_sz` 0.84 vs 0.70), not a 2× jump
+- [ ] **Zero baselines use `gl_zero_line()`** — solid 1px ink_2, never the dashed
+      threshold default, never gridline weight
+- [ ] Sequential ramp for ordered values; diverging only with a real midpoint —
+      and the diverging scale is centered (`midpoint =`, default 0)
+- [ ] All in-chart text is 12px: theme sizes untouched, explicit text layers use
+      `gl_text_size` — nothing smaller, no exceptions
+- [ ] No non-token color literals — `gl$paper` not `"white"`, `gl$c_muted_light`
+      not `"lightgrey"`, never `"red"`/`"blue"`
+- [ ] Scatter points keep the default size 3 / 1px stroke (Nil §5: 5–7px radius)
+- [ ] Choropleths: `geom_sf()` default 0.5px `ink_3` borders intact
 - [ ] Y-axis label is rotated vertically (upward, centered) — never horizontal
 - [ ] Year-only X axis omits its axis label (`labs(x = NULL)`)
 - [ ] Chart title (slide mode) ends in a period; subtitle does not
+- [ ] A source line exists — in-chart (slide mode) or in the document figure
+      block (report mode); a standalone PNG with no source is incomplete
 - [ ] Horizontal-bar charts flip gridlines to vertical (X)
-- [ ] Figures saved with `save_fig()` at named sizes
+- [ ] Figures saved with `save_fig()` at named sizes (`options(gl.fig.dir=)` to
+      redirect — never redefine `save_fig`)
 - [ ] GDP per capita axes use `scale_x_log10()`
-- [ ] Legend fits without clipping (use `nrow = 2` or `position = "right"` if needed)
+- [ ] Legend fits without clipping (use `nrow = 2` or `position = "right"` if
+      needed) — or better, direct end labels via `gl_endlabel()`

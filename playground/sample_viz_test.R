@@ -13,21 +13,14 @@
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(forcats)
 library(ggrepel)
 
 source("skills/gl-ggplot/assets/theme_gl.R")
 gl_setup(mode = "slide")  # slide mode keeps title / subtitle / caption
 
-# Override save_fig to write to playground/imgs/sample_viz/
-img_dir <- "playground/imgs/sample_viz"
-dir.create(img_dir, showWarnings = FALSE, recursive = TRUE)
-
-save_fig <- function(size_name, filename, plot = last_plot(), dpi = 300) {
-    sz <- gl_fig[[size_name]]
-    ggsave(file.path(img_dir, filename), plot = plot,
-           width = sz$w, height = sz$h, dpi = dpi, device = ragg::agg_png)
-    cat(sprintf("  saved: %s  (%s: %.1fx%.1f\")\n", filename, size_name, sz$w, sz$h))
-}
+# Route save_fig output to the playground image directory.
+options(gl.fig.dir = "playground/imgs/sample_viz")
 
 set.seed(42)
 
@@ -40,11 +33,11 @@ reserves <- tibble(
 ) |> mutate(value = pmax(value, 0.5))
 
 ggplot(reserves, aes(x = year, y = value)) +
-    geom_hline(yintercept = 3) +
-    geom_line(color = highlight, linewidth = 0.6) +
+    geom_hline(yintercept = 3) +                 # reference threshold: dashed ink_3 default
+    geom_line(color = highlight) +               # single series opts into c_1; standard 2px default
     geom_point(fill = highlight, color = highlight_dark, alpha = 1, size = 2) +
     annotate("text", x = 1998, y = 3.35, label = "Safety threshold",
-             family = "gl_sans", color = gl$ink_3, size = 3.2, hjust = 0) +
+             family = "gl_sans", color = gl$ink_3, size = gl_text_size, hjust = 0) +
     scale_x_continuous(breaks = seq(1995, 2025, 5)) +
     labs(
         title    = "Reserves have repeatedly dipped below the safety threshold.",
@@ -70,19 +63,18 @@ ml <- expand.grid(year = 2000:2023, country = countries) |>
 ml_ends <- ml |> group_by(country) |> filter(year == max(year)) |> ungroup()
 
 ggplot(ml, aes(x = year, y = value, group = country)) +
-    geom_line(data = \(d) filter(d, country != "Focus")) +
+    geom_line(data = \(d) filter(d, country != "Focus")) +     # muted backdrop (c_muted default)
     geom_line(data = \(d) filter(d, country == "Focus"),
               color = highlight, linewidth = highlight_sz) +
-    geom_text_repel(
+    # Direct end labels in each series' dark tone — pass the MAIN tones,
+    # gl_endlabel() applies the dark partner (decision rule 2).
+    gl_endlabel(
         data    = ml_ends,
-        aes(label = country),
-        color   = if_else(ml_ends$country == "Focus", highlight_dark, gl$c_muted_dark),
-        family  = "gl_sans", fontface = "bold", size = 3.2,
-        hjust = 0, direction = "y", nudge_x = 0.3, segment.color = NA
+        mapping = aes(x = year, y = value, label = country),
+        color   = if_else(ml_ends$country == "Focus", highlight, c_muted)
     ) +
     scale_x_continuous(expand = expansion(mult = c(0.02, 0.1))) +
-    coord_cartesian(clip = "off") +
-    theme(legend.position = "none", plot.margin = margin(5, 80, 5, 5)) +
+    gl_endlabel_room(right = 80) +
     labs(
         title    = "Focus country has grown consistently faster than peers.",
         subtitle = "GDP per capita index (2000 = 40), 2000–2023",
@@ -102,8 +94,8 @@ three_series <- expand.grid(year = 2005:2023, series = c("Current Account", "Fis
     ungroup()
 
 ggplot(three_series, aes(x = year, y = value, color = series)) +
-    geom_hline(yintercept = 0) +
-    geom_line(linewidth = 0.6) +
+    gl_zero_line() +                 # zero baseline: solid 1px ink_2 (Nil §4)
+    geom_line() +
     scale_color_gl("categorical") +
     scale_x_continuous(breaks = seq(2005, 2023, 3)) +
     scale_y_continuous(labels = \(x) paste0(x, "%")) +
@@ -129,13 +121,14 @@ bar_data <- tibble(
     )
 
 ggplot(bar_data, aes(x = value, y = country)) +
-    geom_col(fill = gl$c_muted) +
+    geom_col() +                                              # muted default
     geom_col(data = \(d) filter(d, focus), fill = highlight) +
-    geom_text(aes(label = paste0(value, "%")),
-              hjust = -0.2, family = "gl_sans", size = 3,
-              color = if_else(bar_data$focus, highlight_dark, gl$c_muted_dark)) +
+    geom_text(aes(label = paste0(value, "%")), hjust = -0.2,  # family/size from defaults
+              color = gl_dark(if_else(bar_data$focus, highlight, c_muted))) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
-    theme(panel.grid.major.y = element_blank()) +
+    # Horizontal bars estimate along X — flip the gridlines (Nil §4).
+    theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35),
+          panel.grid.major.y = element_blank()) +
     labs(
         title    = "Pakistan trails regional peers in export share.",
         subtitle = "Goods exports as % of GDP, latest year",
@@ -158,12 +151,12 @@ scatter_df <- tibble(
 
 ggplot(scatter_df, aes(x = gdppc, y = complexity)) +
     geom_smooth(method = "lm", se = TRUE) +
-    geom_point(data = \(d) filter(d, !focus), alpha = 0.3) +
-    geom_point(data = \(d) filter(d, focus),
+    geom_point(data = \(d) filter(d, !focus)) +   # muted backdrop at the 0.8 default (Nil §5)
+    geom_point(data = \(d) filter(d, focus),      # focus painted once, opaque
                fill = highlight, color = highlight_dark, alpha = 1, size = 4) +
     geom_text_repel(data = \(d) filter(d, focus),
                     aes(label = "Pakistan"), color = highlight_dark,
-                    family = "gl_sans", fontface = "bold", size = 3.5) +
+                    family = "gl_sans", fontface = "bold", size = gl_text_size) +
     scale_x_log10(labels = scales::dollar) +
     labs(
         title    = "Pakistan lags in economic complexity given its income level.",
@@ -189,7 +182,7 @@ area_data <- expand.grid(year = 1995:2023, sector = sectors) |>
     ungroup()
 
 ggplot(area_data, aes(x = year, y = value, fill = sector)) +
-    geom_area(color = "white", linewidth = 0.3) +
+    geom_area() +    # stacked areas sit edge-to-edge, no stroke (Nil §6)
     scale_fill_gl("categorical") +
     scale_x_continuous(breaks = seq(1995, 2023, 4)) +
     labs(
@@ -214,9 +207,9 @@ focus_line <- tibble(
 
 ggplot(box_data, aes(x = year, y = value, group = year)) +
     geom_boxplot(outlier.shape = NA) +
-    geom_line(data = focus_line, aes(group = NA),
-              color = highlight, linewidth = highlight_sz, inherit.aes = FALSE,
-              mapping = aes(x = year, y = value)) +
+    geom_line(data = focus_line,
+              mapping = aes(x = year, y = value, group = NA),
+              color = highlight, linewidth = highlight_sz, inherit.aes = FALSE) +
     geom_point(data = focus_line,
                aes(x = year, y = value, group = NA),
                fill = highlight, color = highlight_dark,
@@ -245,10 +238,12 @@ div_data <- tibble(
 
 ggplot(div_data, aes(x = change, y = sector, fill = pos)) +
     geom_col() +
-    geom_vline(xintercept = 0, color = gl$ink_2, linewidth = 0.4) +
+    gl_zero_line("x") +              # zero baseline: solid 1px ink_2 (Nil §4)
     scale_fill_manual(values = c("TRUE" = gl$c_1, "FALSE" = gl$c_2)) +
     scale_x_continuous(labels = \(x) paste0(x, "%")) +
-    theme(panel.grid.major.y = element_blank(), legend.position = "none") +
+    # Horizontal bars estimate along X — flip the gridlines (Nil §4).
+    theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35),
+          panel.grid.major.y = element_blank(), legend.position = "none") +
     labs(
         title    = "Gains in machinery offset by losses in agriculture and minerals.",
         subtitle = "Change in export share by sector, 2011–2023 (percentage points)",
@@ -277,9 +272,9 @@ focus_facet <- expand.grid(year = 2000:2023, component = components) |>
 
 ggplot(facet_df, aes(x = year, y = value, group = year)) +
     geom_boxplot(outlier.shape = NA) +
-    geom_line(data = focus_facet, aes(group = NA),
-              color = highlight, linewidth = highlight_sz, inherit.aes = FALSE,
-              mapping = aes(x = year, y = value)) +
+    geom_line(data = focus_facet,
+              mapping = aes(x = year, y = value, group = NA),
+              color = highlight, linewidth = highlight_sz, inherit.aes = FALSE) +
     geom_point(data = focus_facet,
                aes(x = year, y = value, group = NA),
                fill = highlight, color = highlight_dark,
@@ -318,14 +313,13 @@ swatches <- tibble(
 
 ggplot(swatches, aes(x = tone, y = name, fill = hex)) +
     geom_tile(width = 0.9, height = 0.9) +
-    geom_text(aes(label = hex), family = "gl_sans", size = 2.4, color = gl$ink_2) +
+    geom_text(aes(label = hex), color = gl$ink_2) +   # family/size (12px floor) from defaults
     scale_fill_identity() +
     scale_x_discrete(position = "top") +
     theme(
         panel.grid  = element_blank(),
         axis.line   = element_blank(),
-        axis.ticks  = element_blank(),
-        axis.text.y = element_text(size = 9)
+        axis.ticks  = element_blank()
     ) +
     labs(
         title    = "GL categorical palette — all 21 color tokens.",
@@ -335,4 +329,4 @@ ggplot(swatches, aes(x = tone, y = name, fill = hex)) +
     )
 save_fig("full_tall", "10-palette-swatch.png")
 
-cat("\nDone. Charts saved to:", img_dir, "\n")
+cat("\nDone. Charts saved to:", getOption("gl.fig.dir"), "\n")

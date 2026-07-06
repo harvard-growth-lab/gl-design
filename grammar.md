@@ -26,8 +26,9 @@ not neutral greys) — it sits on paper, not on a screen.
 | `ink-4` | `#9A9389` | Trendlines, deep-background markers (rarely used outside charts) |
 
 For hairline borders between blocks, use `rule` (below), not `ink-4`. `ink-4`
-is reserved for *inside* the chart panel — a faint stroke on the outermost
-gridline of a radar, the line behind a sparse trend.
+is reserved for *inside* the chart panel — the trendline behind the data
+(the `geom_smooth` default). (A radar's outermost grid ring is `ink-3`, per
+Nil §9 — not `ink-4`.)
 
 ### Accent
 
@@ -52,6 +53,10 @@ WCAG AA contrast against paper.
 | `paper-warm`  | `#F4F1EA` | Warm surface — accent panels, code / quote tint    |
 | `rule`        | `#DDDDDD` | Hairline borders between content blocks            |
 | `gridline`    | `#D8D4CC` | In-chart gridlines (see §3)                        |
+
+> **[revised — Nil, 2026-06-16]** `gridline` was `#ECE9E2` in the original
+> data-vis spec; Nil darkened it to `#D8D4CC` (commit `182ea68`). This value
+> is current — do not "correct" it back against `docs/nil/data-vis-rules.md`.
 
 The split is deliberate: content pages are pure white so figures land
 on a neutral background and color reads true; the cover is warmer (`cover-bg`)
@@ -85,6 +90,11 @@ more, re-think the encoding or use the muted base in §3.
 | `c-muted-light` | `#CDD2D9` | Faded fills, background panels                 |
 | `c-muted` | `#AFB5BE`   | "Everyone-else" series in the highlight pattern    |
 | `c-muted-dark`  | `#5F6773` | Dark stroke or label for a muted series        |
+
+> **[revised — Nil, 2026-06-16]** The main muted tone was `#999FA8` in the
+> original data-vis spec; Nil lightened it to `#AFB5BE` (commit `182ea68`).
+> This value is current — do not "correct" it back against
+> `docs/nil/data-vis-rules.md`.
 
 A cool grey that visually recedes behind the warm ink and the categorical
 hues. Used in the highlight pattern (§3.1).
@@ -291,9 +301,9 @@ In ggplot:
 ```r
 data |>
     ggplot(aes(x = x, y = y, group = country)) +
-    geom_line(color = c_muted, linewidth = 0.6) +
+    geom_line() +                                  # backdrop: c_muted, 2px — the default
     geom_line(data = \(d) filter(d, country == "Mongolia"),
-              color = highlight, linewidth = highlight_sz)
+              color = highlight, linewidth = highlight_sz)   # focus: 2.4px
 ```
 
 The `theme_gl()` helper provides `c_muted`, `c_1`..`c_6`, `accent`, and

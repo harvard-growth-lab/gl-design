@@ -38,6 +38,10 @@ tokens first.
 > as `--accent (#2F87C8)`, but `--accent` is defined as **#1A5A8E** and the
 > figure-label CSS uses #1A5A8E. Treat **figure label = #1A5A8E**.
 
+> **[revised — Nil, 2026-06-16]** `--gridline` above (`#ECE9E2`) was later
+> darkened by Nil to **`#D8D4CC`** (commit `182ea68`, "styling changes").
+> `grammar.md` carries the current value; the table above is the original.
+
 ---
 
 ## 2. Chart color palettes
@@ -64,6 +68,10 @@ light / main / dark. Tokens follow `--c-N-light / --c-N / --c-N-dark`.
 | `c-5` (orange) | #F4BC8A · **#EA822D** · #A8580F | Fifth series |
 | `c-6` (yellow) | #E6E2A8 · **#CDC86B** · #8A8638 | Sixth series |
 | `c-muted` | #CDD2D9 · **#999FA8** · #5F6773 | De-emphasis — "everyone else" |
+
+> **[revised — Nil, 2026-06-16]** The main muted tone (`#999FA8`) was later
+> lightened by Nil to **`#AFB5BE`** (commit `182ea68`, "styling changes"); the
+> light and dark tones are unchanged. `grammar.md` carries the current value.
 
 ### Sequential — single-hue ramps
 

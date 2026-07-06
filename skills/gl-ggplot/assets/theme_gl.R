@@ -6,6 +6,29 @@
 #   gl_setup(mode = "slide")            # slide mode (keeps title/subtitle)
 #
 # Requires: ggplot2, systemfonts, ragg (ragg pulls in textshaping)
+#
+# ---- Units: Nil's spec is in CSS px; ggplot is not ---------------------------
+#
+# Report figures are saved at physical size (inches) and placed 1:1 into the
+# report, where CSS px is an absolute print unit (96px = 1in). So spec px
+# convert exactly, and every hard-coded size in this file derives from the
+# spec value via this table:
+#
+#   Spec (px)                 theme element_text          geom argument
+#   ──────────────────────    ─────────────────────       ────────────────────────
+#   12px chart text           size 9pt (= px × 0.75)      size = gl_text_size (3.16)
+#   14px chart title          10.5pt (= rel(14/12))       —
+#   1px axis/grid/baseline    —                           linewidth = 0.35
+#   2px standard line         —                           linewidth = 0.70
+#   2.4px focus line          —                           linewidth = 0.84
+#   0.5px map borders         —                           linewidth = 0.18
+#   1px point stroke          —                           stroke = 0.53
+#   4px tick length           unit(3, "pt")               —
+#
+# Why: R lwd 1 = 1/96 in = 1 px, and ggplot draws lwd = linewidth × 2.845
+# (2.845 = 72.27/25.4), so linewidth = px / 2.845. Text: fontsize is in pt
+# (= px × 0.75) and geom text size × 2.845 = fontsize, so 12px → 9pt → 3.16.
+# Point stroke: lwd = stroke × 1.89, so 1px → 0.53.
 
 library(ggplot2)
 library(systemfonts)
@@ -80,10 +103,13 @@ lead_finding_dark <- gl$c_2_dark  # #8A2C2B — stroke/label for the lead findin
 c_muted      <- gl$c_muted    # cool grey, "everyone else"
 accent       <- gl$accent     # #1A5A8E — non-data UI chrome only (eyebrows,
                               # figure labels, links). NOT a data-mark fill.
-highlight_sz <- 0.65          # linewidth for the highlighted focus line (~2.4px).
-                              # Standard/muted lines default to 0.5 (~2px); the
-                              # focus is only ~1.3x thicker, per spec §5
-                              # (2px standard / 2.4px highlight) — not a 2x jump.
+highlight_sz <- 0.84          # linewidth for the highlighted focus line = 2.4px
+                              # (Nil §5). Standard/muted lines default to 0.70
+                              # (= 2px); the focus is 1.2x thicker, not a 2x
+                              # jump. px / 2.845 = linewidth (see header table).
+gl_text_size <- 9 / ggplot2::.pt  # geom_text/label size for Nil's 12px chart
+                                  # text (12px = 9pt; size is pt / 2.845 ≈ 3.16).
+                                  # This is the FLOOR for all in-chart text.
 
 # ---- Named palettes ---------------------------------------------------------
 #
@@ -196,12 +222,18 @@ gl_palettes <- list(
 # enable. The variable-font optical-size (opsz) axis is still NOT applied at
 # render time, so glyphs render at the font's default optical size.
 
-theme_gl <- function(base_size = 12, mode = "report") {
+theme_gl <- function(base_size = NULL, mode = "report") {
+    # Report charts place 1:1 into the page, so Nil's 12px chart text (§3)
+    # means 9pt here (px × 0.75). Slide charts are viewed at distance and are
+    # not covered by Nil's report-only spec — they keep a 12pt base.
+    if (is.null(base_size)) base_size <- if (identical(mode, "slide")) 12 else 9
+
     t <- theme_minimal(base_size = base_size) %+replace%
         theme(
             text = element_text(family = "gl_sans", color = gl$ink_2),
 
-            # Chart title — Source Serif 4 14pt weight 500, ink.
+            # Chart title — Source Serif 4, 14px (= rel 14/12 of base), weight
+            # 500, ink.
             plot.title = element_text(
                 family = "gl_serif", face = "bold",
                 size = rel(14 / 12), hjust = 0,
@@ -209,7 +241,7 @@ theme_gl <- function(base_size = 12, mode = "report") {
                 margin = margin(b = 4)
             ),
 
-            # Chart subtitle — Inter 12pt ink-3.
+            # Chart subtitle — Inter 12px ink-3.
             plot.subtitle = element_text(
                 family = "gl_sans",
                 size = rel(1.0), hjust = 0,
@@ -217,7 +249,7 @@ theme_gl <- function(base_size = 12, mode = "report") {
                 margin = margin(b = 10)
             ),
 
-            # Chart source — Source Serif 4 italic 12pt ink-2.
+            # Chart source — Source Serif 4 italic 12px ink-2.
             plot.caption = element_text(
                 family = "gl_serif", face = "italic",
                 size = rel(1.0), hjust = 0,
@@ -235,28 +267,29 @@ theme_gl <- function(base_size = 12, mode = "report") {
                                         size = rel(1.0)),
             axis.title.x = element_text(margin = margin(t = 15)),
             axis.title.y = element_text(margin = margin(r = 15), angle = 90),
-            # Tick label sits 6px outside the axis = 4pt tick + 2pt gap.
+            # Tick label sits 6px (= 4.5pt) outside the axis: 3pt tick + 1.5pt gap.
             axis.text    = element_text(family = "gl_sans", color = gl$ink_2,
                                         size = rel(1.0)),
-            axis.text.x  = element_text(margin = margin(t = 2)),
-            axis.text.y  = element_text(margin = margin(r = 2)),
+            axis.text.x  = element_text(margin = margin(t = 1.5)),
+            axis.text.y  = element_text(margin = margin(r = 1.5)),
 
-            # Axis line + ticks: 1px ink-2, 4pt outward. Bottom + left only.
-            axis.line          = element_line(color = gl$ink_2, linewidth = 0.4),
-            axis.ticks         = element_line(color = gl$ink_2, linewidth = 0.4),
-            axis.ticks.length  = unit(4, "pt"),
+            # Axis line + ticks: 1px (lw 0.35) ink-2; ticks 4px (3pt) long,
+            # outward. Bottom + left only.
+            axis.line          = element_line(color = gl$ink_2, linewidth = 0.35),
+            axis.ticks         = element_line(color = gl$ink_2, linewidth = 0.35),
+            axis.ticks.length  = unit(3, "pt"),
 
             # No panel border, paper background.
             panel.background   = element_rect(fill = gl$paper, color = NA),
             plot.background    = element_rect(fill = gl$paper, color = NA),
             panel.border       = element_blank(),
 
-            # Gridlines: horizontal only by default; no vertical, no minor.
-            panel.grid.major.y = element_line(color = gl$gridline, linewidth = 0.4),
+            # Gridlines: 1px, horizontal only by default; no vertical, no minor.
+            panel.grid.major.y = element_line(color = gl$gridline, linewidth = 0.35),
             panel.grid.major.x = element_blank(),
             panel.grid.minor   = element_blank(),
 
-            # Legend — Inter 12pt ink-2. Legend entries ARE series labels, so
+            # Legend — Inter 12px ink-2. Legend entries ARE series labels, so
             # they take series-label weight 600 (spec §3): face="bold" maps
             # gl_sans to its semibold (600) face. The legend title stays 400.
             legend.title = element_text(family = "gl_sans", color = gl$ink_2,
@@ -291,77 +324,103 @@ theme_gl <- function(base_size = 12, mode = "report") {
 # ---- Geom defaults -----------------------------------------------------------
 #
 # The GL chart pattern is: paint everyone in muted grey first, then re-paint
-# the focus series in `highlight` (red) or `accent` (blue) on top.
+# the focus series in `highlight` (blue) or `lead_finding` (red) on top.
 #
 #   geom_col() +                                  # all bars muted (default)
 #   geom_col(data = \(d) filter(d, focus),
-#            fill = highlight)                    # focus bar red
+#            fill = highlight)                    # focus bar main blue
 #
 # For this to work, an untyped geom must default to *muted*, not c-1. The
 # author opts *in* to color explicitly — that's the "color only when
-# necessary" principle (Nil §IX rule 1). Setting the default to c-1 would
-# force authors to manually mute every supporting layer.
+# necessary" principle (Nil §11 / decision rule 7). Setting the default to
+# c-1 would force authors to manually mute every supporting layer.
 #
 # So:
-#   geom_line / path / step                      → c_muted_dark line
+#   geom_line / path / step                      → c_muted line, 2px — Nil §11:
+#                                                  supporting data is c-muted.
+#                                                  A single-series chart opts in:
+#                                                  geom_line(color = highlight)
 #   geom_point                                   → shape 21, c_muted fill +
-#                                                  c_muted_dark stroke, 0.8 alpha
+#                                                  c_muted_dark 1px stroke,
+#                                                  0.8 alpha, 5–7px radius (§5)
 #   geom_col / bar                               → c_muted fill + 1px paper stroke
 #   geom_area / ribbon                           → c_muted fill, no stroke
-#   geom_smooth                                  → c_muted_dark line + light ribbon
-#   geom_boxplot                                 → recedes: c_muted_light fill,
-#                                                  c_muted outline (background dist.)
-#   geom_hline / vline                           → dashed ink_3 (reference line)
-#   geom_text / label                            → ink_2 (body color)
+#   geom_smooth                                  → ink_4 trendline + light ribbon
+#                                                  (grammar §1: trendlines = ink-4)
+#   geom_boxplot / violin                        → recede: c_muted_light fill,
+#                                                  c_muted outline — NOT a dark
+#                                                  outline (Nil §11b)
+#   geom_sf                                      → 0.5px ink_3 borders (Nil §10)
+#   geom_hline / vline                           → dashed ink_3 (reference
+#                                                  threshold). A ZERO BASELINE is
+#                                                  different — use gl_zero_line()
+#   geom_text / label                            → ink_2, 12px (gl_text_size)
 #
 # Called from gl_setup() — these mutate global ggplot2 state.
 
 gl_set_geom_defaults <- function() {
-    # Lines read as "data" — darker grey (c_muted_dark) so a single-series
-    # chart looks substantive.
-    update_geom_defaults("line",    list(colour = gl$c_muted_dark, linewidth = 0.5))
-    update_geom_defaults("path",    list(colour = gl$c_muted_dark, linewidth = 0.5))
-    update_geom_defaults("step",    list(colour = gl$c_muted_dark, linewidth = 0.5))
+    # Untyped lines are the muted backdrop of the pop-up pattern (Nil §11:
+    # "paint supporting data in c-muted"). 2px standard weight (§5). A
+    # single-series chart is a focus series — opt in with
+    # geom_line(color = highlight). Using c_muted (not c_muted_dark) also keeps
+    # the end-label rule intact: a muted line's label is c_muted_dark, and no
+    # label may share its mark's hex (grammar §3.3).
+    update_geom_defaults("line",    list(colour = gl$c_muted, linewidth = 0.70))
+    update_geom_defaults("path",    list(colour = gl$c_muted, linewidth = 0.70))
+    update_geom_defaults("step",    list(colour = gl$c_muted, linewidth = 0.70))
 
     # Points: a filled circle (shape 21) so EVERY point has a fill (a tone) AND
-    # a 1px stroke in the darker version of that tone (spec §5). Default to the
-    # muted pair; overlap-friendly at 0.8 opacity. The 0.8 alpha is for the
-    # *backdrop* cloud only — a highlighted point must be drawn ONCE at alpha = 1
-    # (focus rows excluded from this muted layer), else its blue is diluted by the
-    # panel and muddied by the grey dot underneath. See the highlight block below.
+    # a 1px stroke in the darker version of that tone (spec §5, radius 5–7px:
+    # size 3 + stroke 0.53 ≈ 12.7px diameter). Default to the muted pair;
+    # overlap-friendly at 0.8 opacity — Nil's own muted-backdrop circles are
+    # 0.8, not lighter. A highlighted point must be drawn ONCE at alpha = 1
+    # (focus rows excluded from this muted layer), else its blue is diluted by
+    # the panel and muddied by the grey dot underneath. See highlight block below.
     update_geom_defaults("point",   list(shape = 21, fill = gl$c_muted,
-                                         colour = gl$c_muted_dark, stroke = 0.6,
-                                         alpha = 0.8))
+                                         colour = gl$c_muted_dark, stroke = 0.53,
+                                         size = 3, alpha = 0.8))
 
-    # Bars read as "backdrop" — softer grey. A 1px paper-colored stroke gives
-    # the spec's separation between stacked segments (§6); on a single bar it is
-    # invisible against the white panel. Areas stay edge-to-edge (no stroke) —
-    # the spec keeps stacked areas gapless.
-    update_geom_defaults("col",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.5))
-    update_geom_defaults("bar",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.5))
+    # Bars: muted fill. A 1px paper-colored stroke gives the spec's separation
+    # between stacked segments (§6); on a single bar it is invisible against
+    # the white panel. Areas stay edge-to-edge (no stroke) — the spec keeps
+    # stacked areas gapless.
+    update_geom_defaults("col",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35))
+    update_geom_defaults("bar",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35))
     update_geom_defaults("area",    list(fill = gl$c_muted, colour = NA))
     update_geom_defaults("ribbon",  list(fill = gl$c_muted_light, colour = NA, alpha = 0.5))
 
-    update_geom_defaults("smooth",  list(colour = gl$c_muted_dark,
+    # Trendlines are ink-4 (grammar §1: "the line behind a sparse trend"),
+    # standard 2px, with a soft ribbon.
+    update_geom_defaults("smooth",  list(colour = gl$ink_4, linewidth = 0.70,
                                          fill = gl$c_muted_light, alpha = 0.5))
 
-    # Boxplots most often show the BACKGROUND distribution (peers) behind a
-    # highlighted country line — so they recede: soft grey fill + medium-grey
-    # outline (the muted main tone, not the darker tone). The highlight line
-    # drawn on top carries the eye.
+    # Boxplots and violins most often show the BACKGROUND distribution (peers)
+    # behind a highlighted country line — so they recede: soft grey fill +
+    # medium-grey outline. Nil §11b is explicit: the muted main tone, NOT the
+    # darker tone. The highlight line drawn on top carries the eye.
     update_geom_defaults("boxplot", list(fill = gl$c_muted_light, colour = gl$c_muted))
-    update_geom_defaults("violin",  list(fill = gl$c_muted_light, colour = gl$c_muted_dark,
-                                         alpha = 0.6))
-    update_geom_defaults("density", list(fill = gl$c_muted_light, colour = gl$c_muted_dark,
-                                         alpha = 0.6))
+    update_geom_defaults("violin",  list(fill = gl$c_muted_light, colour = gl$c_muted))
+    # Densities overlap when grouped → 0.8 fill+stroke (decision rule 3).
+    update_geom_defaults("density", list(fill = gl$c_muted_light, colour = gl$c_muted,
+                                         alpha = 0.8))
 
+    # Choropleth / map polygons: 0.5px ink-3 borders between regions (Nil §10).
+    tryCatch(
+        update_geom_defaults("sf", list(colour = gl$ink_3, linewidth = 0.18)),
+        error = function(e) NULL)
+
+    # Reference thresholds: dashed ink-3, 1px. A ZERO BASELINE is not a
+    # reference line — it is part of the frame (Nil §4: "stroke at ink weight,
+    # never gridline weight"): use gl_zero_line().
     update_geom_defaults("hline",   list(colour = gl$ink_3, linetype = "dashed",
-                                         linewidth = 0.4))
+                                         linewidth = 0.35))
     update_geom_defaults("vline",   list(colour = gl$ink_3, linetype = "dashed",
-                                         linewidth = 0.4))
-    update_geom_defaults("text",    list(colour = gl$ink_2, family = "gl_sans"))
+                                         linewidth = 0.35))
+    # Annotations: Inter, ink-2, at the 12px floor.
+    update_geom_defaults("text",    list(colour = gl$ink_2, family = "gl_sans",
+                                         size = gl_text_size))
     update_geom_defaults("label",   list(colour = gl$ink_2, family = "gl_sans",
-                                         fill = gl$paper))
+                                         fill = gl$paper, size = gl_text_size))
     invisible(NULL)
 }
 
@@ -383,17 +442,112 @@ gl_set_geom_defaults <- function() {
 #
 # POINTS ARE THE EXCEPTION to the simple overpaint. Lines/bars are opaque, so
 # drawing the muted layer then overpainting the focus works. But the point
-# default carries alpha = 0.8, which dilutes a highlight dot two ways: through
+# default carries alpha = 0.8 (Nil §5 — the spec's own muted backdrop circles
+# are 0.8 too, so leave the default alone), which dilutes a highlight dot two
+# ways: through
 # its own transparency, and by letting the grey dot beneath it show through. So a
 # highlighted point is PAINTED ONCE — exclude the focus from the muted backdrop,
 # then draw it a single time at alpha = 1:
 #
-#   geom_point(data = \(d) filter(d, !focus), alpha = 0.3) +   # backdrop, focus out
+#   geom_point(data = \(d) filter(d, !focus)) +                # backdrop (0.8 default)
 #   geom_point(data = \(d) filter(d, focus),                   # focus, painted once
-#              fill = highlight, color = highlight_dark, alpha = 1, size = 3)
+#              fill = highlight, color = highlight_dark, alpha = 1)
 #
 # For a stark "lead finding" emphasis (gains vs losses, alarm, exception)
 # use `lead_finding` (c_2 red) instead. Use sparingly.
+
+# ---- Helpers: baselines, dark tones, end labels -------------------------------
+
+#' Zero baseline at axis weight
+#'
+#' Nil §4: "Zero baseline: stroke at ink weight, never gridline weight." The
+#' geom_hline/geom_vline default (dashed ink-3) is for reference THRESHOLDS;
+#' a zero baseline is part of the frame of reference: solid, 1px, ink-2 —
+#' the same ink as the axis line.
+#'
+#' @param axis "y" draws a horizontal line at y = 0 (the default);
+#'   "x" draws a vertical line at x = 0.
+gl_zero_line <- function(axis = c("y", "x"), ...) {
+    axis <- match.arg(axis)
+    if (axis == "y") {
+        geom_hline(yintercept = 0, colour = gl$ink_2, linetype = "solid",
+                   linewidth = 0.35, ...)
+    } else {
+        geom_vline(xintercept = 0, colour = gl$ink_2, linetype = "solid",
+                   linewidth = 0.35, ...)
+    }
+}
+
+#' Dark partner of a GL color (decision rule 2)
+#'
+#' Every text element tied to a colored mark uses the DARK tone of that mark's
+#' hue — no label ever shares the hex of its fill or line. gl_dark() maps any
+#' GL main or light tone (hex, case-insensitive) to its dark partner,
+#' including the muted grey; dark tones pass through unchanged, so it is
+#' idempotent. Unknown colors pass through with a warning.
+gl_dark <- function(x) {
+    m <- character(0)
+    for (i in 1:6) {
+        dark <- gl[[paste0("c_", i, "_dark")]]
+        m[toupper(gl[[paste0("c_", i)]])]           <- dark
+        m[toupper(gl[[paste0("c_", i, "_light")]])] <- dark
+        m[toupper(dark)]                            <- dark
+    }
+    m[toupper(gl$c_muted)]       <- gl$c_muted_dark
+    m[toupper(gl$c_muted_light)] <- gl$c_muted_dark
+    m[toupper(gl$c_muted_dark)]  <- gl$c_muted_dark
+    out <- unname(m[toupper(as.character(x))])
+    unknown <- is.na(out)
+    if (any(unknown)) {
+        warning("gl_dark(): no dark partner for ",
+                paste(unique(as.character(x)[unknown]), collapse = ", "),
+                " - returning input unchanged.")
+        out[unknown] <- as.character(x)[unknown]
+    }
+    out
+}
+
+#' Direct series labels at line ends, in the series' dark tone
+#'
+#' The GL preference is direct line-end labels over a legend (Nil §3, §11).
+#' This wraps ggrepel::geom_text_repel with the house conventions: Inter
+#' semibold at the 12px floor, dark tone, placed right of the final point.
+#'
+#' @param data One row per series, filtered to each series' last point.
+#' @param mapping Must supply x, y, and label — inherit.aes is FALSE.
+#' @param color The series MAIN tones (one per row of `data`, or one value) —
+#'   the dark partner is applied automatically via gl_dark().
+#' @param nudge_x In x-axis units (0.3 suits a year axis; use ~120 for dates).
+#'
+#' Pair with gl_endlabel_room() so labels drawn outside the panel are not
+#' clipped. Falls back to geom_text if ggrepel is not installed.
+gl_endlabel <- function(data, mapping, color, size = gl_text_size,
+                        nudge_x = 0.3, ...) {
+    cols <- gl_dark(color)
+    if (requireNamespace("ggrepel", quietly = TRUE)) {
+        ggrepel::geom_text_repel(data = data, mapping = mapping, colour = cols,
+                                 family = "gl_sans", fontface = "bold",
+                                 size = size, hjust = 0, direction = "y",
+                                 nudge_x = nudge_x, segment.color = NA,
+                                 inherit.aes = FALSE, ...)
+    } else {
+        geom_text(data = data, mapping = mapping, colour = cols,
+                  family = "gl_sans", fontface = "bold", size = size,
+                  hjust = 0, nudge_x = nudge_x, inherit.aes = FALSE, ...)
+    }
+}
+
+#' Make room for end labels
+#'
+#' End labels sit outside the panel and ggplot clips them by default. Adds
+#' coord_cartesian(clip = "off"), drops the legend (the labels replace it),
+#' and reserves a right margin (in pt). Don't combine with another coord_*
+#' call — the last coord wins.
+gl_endlabel_room <- function(right = 95) {
+    list(coord_cartesian(clip = "off"),
+         theme(legend.position = "none",
+               plot.margin = margin(5, right, 5, 5)))
+}
 
 # ---- Scale functions ---------------------------------------------------------
 
@@ -424,27 +578,44 @@ scale_fill_gl <- function(palette = "categorical", ...) {
     scale_fill_manual(values = pal, ...)
 }
 
+# Shared machinery for the two gradient scales. A diverging palette's hue
+# boundary must sit AT the data's reference point (Nil decision rule 9); a
+# plain gradientn puts it at the middle of the data RANGE, which silently
+# breaks the midpoint semantics whenever the data is asymmetric (e.g. -5..+20
+# would put the red/blue boundary at +7.5). So diverging palettes default to
+# midpoint = 0 via scales::rescale_mid.
+gl_gradient_args <- function(palette, midpoint) {
+    pal <- gl_palettes[[palette]]
+    if (is.null(pal)) stop("Unknown palette: ", palette)
+    if (is.null(midpoint) && grepl("^diverging", palette)) midpoint <- 0
+    if (is.null(midpoint) || is.na(midpoint)) return(list(colors = pal))
+    force(midpoint)
+    list(colors = pal,
+         rescaler = function(x, to = c(0, 1), from = range(x, na.rm = TRUE))
+             scales::rescale_mid(x, to, from, mid = midpoint))
+}
+
 #' Continuous color scale using a GL sequential or diverging palette
 #'
 #' For continuous data (e.g., choropleth values). Interpolates between the
 #' discrete steps of the chosen palette.
 #'
 #' @param palette Name of a sequential_* or diverging_* palette
+#' @param midpoint Value the hue boundary sits at. Defaults to 0 for
+#'   diverging_* palettes (pass NA to disable); no midpoint for sequential.
 #' @param ... Passed to scale_color_gradientn
-scale_color_gl_gradient <- function(palette = "sequential_1", ...) {
-    pal <- gl_palettes[[palette]]
-    if (is.null(pal)) stop("Unknown palette: ", palette)
-    scale_color_gradientn(colors = pal, ...)
+scale_color_gl_gradient <- function(palette = "sequential_1", midpoint = NULL, ...) {
+    do.call(scale_color_gradientn, c(gl_gradient_args(palette, midpoint), list(...)))
 }
 
 #' Continuous fill scale using a GL sequential or diverging palette
 #'
 #' @param palette Name of a sequential_* or diverging_* palette
+#' @param midpoint Value the hue boundary sits at. Defaults to 0 for
+#'   diverging_* palettes (pass NA to disable); no midpoint for sequential.
 #' @param ... Passed to scale_fill_gradientn
-scale_fill_gl_gradient <- function(palette = "sequential_1", ...) {
-    pal <- gl_palettes[[palette]]
-    if (is.null(pal)) stop("Unknown palette: ", palette)
-    scale_fill_gradientn(colors = pal, ...)
+scale_fill_gl_gradient <- function(palette = "sequential_1", midpoint = NULL, ...) {
+    do.call(scale_fill_gradientn, c(gl_gradient_args(palette, midpoint), list(...)))
 }
 
 # ---- Figure sizes ------------------------------------------------------------
@@ -462,21 +633,24 @@ gl_fig <- list(
 #' Save a plot at a named recipe size
 #'
 #' @param size_name One of: full, full_tall, full_square, major, half, half_tall
-#' @param filename Output filename (saved to imgs/ subdirectory)
+#' @param filename Output filename
 #' @param plot Plot object (defaults to last_plot())
 #' @param dpi Resolution (default 300)
-save_fig <- function(size_name, filename, plot = last_plot(), dpi = 300) {
+#' @param dir Output directory (default "imgs"; set once for a whole script
+#'   with options(gl.fig.dir = "path") instead of redefining save_fig)
+save_fig <- function(size_name, filename, plot = last_plot(), dpi = 300,
+                     dir = getOption("gl.fig.dir", "imgs")) {
     sz <- gl_fig[[size_name]]
     if (is.null(sz)) stop("Unknown size: ", size_name, ". Use: ",
                           paste(names(gl_fig), collapse = ", "))
-    dir.create("imgs", showWarnings = FALSE, recursive = TRUE)
+    dir.create(dir, showWarnings = FALSE, recursive = TRUE)
     # Render PNGs through ragg's agg_png so the systemfonts registrations and
     # tabular figures apply. (ggplot2 >= 3.3.4 picks agg by default when ragg is
     # present, but force it for PNG to be device-independent.) device = NULL lets
     # ggsave auto-detect for other extensions.
     dev <- if (grepl("\\.png$", filename, ignore.case = TRUE) &&
                requireNamespace("ragg", quietly = TRUE)) ragg::agg_png else NULL
-    ggsave(file.path("imgs", filename), plot = plot,
+    ggsave(file.path(dir, filename), plot = plot,
            width = sz$w, height = sz$h, dpi = dpi, device = dev)
 }
 
@@ -609,8 +783,11 @@ gl_register_fonts <- function() {
 #' already cached — those need to be invalidated or rebuilt.
 #'
 #' @param mode "report" (suppresses title/subtitle/caption) or "slide"
-#' @param base_size Base font size (default 12 — matches 12pt body)
-gl_setup <- function(mode = "report", base_size = 12) {
+#' @param base_size Base font size in pt. Default NULL resolves by mode:
+#'   9pt for report (report figures place 1:1 into the page, so 9pt renders
+#'   Nil's specced 12px chart text), 12pt for slide (distance viewing; slides
+#'   are outside Nil's report-only spec).
+gl_setup <- function(mode = "report", base_size = NULL) {
     gl_register_fonts()
 
     # Non-interactive R (`Rscript foo.R`) defaults to the pdf() device, which

@@ -44,20 +44,10 @@ gl_cluster_colors <- c(
     "Unspecified"      = "#b23c6f"
 )
 
-# Override save_fig to write into the playground's image directory instead of
-# the default `imgs/` next to the working directory.
-img_dir <- file.path(Sys.getenv("HOME"), "dev/gl-design/playground/imgs/fm_meeting")
-dir.create(img_dir, showWarnings = FALSE, recursive = TRUE)
-
-save_fig <- function(size_name, filename, plot = last_plot(), dpi = 300) {
-    sz <- gl_fig[[size_name]]
-    # Force ragg's agg_png: fonts are registered via systemfonts (see theme_gl.R),
-    # which only the ragg device resolves. The default ggsave device can fall back
-    # to a cairo/X11 path that throws "invalid font type" on the registry families.
-    ggsave(file.path(img_dir, filename), plot = plot,
-           width = sz$w, height = sz$h, dpi = dpi, device = ragg::agg_png)
-    cat(sprintf("  saved: %s (%s: %.1f x %.1f\")\n", filename, size_name, sz$w, sz$h))
-}
+# Route save_fig output into the playground's image directory instead of the
+# default `imgs/` next to the working directory. (Never redefine save_fig —
+# that loses the ragg device and tabular figures with it.)
+options(gl.fig.dir = file.path(Sys.getenv("HOME"), "dev/gl-design/playground/imgs/fm_meeting"))
 
 # ---- Data (same as consolidated Rmd) -----------------------------------------
 
@@ -141,9 +131,9 @@ weo_scatter <- weo_rgdp |>
 
 weo_scatter |>
     ggplot(aes(x = gdppc_growth, y = ca_change)) +
-    # Zero baselines: solid ink_2 (spec §4 — "zero baseline at ink weight, never gridline weight")
-    geom_hline(yintercept = 0, colour = gl$ink_2, linetype = "solid", linewidth = 0.4) +
-    geom_vline(xintercept = 0, colour = gl$ink_2, linetype = "solid", linewidth = 0.4) +
+    # Zero baselines: solid 1px ink_2 (spec §4)
+    gl_zero_line() +
+    gl_zero_line("x") +
     # Reference threshold: dashed ink_3 (theme default)
     geom_vline(xintercept = 2, linetype = 'dashed') +
     geom_smooth(method = 'lm', se = TRUE) +
@@ -196,22 +186,18 @@ ca_ends <- weo_combined |>
 
 weo_combined |>
     ggplot(aes(x = year, y = value, color = component)) +
-    # Zero baseline: solid ink_2 (spec §4 — never dashed, never gridline weight)
-    geom_hline(yintercept = 0, colour = gl$ink_2, linetype = "solid", linewidth = 0.4) +
+    # Zero baseline: solid 1px ink_2 (spec §4 — never dashed, never gridline weight)
+    gl_zero_line() +
     geom_line(data = . %>% filter(component != "Current Account")) +
     geom_line(data = . %>% filter(component == "Current Account")) +
-    geom_text_repel(
-        data = ca_ends, aes(x = year, y = value, label = lab),
-        color = ca_ends$dark, inherit.aes = FALSE,
-        family = "gl_sans", fontface = "bold", size = 3.2,
-        hjust = 0, direction = "y", nudge_x = 0.3, segment.color = NA
-    ) +
+    # Direct end labels in each series' dark tone (gl_dark applied inside).
+    gl_endlabel(data = ca_ends, mapping = aes(x = year, y = value, label = lab),
+                color = ca_ends$dark) +
     scale_color_manual(values = ca_main) +
     scale_y_continuous(labels = percent_format(scale = 1), breaks = breaks_width(2)) +
     scale_x_continuous(expand = expansion(mult = c(0.02, 0.04))) +
-    coord_cartesian(clip = "off") +
-    # Reserve right margin for the line-end labels (clip = "off" draws into it).
-    theme(legend.position = "none", plot.margin = margin(5, 95, 5, 5)) +
+    # clip = "off" + right margin for the line-end labels + no legend.
+    gl_endlabel_room() +
     labs(title = "unused", subtitle = "unused",
          x = NULL, y = "% of GDP", caption = "unused")
 save_fig("full", "ca-decomposition.png")
@@ -265,24 +251,20 @@ sbp_ends <- sbp |>
 
 sbp |>
     ggplot(aes(x = date, y = value_pct, group = series)) +
-    # Zero baseline: solid ink_2 (spec §4 — theme default for geom_hline is dashed)
-    geom_hline(yintercept = 0, colour = gl$ink_2, linetype = "solid", linewidth = 0.4) +
-    geom_line(data = . %>% filter(!series %in% sbp_focus), color = gl$c_muted) +
+    # Zero baseline: solid 1px ink_2 (spec §4)
+    gl_zero_line() +
+    geom_line(data = . %>% filter(!series %in% sbp_focus)) +   # muted backdrop (default)
     geom_line(data = . %>% filter(series == "Net foreign assets"),
               color = gl$c_2, linewidth = highlight_sz) +
     geom_line(data = . %>% filter(series == "Net claims on central government"),
               color = gl$c_1, linewidth = highlight_sz) +
-    geom_text_repel(
-        data = sbp_ends, aes(x = date, y = value_pct, label = lab),
-        color = sbp_ends$dark, inherit.aes = FALSE,
-        family = "gl_sans", fontface = "bold", size = 3.2,
-        hjust = 0, direction = "y", nudge_x = 120, segment.color = NA
-    ) +
+    # Direct end labels in each series' dark tone; nudge in days (date axis).
+    gl_endlabel(data = sbp_ends, mapping = aes(x = date, y = value_pct, label = lab),
+                color = sbp_ends$dark, nudge_x = 120) +
     scale_y_continuous(labels = percent) +
     scale_x_date(expand = expansion(mult = c(0.02, 0.04))) +
-    coord_cartesian(clip = "off") +
-    # Reserve right margin for the line-end labels (clip = "off" draws into it).
-    theme(legend.position = "none", plot.margin = margin(5, 95, 5, 5)) +
+    # clip = "off" + right margin for the line-end labels + no legend.
+    gl_endlabel_room() +
     labs(title = "unused", subtitle = "unused",
          x = NULL, y = "% of GDP", caption = "unused")
 save_fig("full", "sbp-balance-sheet-decomposition.png")
@@ -347,14 +329,14 @@ shared_ylim <- c(0, max(
 percap_trade |>
     filter(year >= 1995) |>
     ggplot(aes(x = year, y = exports_percap_constant, fill = catlabel)) +
-    geom_area(color = 'white') +
+    geom_area() +    # stacked areas sit edge-to-edge, no stroke (spec §6)
     geom_line(aes(y = total_exports_percap_constant)) +
     geom_vline(xintercept = hl_years, linetype = 'dashed') +
     geom_label_repel(
         data = . %>% filter(year %in% hl_years, catlabel == 'Agriculture'),
         aes(y = total_exports_percap_constant,
             label = paste0('$', round(total_exports_percap_constant, 0))),
-        fill = 'white'
+        fill = gl$paper
     ) +
     scale_x_continuous(n.breaks = 10, limits = shared_xlim) +
     scale_y_continuous(limits = shared_ylim) +
@@ -375,8 +357,12 @@ export_decline |>
     mutate(catlabel = fct_reorder(catlabel, change)) |>
     ggplot(aes(x = change, y = catlabel, fill = catlabel)) +
     geom_col() +
+    gl_zero_line("x") +   # spans negative and positive — zero baseline (spec §4)
     scale_fill_manual(values = gl_cluster_colors) +
     guides(fill = 'none') +
+    # Horizontal bars estimate along X — flip the gridlines (spec §4).
+    theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35),
+          panel.grid.major.y = element_blank()) +
     labs(title = "unused", subtitle = "unused",
          x = 'Change in per capita exports (USD)', y = '', caption = "unused")
 save_fig("full", "exports-decline-drivers.png")
@@ -455,8 +441,11 @@ decomp |>
     # white stroke so it reads against the strong-vs-white bar colors.
     geom_point(aes(x = total), fill = gl$c_muted_light, color = gl$paper,
                size = 2.2, stroke = 0.7, show.legend = FALSE) +
-    # Zero baseline: solid ink_2 (spec §4 — theme default for geom_vline is dashed)
-    geom_vline(xintercept = 0, colour = gl$ink_2, linetype = "solid", linewidth = 0.4) +
+    # Zero baseline: solid 1px ink_2 (spec §4)
+    gl_zero_line("x") +
+    # Horizontal bars estimate along X — flip the gridlines (spec §4).
+    theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35),
+          panel.grid.major.y = element_blank()) +
     scale_x_continuous(labels = function(x) paste0(x, '%')) +
     labs(title = "unused", subtitle = "unused",
          x = 'Change in per capita exports (log pp)', y = '', fill = '', caption = "unused")
@@ -471,19 +460,19 @@ percap_with_remit <- percap_trade |>
 
 percap_with_remit |>
     ggplot(aes(x = year, y = exports_percap_constant, fill = catlabel)) +
-    geom_area(color = 'white') +
+    geom_area() +    # stacked areas sit edge-to-edge, no stroke (spec §6)
     geom_line(aes(y = total_exports_percap_constant)) +
     geom_ribbon(
         data = . %>% filter(catlabel == catlabel[1]),
         aes(ymin = total_exports_percap_constant, ymax = total_plus_remit),
-        fill = 'lightgrey', color = 'white'
+        fill = gl$c_muted_light, color = NA, alpha = 1
     ) +
     geom_line(data = . %>% filter(catlabel == catlabel[1]), aes(y = total_plus_remit)) +
     geom_vline(xintercept = hl_years, linetype = 'dashed') +
     geom_label_repel(
         data = . %>% filter(year %in% hl_years, catlabel == 'Agriculture'),
         aes(y = total_plus_remit, label = paste0('$', round(total_plus_remit, 0))),
-        fill = 'white'
+        fill = gl$paper
     ) +
     scale_x_continuous(n.breaks = 10, limits = shared_xlim) +
     scale_y_continuous(limits = shared_ylim) +
@@ -577,12 +566,14 @@ ext_debt <- macro_df |>
     mutate(is_pak = countrycodeiso == main_country)
 
 ext_debt |>
-    ggplot(aes(x = reorder(countrycodeiso, wdi_dt_dod_pvlx_ex_zs), y = wdi_dt_dod_pvlx_ex_zs)) +
-    geom_col() +
+    ggplot(aes(y = reorder(countrycodeiso, wdi_dt_dod_pvlx_ex_zs), x = wdi_dt_dod_pvlx_ex_zs)) +
+    geom_col() +                                              # muted default
     geom_col(data = . %>% filter(is_pak), fill = highlight) +
-    coord_flip() +
+    # Horizontal bars estimate along X — flip the gridlines (spec §4).
+    theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35),
+          panel.grid.major.y = element_blank()) +
     labs(title = "unused", subtitle = "unused",
-         x = NULL, y = "% of exports", caption = "unused")
+         x = "% of exports", y = NULL, caption = "unused")
 save_fig("full", "external-debt-exports-vs-peers.png")
 
 # 15b. Energy imports vs GDP per capita scatter
@@ -610,7 +601,7 @@ scatter_energy <- fuel_all |>
 
 scatter_energy |>
     ggplot(aes(x = gdppc_ppp, y = fuel_percap)) +
-    geom_point(data = . %>% filter(country_iso3_code != main_country), alpha = 0.3) + # muted backdrop, focus out
+    geom_point(data = . %>% filter(country_iso3_code != main_country)) +  # muted backdrop (0.8 default), focus out
     geom_smooth() +                                              # trend
     geom_point(data = . %>% filter(country_iso3_code == main_country),                # highlight, painted once
                fill = highlight, color = highlight_dark, alpha = 1, size = 3) +
@@ -638,7 +629,7 @@ scatter_fuel_burden <- fuel_all |>
 
 scatter_fuel_burden |>
     ggplot(aes(x = gdppc_ppp, y = fuel_pct_exports)) +
-    geom_point(data = . %>% filter(country_iso3_code != main_country), alpha = 0.3) + # muted backdrop, focus out
+    geom_point(data = . %>% filter(country_iso3_code != main_country)) +  # muted backdrop (0.8 default), focus out
     geom_smooth() +                                              # trend
     geom_point(data = . %>% filter(country_iso3_code == main_country),                # highlight, painted once
                fill = highlight, color = highlight_dark, alpha = 1, size = 3) +
@@ -688,7 +679,7 @@ elc_scatter |>
     filter(gdppc_ppp >= 1000) |>
     filter(elc_price_cents_kwh <= 100) |>
     ggplot(aes(x = gdppc_ppp, y = elc_price_cents_kwh)) +
-    geom_point(data = . %>% filter(iso3c != main_country), alpha = 0.3) + # muted backdrop, focus out
+    geom_point(data = . %>% filter(iso3c != main_country)) +     # muted backdrop (0.8 default), focus out
     geom_smooth() +                                              # trend
     geom_point(data = . %>% filter(iso3c == main_country),       # highlight, painted once
                fill = highlight, color = highlight_dark, alpha = 1, size = 3) +

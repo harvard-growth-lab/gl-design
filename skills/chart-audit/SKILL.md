@@ -1,10 +1,10 @@
 ---
 name: chart-audit
-description: Audit ggplot2 charts against the Growth Lab design grammar. Use this skill after generating or modifying charts to flag visual issues — legend sizing, color misuse, dimension mismatches, highlight consistency, and readability problems.
+description: Audit ggplot2 charts against the Growth Lab design grammar. Use this skill after generating or modifying charts to flag visual issues — legend sizing, color misuse, dimension mismatches, highlight consistency, and readability problems. Includes a mechanical linter (scripts/gl_lint.R) to run before the judgment checks.
 compatibility: Requires R script with ggplot2 charts and the GL design grammar (grammar.md + recipes/report.md).
 metadata:
   author: taimur-shah
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Chart Audit
@@ -21,13 +21,20 @@ report.
 
 ## How to run
 
-This is a manual audit skill — Claude reads the R source and/or rendered
-PNGs and checks each chart against the rules below. To invoke:
+Two passes — mechanical first, judgment second:
 
-1. Read the R script that produces the charts
-2. Read the rendered PNG images
-3. Walk through every check below for each chart
-4. Report a summary table: chart name, pass/flag, issue
+1. **Run the linter**: `Rscript <kit>/skills/chart-audit/scripts/gl_lint.R script.R`.
+   It deterministically catches non-token hexes and color literals, dashed
+   zero baselines, sub-floor text sizes, hand-rolled gradients, theme resets,
+   raw `ggsave`/`save_fig` redefinitions, stacked-area strokes, missing
+   horizontal-bar gridline flips, and `accent`-as-data. Exit 1 = flags found
+   (`file:line: [check-id] message`). It lints chart scripts, not
+   `theme_gl.R` itself; line-based heuristics can miss multi-line calls, so
+   a clean lint is necessary, not sufficient.
+2. Read the R script that produces the charts
+3. Read the rendered PNG images
+4. Walk through every check below for each chart
+5. Report a summary table: chart name, pass/flag, issue
 
 ## Audit checks
 
@@ -67,6 +74,8 @@ PNGs and checks each chart against the rules below. To invoke:
 | Discrete color/fill scales | Uses `gl$palette` (set via `options()`) or `scale_*_gl()` with a framework palette | Default ggplot rainbow, or colors outside the framework palette |
 | Categorical palette | 6 main tones: `#2F87C8 #CC4948 #2AA584 #7554A3 #EA822D #CDC86B` (blue, red, teal, purple, orange, yellow) | Unlisted hex values (except `c_muted` greys, the `*_dark` / `*_light` tones, `accent`) |
 | Manual color values | Framework tokens (`gl$c_N`, `gl$c_N_dark`, `gl$c_muted`, `accent`) or the named ramps | Arbitrary hex colors not in the palette |
+| Color literals | Tokens: `gl$paper`, `gl$c_muted_light`, `highlight` | `"white"`, `"lightgrey"`, `"red"`, `"grey50"` string literals |
+| Diverging gradient | `scale_*_gl_gradient("diverging_*")` — hue boundary centered on the reference value (`midpoint`, default 0) | Hand-rolled `scale_fill_gradientn`/`gradient2`; or a diverging ramp whose boundary sits at the data-range middle instead of the midpoint |
 | Charts with >4 series | Mute-then-highlight (most stays in `c_muted`) | All 6+ series at full-saturation palette colors |
 
 ### 5. Theme compliance
@@ -85,6 +94,7 @@ PNGs and checks each chart against the rules below. To invoke:
 | Numeric axis ticks | tabular-nums numerals via Inter | Variable-width digits causing column drift |
 | Chart title (slide mode) | Source Serif 4 14pt weight bold; ends with a period (statement-of-finding) | Sans-serif title, or no terminal period when reading as a finding |
 | Annotation text | Inter, regular, ink-2 | Italic emphasis on raw data points |
+| In-chart text size | 12px everywhere (Nil §3): theme sizes untouched; explicit text layers at `gl_text_size` (≈3.16) | Any text geom with `size <` 3.16, or `element_text(size <` 9`)` |
 
 ### 7. Axis and scale conventions
 
@@ -94,8 +104,9 @@ PNGs and checks each chart against the rules below. To invoke:
 | Percentage y-axis | `labels = percent` or `percent_format()` | Raw decimal values (0.05 instead of 5%) |
 | Year axis | Reasonable breaks (not every year) | Overlapping year labels |
 | Year-only x-axis | **No axis title** — the tick labels already name the dimension (Nil §4) | A redundant `"Year"` axis title under year ticks |
+| Zero baseline | `gl_zero_line()` — **solid** 1px `ink_2` at axis weight (Nil §4) | A dashed zero line (that default is for reference *thresholds*), or a zero line at gridline weight |
 | Axis-title spacing | Title sits ~20px (≈15pt) off the tick labels — `theme_gl()` sets `axis.title.x = margin(t = 15)`, `axis.title.y = margin(r = 15)` | Per-chart override shrinking the gap, or a wide Y tick (e.g. "250") colliding with the rotated Y title |
-| Tick-label spacing | Tick label sits ~6px off the axis (4pt tick + 2pt) — theme default | Per-chart override pulling tick labels onto the axis line |
+| Tick-label spacing | Tick label sits 6px off the axis (3pt tick + 1.5pt gap = 4.5pt) — theme default | Per-chart override pulling tick labels onto the axis line |
 
 ### 8. Text and labels
 
@@ -115,7 +126,10 @@ This check requires reading the rendered PNG:
 | Data-ink ratio | Chart area dominates; legends, axes, whitespace are secondary | Legend or axis labels take >30% of figure area |
 | Highlight visibility | Focus series jumps out of the muted layer immediately | Focus and muted are similar weights / saturations |
 | Overplotting | Points/lines are distinguishable | Dense scatter with no alpha, or many overlapping lines |
-| Grid lines | Horizontal-only, `gridline` (`#D8D4CC`); no vertical or minor unless the chart is dense | Heavy grid lines, or both X and Y gridlines on a non-dense chart |
+| Grid lines | Horizontal-only, `gridline` (`#D8D4CC`); no vertical or minor unless the chart is dense. **Horizontal-bar charts flip them**: vertical on, horizontal off | Heavy grid lines; both X and Y on a non-dense chart; horizontal gridlines running across horizontal bars (or none at all) |
+| Stacked areas | Edge-to-edge, no stroke (Nil §6) | `geom_area(color = "white")` gap strokes |
+| Scatter point size | Default size 3 ≈ 5–7px radius (Nil §5) | Tiny dots (e.g. ggplot's old 1.5 default) or unexplained bubble sizes |
+| Map borders | `geom_sf` default: 0.5px `ink_3` between regions (Nil §10) | Heavy or colored polygon borders |
 
 ## Output format
 
