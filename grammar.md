@@ -355,6 +355,12 @@ The 0.8 rule is for overlapping marks. Single-layer marks (bars, treemap
 tiles, choropleths) stay at full opacity — overlap isn't a risk and lowering
 opacity just dilutes the color.
 
+**Two-level treemaps** (children nested in parent groups, e.g. products within
+sectors) are the exception to no-stroke: thin `paper` separators between child
+tiles and a thicker `paper` border around each parent block keep the hierarchy
+legible. Flat single-level treemaps abut directly. In-tile labels that do not
+fit at the 12px floor are dropped, never shrunk below it.
+
 ### 3.5 Axes, ticks, gridlines
 
 - **Axis line**: 1px solid `ink-2`
@@ -381,6 +387,10 @@ opacity just dilutes the color.
   (population, GDP, complexity, count). Darker = higher.
 - **Diverging** *only* when there is a real reference point (positive vs.
   negative, above vs. below baseline). Never on a purely positive scale.
+- **When color encodes sign** (gains vs. losses around zero), every mark
+  follows the sign encoding — residual or "unspecified" buckets are colored
+  by their sign like any other bar, not pulled out into grey. A lone muted
+  mark among signed marks reads as a third category and breaks the encoding.
 
 ### 3.7 Tabular numerals everywhere numeric
 

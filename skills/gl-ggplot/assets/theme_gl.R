@@ -223,6 +223,10 @@ gl_palettes <- list(
 # render time, so glyphs render at the font's default optical size.
 
 theme_gl <- function(base_size = NULL, mode = "report") {
+    # Only two modes exist. Sessions have invented plausible-sounding modes
+    # ("standalone") that used to fall through to a hybrid state — error loudly
+    # instead. A standalone chart wants mode = "slide".
+    mode <- match.arg(mode, c("report", "slide"))
     # Report charts place 1:1 into the page, so Nil's 12px chart text (§3)
     # means 9pt here (px × 0.75). Slide charts are viewed at distance and are
     # not covered by Nil's report-only spec — they keep a 12pt base.
@@ -795,6 +799,7 @@ gl_register_fonts <- function() {
 #'   Nil's specced 12px chart text), 12pt for slide (distance viewing; slides
 #'   are outside Nil's report-only spec).
 gl_setup <- function(mode = "report", base_size = NULL) {
+    mode <- match.arg(mode, c("report", "slide"))   # invented modes error here
     gl_register_fonts()
 
     # Non-interactive R (`Rscript foo.R`) defaults to the pdf() device, which

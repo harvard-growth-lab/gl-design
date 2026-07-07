@@ -346,6 +346,10 @@ levels must match the palette names (e.g., "Agriculture", "Metals").
   (population, GDP, complexity, count). Darker = higher.
 - Use **diverging** *only* when the data has a real reference point — gains
   vs. losses, above vs. below baseline. Never on a purely positive scale.
+- **When color encodes sign** (a gains/losses bar chart split at zero),
+  every bar follows the sign encoding — color residual or "unspecified"
+  buckets by their sign like any other bar. Pulling one bar out into
+  `c_muted` reads as a third category and breaks the encoding.
 
 For continuous data (e.g. choropleth fill), use `*_gl_gradient()`:
 
@@ -472,6 +476,14 @@ through the polygon.
   italic 12pt) all render inside the chart. Use for standalone charts or
   presentations.
 
+**Pick the mode by destination, and only these two exist** (anything else —
+"standalone", "print", … — errors). A chart headed into a GL document takes
+report mode; the document supplies its caption block. A chart that is itself
+the deliverable — a bare PNG someone asked for, a one-off shared image — takes
+**slide mode**, so the title (ending in a period), subtitle, and source line
+render in-chart. A report-mode PNG floating outside any document has no title
+and no source anywhere, which the checklist treats as incomplete.
+
 ### 10. Stacked bars: 1px gap between segments
 
 Spec §6 requires a **1px gap** separating each stacked-bar segment from the one
@@ -552,6 +564,17 @@ Two easy mistakes this table exists to prevent: a dashed zero baseline
 (zero is frame, not annotation), and a backdrop painted with `accent` or a
 dark tone (backdrops are `c_muted`; dark tones belong to strokes and text).
 
+**No muted layer in the chart → no `highlight_sz`.** A lone series or
+coequal multi-series lines take the standard 2px default — just
+`geom_line(color = highlight)` or the palette mapping, no `linewidth`
+argument. `highlight_sz` exists for exactly one job: lifting a focus line
+1.2× above a muted backdrop. If nothing in the chart is muted, nothing is
+"highlighted" either.
+
+**Before saving, scan each axis for zero.** If 0 falls inside the plotted
+range of a value axis — sparse negatives count — that axis needs
+`gl_zero_line()`; the default gridline at 0 is too light to carry the frame.
+
 ### 13. Axis & title conventions
 
 - **Year axis:** when the X axis is just years, **omit the axis label** — the
@@ -630,12 +653,17 @@ full opacity 2px round join; vertex dots 3px `gl$c_1`, no stroke; grid rings
 `gl$ink_3`; axis labels Inter 12px / 500 / `ink_2` outside the ring; a second
 entity is `gl$c_muted` at the same opacities, drawn *under* the focus.
 
-**Treemap (Nil §8):** tiles in main tones at **full opacity, no stroke**
-(tiles abut directly); labels Inter, white on dark tiles with a dark-text
-fallback on light tiles, value + share on a second line. For product-space /
-trade data use the sector palettes (`scale_fill_gl("hs_sectors")`), otherwise
-categorical order. The pop-up variant colors only the focus tile and leaves
-the rest `c_muted`.
+**Treemap (Nil §8):** tiles in main tones at **full opacity**; labels Inter,
+white on dark tiles with a dark-text fallback on light tiles, value + share
+on a second line. For product-space / trade data use the sector palettes
+(`scale_fill_gl("hs_sectors")`), otherwise categorical order. The pop-up
+variant colors only the focus tile and leaves the rest `c_muted`. Strokes
+depend on depth: a **flat single-level treemap has no stroke** (tiles abut
+directly); a **two-level treemap** (products within sectors) takes thin
+`gl$paper` separators between child tiles and a thicker `gl$paper` border
+around each sector block so the hierarchy stays legible. In-tile labels that
+don't fit at the 12px floor are **dropped, never shrunk** — with
+`treemapify`, that means `min.size` stays at the floor (≈9pt), not below it.
 
 ## Complete example
 
@@ -681,6 +709,9 @@ gl$ink                           # "#1A1714"
 ## Checklist before finalizing charts
 
 - [ ] `gl_setup()` called at top of script
+- [ ] Mode matches destination: `mode = "slide"` for a standalone PNG (title +
+      source render in-chart); report mode only when a document supplies the
+      caption block
 - [ ] No per-chart theme overrides (except legend position)
 - [ ] No monospace anywhere (no JetBrains Mono, no `font.family = "mono"`)
 - [ ] Highlights use `highlight` (main blue) or `lead_finding` (main red), not `"red"`, `accent`, or arbitrary hex — fills/lines use the **main** tone
@@ -701,6 +732,8 @@ gl$ink                           # "#1A1714"
 - [ ] Stacked bars have the 1px paper gap (the `geom_col` default), ordered
       largest-share-at-bottom; stacked areas stay edge-to-edge — no white stroke
 - [ ] Highlighted focus line is 1.2× the muted line (`highlight_sz` 0.84 vs 0.70), not a 2× jump
+- [ ] `highlight_sz` appears **only** over a muted backdrop — lone or coequal
+      series stay at the standard width (no `linewidth` argument)
 - [ ] **Zero baselines use `gl_zero_line()`** — solid 1px ink_2, never the dashed
       threshold default, never gridline weight
 - [ ] Sequential ramp for ordered values; diverging only with a real midpoint —
