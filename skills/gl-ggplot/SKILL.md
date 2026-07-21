@@ -54,6 +54,9 @@ After calling `gl_setup()`, the following are available:
 | `gl_dark()` | Maps any GL main/light tone to its dark partner — for label/stroke colors (decision rule 2) |
 | `gl_endlabel()` | Direct line-end series labels (wraps `geom_text_repel` with house conventions: dark tone, 12px floor, paper halo) |
 | `gl_endlabel_room()` | Companion: `clip = "off"` + right margin + no legend, so end labels aren't clipped |
+| `gl_highlight_point()` | A focus point painted **once**: shape 21, `fill` = main tone, `colour` = its dark partner, `alpha = 1`. Use for the highlighted dot — a bare `geom_point(color = highlight)` colors only the 1px stroke and leaves the body muted grey (the shape-21 default fills with `fill`, not `colour`) |
+| `gl_hbar_grid()` | Flip gridlines for a horizontal-bar chart (X major on, Y off) so the reader can estimate bar lengths — the theme default is Y-only |
+| `gl_blank_panel()` | Clear axes, ticks, gridlines, and frame for a plot with no meaningful axes (network, treemap, choropleth). A plain `theme(panel.grid = element_blank())` does **not** work — the theme sets specific child elements that survive a parent blank |
 | `theme_gl()` | The theme function (already applied via `theme_set`) |
 | `scale_color_gl()` | Discrete color scale using GL palettes |
 | `scale_fill_gl()` | Discrete fill scale using GL palettes |

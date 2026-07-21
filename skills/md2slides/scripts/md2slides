@@ -173,9 +173,23 @@ if [ -z "$CHROMIUM" ]; then
 fi
 export CHROME_PATH="$CHROMIUM"
 
+# ---- Physical-size stamping for chart images --------------------------------
+# GL charts bake their text in as pixels; without an explicit width Marp/Chromium
+# sizes each PNG at px÷96 and the theme's max-width rescales it, transforming the
+# baked-in label sizes. size-images.js stamps each chart PNG with a Marp width
+# keyword = pixel_width × 96 ÷ dpi so it displays at its true physical size. The
+# sized copy lands next to the source so relative image paths still resolve.
+
+RENDER_INPUT="$INPUT"
+SIZED_INPUT="${INPUT%.md}.sized.md"
+if node "$SCRIPT_DIR/size-images.js" "$INPUT" "$SIZED_INPUT" 2>/dev/null; then
+    RENDER_INPUT="$SIZED_INPUT"
+    trap 'rm -f "$THEME" "$SIZED_INPUT"' EXIT
+fi
+
 # ---- Render -----------------------------------------------------------------
 
-marp "$INPUT" \
+marp "$RENDER_INPUT" \
     --pdf \
     --html \
     --theme "$THEME" \

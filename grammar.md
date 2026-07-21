@@ -176,6 +176,21 @@ without inflection. Weights used: 400, 500, 600, 700.
 > and cells, TOC sub-entries, page chrome (running head, folio, footnotes),
 > eyebrows, figure labels, any small uppercase label.
 
+**Canonical font-family tokens (copy verbatim downstream).** Every downstream
+encoding must specify the family name *followed by* generic fallbacks, never the
+bare family name — a renderer that emits a lone `"Inter"` into an SVG falls back
+to the *serif* default when Inter is absent, silently breaking the sans rule. Use
+these exact strings in every encoding (`theme_gl.R`, `gl-plot.ts`, `gl-flint.mjs`,
+CSS `:root`, the docx template, the Marp theme):
+
+- **Sans:** `Inter, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif`
+- **Serif:** `'Source Serif 4', Georgia, 'Times New Roman', serif`
+
+The fallback is a safety net, not a license to skip the face: renderers **must
+also embed / register the Inter and Source Serif 4 faces** (bundled in
+[`assets/fonts/`](assets/fonts/)) so the intended family actually resolves rather
+than degrading to a system face.
+
 Both ship locally in [`assets/fonts/`](assets/fonts/); the in-chart theme
 registers the bundled variable fonts via systemfonts, falling back to
 system-installed copies when the bundle isn't present.

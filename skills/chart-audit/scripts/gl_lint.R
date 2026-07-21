@@ -141,13 +141,37 @@ lint_file <- function(path) {
         if (grepl("geom_point", ln) && grepl("alpha\\s*=\\s*0?\\.[0-5]\\b", ln))
             flag(path, i, "backdrop-alpha",
                  "muted scatter backdrop stays at the 0.8 default (Nil §5) - drop the alpha override")
+
+        # -- 10. shape-21 point default: colour is the 1px STROKE, not the body -
+        # The point default is shape 21 (fill = tone, colour = 1px dark stroke).
+        # Setting/mapping colour on a geom_point WITHOUT a fill paints the ring
+        # only and leaves the dot body muted grey - the value never lands. Map
+        # fill= (and scale_fill_*), set shape = 19 for a solid dot, or use
+        # gl_highlight_point() for a focus point. Muted/ink strokes are exempt
+        # (a legitimate backdrop); a mapped field or a saturated tone is the bug.
+        if (grepl("geom_point\\s*\\(", ln) &&
+            grepl("colou?r\\s*=", ln) &&
+            !grepl("fill\\s*=", ln) &&
+            !grepl("shape\\s*=\\s*(19|20|16)\\b", ln) &&
+            !grepl("colou?r\\s*=\\s*(gl\\$c_muted|c_muted|gl\\$ink)", ln))
+            flag(path, i, "shape21",
+                 "geom_point colour= is the 1px stroke under the shape-21 default - map fill= (and scale_fill_*) so the tone fills the dot, set shape=19, or use gl_highlight_point() for a focus point")
     }
 
     # ---- File-level checks ----------------------------------------------------
     src <- paste(lines, collapse = "\n")
-    if (grepl("coord_flip", src) && !grepl("panel\\.grid\\.major\\.x", src))
+    if (grepl("coord_flip", src) && !grepl("panel\\.grid\\.major\\.x", src) &&
+        !grepl("gl_hbar_grid", src))
         flag(path, NROW(lines), "hbar-grid",
-             "horizontal bars need vertical gridlines - flip panel.grid.major.x on, .y off (Nil §4)")
+             "horizontal bars need vertical gridlines - use gl_hbar_grid() (X on, Y off) (Nil §4)")
+    # Continuous color ramp feeding geom_point strokes (shape-21 body stays grey):
+    # the value is on the ring, not the fill. Points-only file (no line/segment
+    # legitimately consuming the colour scale) → the ramp belongs on fill=.
+    if (grepl("geom_point", src) &&
+        grepl("scale_colou?r_gl_gradient", src) &&
+        !grepl("geom_(line|path|segment|step)", src))
+        flag(path, NROW(lines), "shape21",
+             "a colour gradient feeds geom_point strokes under the shape-21 default - map aes(fill=) and use scale_fill_gl_gradient() so the ramp fills the dots")
     if (grepl("gl_setup\\s*\\(", src) == FALSE && grepl("ggplot\\s*\\(", src))
         flag(path, 1L, "setup", "no gl_setup() call found - charts will not carry the GL theme")
 }

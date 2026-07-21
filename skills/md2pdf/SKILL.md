@@ -68,6 +68,17 @@ pdf_options:
     `![Chart title. // Units, period, unit of analysis](chart.png){#fig:x}`.
     (A legacy form — subtitle in the image title attribute,
     `![Title](chart.png "Subtitle")` — still works.)
+- **Figure sizing (automatic)**: `gl-figure.lua` reads each chart PNG's pixel
+  width and dpi (all GL charts are 300 dpi from `save_fig`) and stamps the
+  `<img>` with an explicit width in inches (`pixel_width ÷ dpi`). This is what
+  keeps baked-in chart text at its authored point size: a raster carries its
+  labels as pixels, so they only read at the right size when the image is
+  displayed at the exact physical width it was rendered for. Chromium otherwise
+  sizes a PNG at px÷96 and `max-width:100%` rescales it to the column, shrinking
+  or enlarging every label. A `full` chart lands at 6.5in, `half` at 3.167in,
+  etc. — matching the `save_fig` size table. To override, set the width
+  yourself: `![cap](chart.png){width=4in}` (an explicit width is respected).
+  Only `.png` images are stamped; `max-width:100%` remains as an overflow guard.
 - **Lead paragraph**: not automatic. Wrap the first paragraph after a
   heading with `<p class="lead">` (HTML pass-through) when you want the
   lead role. md-to-pdf supports inline HTML in markdown.

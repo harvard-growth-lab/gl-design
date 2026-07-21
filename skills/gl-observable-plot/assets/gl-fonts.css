@@ -1,0 +1,69 @@
+/* gl-fonts.css — web fonts + tabular figures for the GL Observable Plot theme.
+ *
+ * Observable Plot renders SVG text with whatever fonts the browser has, so the
+ * two GL families must be registered as web fonts before "Inter" / "Source
+ * Serif 4" resolve. Load this once per page (e.g. `import "./gl-fonts.css"` in a
+ * bundler, a <link> tag, or paste into an Observable notebook `html` cell).
+ *
+ * The url()s below point at the woff2 files bundled in this repo under
+ * assets/fonts/. Rewrite the paths to wherever your app serves them (or swap in
+ * a CDN copy of the same families) — the family NAMES are what matter and must
+ * stay exactly "Inter" and "Source Serif 4" to match GL_FONT in gl-plot.ts.
+ *
+ * Both are variable fonts; the font-weight range lets the browser hit every
+ * weight the grammar uses (Inter 400–700, Source Serif 4 300–600). */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../../../assets/fonts/inter/woff2/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../../../assets/fonts/inter/woff2/InterVariable-Italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("../../../assets/fonts/source-serif-4/woff2/SourceSerif4Variable-Roman.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("../../../assets/fonts/source-serif-4/woff2/SourceSerif4Variable-Italic.woff2") format("woff2");
+}
+
+/* Tabular figures on every numeral in a GL chart (grammar §3.7). Plot already
+ * sets font-variant-numeric: tabular-nums on quantitative axes; this extends it
+ * to series labels, annotations, and any other text mark so all numbers align.
+ * glPlot() stamps the `gl-plot` class on the root by default. */
+.gl-plot text {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Legend swatches and figure chrome render OUTSIDE the <svg>: when a plot has a
+ * legend, Plot wraps it in <figure class="gl-plot-figure"> with the legend as a
+ * <div class="gl-plot-swatches"> sibling of the SVG. The `.gl-plot text` rule
+ * (SVG-only) can't reach those, so style them here — otherwise swatch labels
+ * fall back to the browser default font. */
+.gl-plot-figure,
+.gl-plot-swatches {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: #2C2823; /* ink_2 */
+}
+/* Legend entries ARE series labels — grammar §2 sets them at weight 600. */
+.gl-plot-swatches {
+  font-weight: 600;
+  font-size: 12px; /* the 12px floor */
+}

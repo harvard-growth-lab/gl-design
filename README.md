@@ -26,6 +26,8 @@ ships these skills:
 |---|---|
 | **/design-kit** | **Start here.** Session primer — verifies tooling, loads the grammar + report recipe, and makes every chart and document you produce follow GL conventions for the rest of the session |
 | **gl-ggplot** | GL theme, palettes, and `save_fig` sizes for R/ggplot2 charts |
+| **gl-observable-plot** | GL theme, palettes, and mark/scale helpers for Observable Plot (JS/TS) charts |
+| **gl-flint** | GL theme + mute-then-highlight for Microsoft Flint (flint-chart) — wraps its Vega-Lite backend |
 | **chart-audit** | Visual audit checklist to run after generating charts |
 | **md2docx** | Markdown → Word (.docx) with citations + cross-references |
 | **md2pdf** | Markdown → styled PDF |
@@ -172,6 +174,8 @@ When you change a token in `grammar.md`, grep these and update every copy that c
 | File | Carries |
 |---|---|
 | `skills/gl-ggplot/assets/theme_gl.R` | R: the `gl` token list, palettes, `save_fig` sizes, geom defaults |
+| `skills/gl-observable-plot/assets/gl-plot.ts` | TS/JS: the `GL` token object, `glPalettes`, `glStyle`, mark/scale helpers (Observable Plot). `gl-plot.d.ts` mirrors the types; `gl-fonts.css` carries the web-font `url()`s |
+| `skills/gl-flint/assets/gl-flint.mjs` | JS: the `GL` token object, `glPalettes`, and the `glVegaConfig` GL Vega-Lite config that wraps Flint's emitted spec |
 | `skills/gl-ggplot/assets/gl_pdf.tex` | xelatex: font families + the color palette (R Markdown PDF route) |
 | `skills/md2docx/assets/build_gl_template.py` | Python constants → `gl.docx` / `gl.dotx`. **Deliberate** px→pt and boolean-bold compromises live here, documented in-file |
 | `skills/md2pdf/assets/md2pdf-style.css` | CSS `:root` vars (shared by md2html) |
@@ -203,6 +207,11 @@ assets/               # Static embodiments of grammar + recipe
 skills/               # Runnable, Claude-consumable tools
   gl-ggplot/          # GL design system for R/ggplot2 (theme, scales, sizes)
     assets/theme_gl.R   # Sourceable R file — the portable runtime
+  gl-observable-plot/ # GL design system for Observable Plot (JS/TS)
+    assets/gl-plot.ts    # Runtime: tokens, palettes, glPlot() + mark/scale helpers
+    assets/gl-plot.d.ts  # Types-only reference (token shape, palette names, signatures)
+    assets/gl-fonts.css  # @font-face (Inter + Source Serif 4) + tabular + legend swatches
+    scripts/gl_lint_plot.mjs  # Conformance lint — source regex + rendered-SVG inspection
   md2docx/            # Markdown → Word conversion (pandoc + Lua filters)
     assets/templates/gl.docx       # GL Word reference doc (the live --theme gl)
     assets/templates/gl.dotx       # Template twin for manual Word users

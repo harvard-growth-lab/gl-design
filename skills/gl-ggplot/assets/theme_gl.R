@@ -560,6 +560,54 @@ gl_endlabel_room <- function(right = 95) {
                plot.margin = margin(5, right, 5, 5)))
 }
 
+#' A single highlighted point, painted once (the shape-21 fix)
+#'
+#' The point default is shape 21: `fill` is the tone, `colour` is a 1px dark
+#' stroke. Setting only `color =` on a geom_point therefore paints the STROKE and
+#' leaves the dot BODY muted grey — the value never lands (the most common GL
+#' scatter bug). This helper draws the focus point correctly: shape 21, `fill` =
+#' the main tone, `colour` = its dark partner (via gl_dark()), full opacity,
+#' painted ONCE (exclude the focus rows from the muted backdrop layer).
+#'
+#'   geom_point(data = \(d) filter(d, !focus)) +          # muted backdrop
+#'   gl_highlight_point(data = \(d) filter(d, focus), size = 2.6)   # focus, once
+#'
+#' @param data The focus rows only (the highlighted subset / single point).
+#' @param color The MAIN tone (highlight, the default, or lead_finding). The dark
+#'   stroke is derived automatically. @param ... size, mapping, etc. → geom_point.
+gl_highlight_point <- function(data = NULL, ..., color = highlight) {
+    geom_point(data = data, shape = 21, fill = color,
+               colour = gl_dark(color), alpha = 1, ...)
+}
+
+#' Flip gridlines for a horizontal-bar chart
+#'
+#' theme_gl draws horizontal (Y) gridlines by default. On a horizontal-bar chart
+#' (values on X, categories on Y) those run ALONG the bars and help nothing — the
+#' reader needs VERTICAL gridlines at the value ticks to estimate bar lengths.
+#' Add gl_hbar_grid() to any horizontal bar/col chart: X major on, Y off
+#' (grammar §3.5: gridlines only where the reader estimates values).
+gl_hbar_grid <- function() {
+    theme(panel.grid.major.x = element_line(colour = gl$gridline, linewidth = 0.35),
+          panel.grid.major.y = element_blank())
+}
+
+#' Blank the axes, ticks, gridlines, and frame — networks, maps, treemaps
+#'
+#' theme_gl sets SPECIFIC child elements (panel.grid.major.y, axis.text.x/.y,
+#' axis.line), so a plain theme(panel.grid = element_blank(), axis.text =
+#' element_blank()) does NOT remove them — the explicitly-set child wins over a
+#' parent-level blank. Use gl_blank_panel() for a plot with no meaningful axes
+#' (a product-space network, a treemap, a choropleth) to clear the whole frame
+#' in one call. Add a legend/margin theme after it if needed.
+gl_blank_panel <- function() {
+    theme(axis.title = element_blank(),
+          axis.text.x = element_blank(), axis.text.y = element_blank(),
+          axis.ticks = element_blank(), axis.line = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank())
+}
+
 # ---- Scale functions ---------------------------------------------------------
 
 #' Discrete color scale using GL palettes

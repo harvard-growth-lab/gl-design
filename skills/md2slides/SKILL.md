@@ -109,6 +109,15 @@ The eyebrow + title sit compact at the top, the chart fills the remaining
 space, and the line that starts with `Source:` is styled as Source Serif 4
 italic — matching the chart-source role in the report recipe.
 
+**Figure sizing (automatic).** Before rendering, `size-images.js` reads each
+chart PNG's pixel width and dpi (GL charts are 300 dpi from `save_fig`) and
+injects a Marp width keyword — `![w:624](chart.png)` for a `full` (6.5in)
+chart — so the image displays at its true physical size. This keeps the
+baked-in chart text at its authored point size instead of scaling with the
+slide (Marp/Chromium otherwise sizes a PNG at px÷96, then the theme's
+max-width rescales it, transforming every label). Set a Marp keyword yourself
+(`![w:800](chart.png)`, `![bg right:40%](chart.png)`) and it is left untouched.
+
 ### Two-column
 
 Wrap the columns in a `.cols` div (HTML inside markdown is fine):
