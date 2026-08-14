@@ -26,7 +26,9 @@ ships these skills:
 |---|---|
 | **/design-kit** | **Start here.** Session primer — verifies tooling, loads the grammar + report recipe, and makes every chart and document you produce follow GL conventions for the rest of the session |
 | **gl-ggplot** | GL theme, palettes, and `save_fig` sizes for R/ggplot2 charts |
-| **chart-audit** | Visual audit checklist to run after generating charts |
+| **gl-graph-modes** | Two-mode R/ggplot wrapper over `gl-ggplot` — fast colorful *research* graphs (default) vs. spec-compliant *production* graphs |
+| **gl-charts** | GL theme, palettes, marks, and compose helpers for **web** charts (TanStack Charts v0) |
+| **chart-audit** | Visual audit checklist to run after generating ggplot charts |
 | **md2docx** | Markdown → Word (.docx) with citations + cross-references |
 | **md2pdf** | Markdown → styled PDF |
 | **md2html** | Markdown → self-contained, portable HTML |
@@ -106,7 +108,7 @@ R/ggplot path reads the bundled fonts directly and needs nothing). So run
 bash scripts/install.sh
 ```
 
-This symlinks the eight skills into `~/.claude/skills/`, installs the fonts (via
+This symlinks every skill in `skills/` into `~/.claude/skills/`, installs the fonts (via
 `install-fonts.sh`), and re-runs the doctor.
 
 ## Use
@@ -142,10 +144,12 @@ This half is for editing the grammar or the tools — not for using the kit.
 
 ## The one rule: values flow downward, never back up
 
-There is no generated tokens file. Consistency is maintained by convention, so the
-authority order must be explicit. A design value (a color hex, a font family, a type size,
-a figure dimension) has exactly one home, and every other place that carries it is a
-**downstream copy that must match**.
+A design value (a color hex, a font family, a type size, a figure dimension) has exactly
+one home, and every other place that carries it is a **downstream copy that must match**.
+For most of the tree that match is maintained by convention, so the authority order has to
+be explicit. **One medium is now generated:** `packages/gl-charts/tokens.json` is the
+machine-readable encoding of `grammar.md`'s tables, and the web/SVG token files are emitted
+from it — see [Generated vs. hand-carried](#generated-vs-hand-carried) below.
 
 ```
 docs/nil/       UPSTREAM INSPIRATION — Nil's original deliverables.
@@ -177,9 +181,22 @@ When you change a token in `grammar.md`, grep these and update every copy that c
 | `skills/md2pdf/assets/md2pdf-style.css` | CSS `:root` vars (shared by md2html) |
 | `skills/md2pdf-minimal/assets/md2pdf-style.css` | CSS `:root` vars (minimal fallback) |
 | `skills/md2slides/assets/themes/gl.css` | Marp theme CSS |
+| `packages/gl-charts/tokens.json` | Web/SVG: the **authored** machine-readable encoding — values *and* their rationale. Verified against `grammar.md` by `npm run tokens:check` |
 
 `docs/nil/` and `playground/` are **out of scope** for drift checks: the former is upstream,
 the latter is derived output.
+
+<a id="generated-vs-hand-carried"></a>
+## Generated vs. hand-carried
+
+| | Files | How it is kept true |
+|---|---|---|
+| **Generated** | `packages/gl-charts/src/tokens.ts`, `src/tokens.css`, `src/fonts.css` | Emitted from `tokens.json` by `npm run tokens`. Do not hand-edit: `npm run tokens:check` fails if you do, and also fails if `tokens.json` disagrees with `grammar.md`'s colour tables |
+| **Hand-carried** | the six skill assets above | Convention, plus `npm run tokens:downstream` — a report (never a build failure) of every GL hex present downstream that is missing from `tokens.json`, and every token a file is documented to carry but doesn't |
+
+`grammar.md`'s colour tables are parsed and enforced. Its geometry section is prose
+(`- **Tick mark**: 1px, 4px long, **outward**`), so those values are printed side by side
+for reconciliation instead — `node packages/gl-charts/scripts/check-tokens.mjs --reconcile`.
 
 ## Auditing for drift (and for LLMs)
 
@@ -187,6 +204,8 @@ Treat `grammar.md` as ground truth. For each color hex / font family / type size
 defines, grep the downstream encodings above and flag any that differ. **A mismatch is a
 bug in the downstream file, not in grammar.md** — unless the downstream file documents a
 deliberate per-medium compromise (as `build_gl_template.py` does for Word).
+`npm run tokens:downstream` from `packages/gl-charts` does that grep for you and reports
+what it finds; it never fails a build.
 
 ## Repo structure
 
@@ -203,6 +222,9 @@ assets/               # Static embodiments of grammar + recipe
 skills/               # Runnable, Claude-consumable tools
   gl-ggplot/          # GL design system for R/ggplot2 (theme, scales, sizes)
     assets/theme_gl.R   # Sourceable R file — the portable runtime
+  gl-graph-modes/     # Research vs. production modes over gl-ggplot
+    assets/gl_graph.R   # Sources theme_gl.R, then layers the research-mode defaults
+  gl-charts/          # GL design system for web charts (see packages/gl-charts)
   md2docx/            # Markdown → Word conversion (pandoc + Lua filters)
     assets/templates/gl.docx       # GL Word reference doc (the live --theme gl)
     assets/templates/gl.dotx       # Template twin for manual Word users
@@ -220,8 +242,27 @@ playground/           # Working dogfood example (demo report + chart code + rend
 eval/                 # Skill smoke test: prompt battery + headless runner + eval protocol
                       #   (run folders in eval/reports/<stamp>/, gitignored; the
                       #    <stamp>.md evaluation reports beside them are committed)
+packages/
+  gl-charts/          # GL themed chart component library for the web (over TanStack Charts)
+    SPEC.md             # PROPOSED additions to grammar.md — the rules this package needed
+                        #   for marks the grammar never had to name (donut, band, stem,
+                        #   leader, legend placement). Not ratified; grammar.md still wins
+    src/tokens.ts       # Typed token module — downstream copy of grammar.md
+    src/theme.css       # CSS custom properties + figure-block chrome
+    reference/          # Hand-computed, TanStack-free render of the spec (the visual target)
+    gallery/            # Fidelity harness: rebuilds the spec PDF's worked examples with
+                        #   gl-charts and diffs them against crops of the PDF itself
+                        #   (`npm run gallery`; reports in gallery/reports/)
+    examples/           # Every catalog chart type drawn from REAL Atlas of Economic
+                        #   Complexity data, each shipped with its source, bundled to one
+                        #   self-contained HTML (`npm run examples`). The gallery asks
+                        #   "can the library draw this on-spec?"; this asks "does it
+                        #   survive data nobody designed for it?" — and the answers that
+                        #   come back "no" are recorded under each chart
+
 docs/
   followups.md        # Open questions / Word-fidelity limits (cited by skills)
+  data-vis-spec-core.md  # Condensed core of the data-vis spec PDF (downstream of grammar.md)
   nil/                # Upstream inspiration — Nil's original spec deliverables (read-only)
 ```
 
@@ -264,7 +305,7 @@ in `marketplace.json` — the `commands`/`skills`/`agents` fields there are dire
 truth — `grammar.md`, `recipes/`, and `assets/fonts` at the plugin root — and reference it
 via `../../grammar.md`-style links and `${CLAUDE_PLUGIN_ROOT}`. That resolves only because
 the whole repo is the plugin root; a skill copied out on its own will break. This is why
-the repo is packaged as one plugin rather than eight per-skill plugins.
+the repo is packaged as one plugin rather than ten per-skill plugins.
 
 **Fonts on the plugin path.** `claude plugin install` does not run any script, so plugin
 users must run `scripts/install-fonts.sh` once to register the fonts system-wide. Only the

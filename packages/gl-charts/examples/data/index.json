@@ -1,0 +1,90 @@
+{
+  "release": {
+    "datasetId": "atlas-dataverse-full",
+    "releaseId": "2026-07-full",
+    "doi": "doi:10.7910/DVN/T4CHWJ",
+    "methodologyVersion": "2026"
+  },
+  "lead": "VNM",
+  "cohort": [
+    "VNM",
+    "THA",
+    "MYS",
+    "PHL",
+    "IDN",
+    "KOR"
+  ],
+  "classification": "HS92",
+  "years": [
+    1995,
+    2023
+  ],
+  "datasets": [
+    {
+      "name": "countries",
+      "rows": 146,
+      "kb": 19,
+      "note": "Every country the Atlas ranks, with the region / income grouping used for colour and facets."
+    },
+    {
+      "name": "sectors",
+      "rows": 9,
+      "kb": 1,
+      "note": "The nine classified HS92 sectors, in Atlas order. The page's categorical key: a sector's position here fixes its tone in every chart, so the same sector is the same colour on the treemap, the stack and the map. \"Other\" is dropped for the reason given at EXCLUDED_CODES — leaving it in would reserve a hue for a category no chart draws."
+    },
+    {
+      "name": "country-year",
+      "rows": 4209,
+      "kb": 695,
+      "note": "Complexity and macro panel, every ranked country, 1995-2023. The workhorse: trends, scatters, distributions, rankings, maps."
+    },
+    {
+      "name": "country-sector-year",
+      "rows": 1566,
+      "kb": 131,
+      "note": "Export value by sector for the cohort (VNM, THA, MYS, PHL, IDN, KOR), 1995-2023. Stacks, streams, marimekko, normalised shares. Excludes the \"Other\" sector (trade discrepancies and unclassified), so shares sum to classified exports."
+    },
+    {
+      "name": "world-sector-year",
+      "rows": 261,
+      "kb": 19,
+      "note": "World exports by sector, 1995-2023. The backdrop a country's share is read against. Excludes the \"Other\" sector, matching country-sector-year so the two are comparable."
+    },
+    {
+      "name": "lead-product-year",
+      "rows": 1199,
+      "kb": 371,
+      "note": "VNM's export basket at HS92 4-digit, 2023. Treemaps, rankings, opportunity scatters, the product space overlay. Excludes trade discrepancies and unclassified commodities — see EXCLUDED_CODES."
+    },
+    {
+      "name": "lead-product-panel",
+      "rows": 348,
+      "kb": 46,
+      "note": "VNM's twelve largest 2023 products traced back to 1995. Bump ranks, slopegraphs, small multiples, playback."
+    },
+    {
+      "name": "lead-thresholds",
+      "rows": 116,
+      "kb": 18,
+      "note": "Atlas-computed percentiles of VNM's product-level distributions, by year and variable. Percentile fans and boxplots without re-deriving quantiles here."
+    },
+    {
+      "name": "product-space-nodes",
+      "rows": 1241,
+      "kb": 154,
+      "note": "HS92 4-digit products with their 2023 world trade value and complexity. Nodes for the proximity network, points for the PCI scatters."
+    },
+    {
+      "name": "product-space-edges",
+      "rows": 4316,
+      "kb": 218,
+      "note": "Proximity edges between HS92 4-digit products — the Atlas's own product-space graph. Matrix heatmaps and adjacency views."
+    },
+    {
+      "name": "lead-partners",
+      "rows": 343,
+      "kb": 33,
+      "note": "Where VNM's exports go: the twelve largest destination markets, 1995-2023. Flows, routes, ranked bars, rank changes."
+    }
+  ]
+}

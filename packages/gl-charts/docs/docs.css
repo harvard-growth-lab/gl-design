@@ -1,0 +1,400 @@
+/**
+ * docs.css — page chrome for the primitives reference.
+ *
+ * Chrome only. This page draws no chart, so unlike `examples.css` there is no
+ * rule here that could reach a figure; the only marks on the page are the mark
+ * swatches, and those are stroked from `glDefaults()` at build time, never from
+ * CSS. Every colour is a `--dc-*` custom property generated from `src/tokens.ts`
+ * by `build-docs.mjs`.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--dc-paper);
+  color: var(--dc-ink-2);
+  font-family: var(--dc-font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, pre { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+
+a { color: var(--dc-accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+/* ── Shell ────────────────────────────────────────────────────────────────── */
+
+.shell { display: grid; grid-template-columns: 268px minmax(0, 1fr); }
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 18px 48px;
+  border-right: 1px solid var(--dc-rule);
+  background: var(--dc-paper-warm);
+}
+
+.brand {
+  display: block;
+  font-family: var(--dc-font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--dc-ink);
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+
+#filter {
+  width: 100%;
+  padding: 7px 10px;
+  margin-bottom: 16px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--dc-ink-2);
+  background: var(--dc-paper);
+  border: 1px solid var(--dc-gridline);
+  border-radius: 4px;
+}
+#filter:focus { outline: 2px solid var(--dc-accent); outline-offset: -1px; }
+
+#nav details { margin-bottom: 4px; }
+#nav summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dc-ink-3);
+  padding: 4px 0;
+  list-style: none;
+}
+#nav summary::-webkit-details-marker { display: none; }
+#nav summary::before { content: "▸ "; color: var(--dc-ink-4); }
+#nav details[open] > summary::before { content: "▾ "; }
+
+#nav ul { list-style: none; margin: 0 0 8px; padding: 0 0 0 12px; }
+#nav li a {
+  display: block;
+  padding: 2px 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dc-ink-2);
+  text-decoration: none;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+#nav li a:hover { background: var(--dc-accent-tint); color: var(--dc-accent-deep); }
+#nav li a.on { background: var(--dc-accent); color: var(--dc-paper); }
+#nav .hidden { display: none; }
+#nav .empty { display: none; }
+
+main { padding: 40px 44px 120px; max-width: 1080px; }
+
+/* ── Masthead ─────────────────────────────────────────────────────────────── */
+
+.masthead { border-bottom: 1px solid var(--dc-rule); padding-bottom: 28px; margin-bottom: 40px; }
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dc-accent);
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-family: var(--dc-font-serif);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--dc-ink);
+}
+
+.lede { margin: 0 0 10px; font-size: 17px; max-width: 62ch; color: var(--dc-ink-2); }
+.masthead .meta { margin: 0; font-size: 13px; max-width: 62ch; color: var(--dc-ink-3); }
+
+/* ── Structure ────────────────────────────────────────────────────────────── */
+
+.entry { margin-bottom: 64px; }
+
+h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--dc-ink);
+  font-family: var(--dc-font-serif);
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--dc-ink);
+}
+
+h2 .spec {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--dc-accent-deep);
+  background: var(--dc-accent-tint);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.blurb { max-width: 68ch; color: var(--dc-ink-3); margin: 0 0 28px; }
+
+.module { margin-bottom: 44px; }
+
+h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 36px 0 10px;
+  font-family: var(--dc-font-serif);
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--dc-ink);
+}
+
+h3 .file { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 400; color: var(--dc-ink-4); }
+
+h3.band {
+  margin-top: 40px;
+  padding: 6px 0 6px 10px;
+  border-left: 3px solid var(--dc-accent);
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+
+.modhead {
+  padding: 16px 20px;
+  margin-bottom: 8px;
+  background: var(--dc-paper-warm);
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* ── Symbol card ──────────────────────────────────────────────────────────── */
+
+.sym {
+  padding: 16px 0 20px;
+  border-top: 1px solid var(--dc-gridline);
+  scroll-margin-top: 16px;
+}
+
+.sym h4 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.sym h4 .anchor {
+  font-family: ui-monospace, monospace;
+  color: var(--dc-ink);
+  text-decoration: none;
+}
+.sym h4 .anchor:hover { color: var(--dc-accent); }
+.sym h4 .type { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 400; color: var(--dc-ink-3); }
+
+.badge {
+  font-family: var(--dc-font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--dc-paper);
+  background: var(--dc-ink-4);
+}
+.badge.fn { background: var(--dc-accent); }
+.badge.component { background: var(--dc-c3); }
+.badge.interface, .badge.type { background: var(--dc-ink-3); }
+.badge.const, .badge.token { background: var(--dc-c2); }
+.badge.reexport { background: var(--dc-ink-4); }
+
+pre.sig, pre.code, pre.fixed {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: var(--dc-paper-warm);
+  border-radius: 5px;
+  border-left: 3px solid var(--dc-gridline);
+  white-space: pre;
+  tab-size: 2;
+}
+pre.sig { border-left-color: var(--dc-accent); }
+pre.fixed { color: var(--dc-ink-3); }
+
+.tk-com { color: var(--dc-ink-4); }
+.tk-str { color: var(--dc-c3); }
+.tk-kw  { color: var(--dc-c2); }
+.tk-num { color: var(--dc-accent-deep); }
+.tk-fn  { color: var(--dc-accent); font-weight: 600; }
+
+.doc { max-width: 74ch; }
+/* A note the source wrote once for two consecutive exports. */
+.doc.shared { border-left: 2px solid var(--dc-gridline); padding-left: 12px; color: var(--dc-ink-3); }
+.seealso { margin: 0 0 10px; font-size: 13px; color: var(--dc-ink-3); }
+
+.doc h5 {
+  margin: 18px 0 8px;
+  font-family: var(--dc-font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dc-ink);
+}
+.doc hr { border: 0; border-top: 1px solid var(--dc-gridline); margin: 16px 0; }
+/* Belt and braces: a long identifier in prose must not widen the page. */
+.doc p, .doc li { overflow-wrap: break-word; }
+.doc p { margin: 0 0 10px; }
+.doc ul { margin: 0 0 10px; padding-left: 20px; }
+.doc li { margin-bottom: 4px; }
+.doc code, .members code, .values code, td code { font-size: 0.88em; background: var(--dc-paper-warm); padding: 0.5px 3px; border-radius: 3px; }
+.doc pre code { background: none; padding: 0; }
+
+.ref {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--dc-accent-deep);
+  background: var(--dc-accent-tint);
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.path { font-family: ui-monospace, monospace; font-size: 0.88em; color: var(--dc-ink-3); }
+.note { font-size: 14px; color: var(--dc-ink-3); max-width: 74ch; }
+
+.chips { margin: -4px 0 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips code { background: var(--dc-accent-tint); color: var(--dc-accent-deep); padding: 2px 7px; border-radius: 3px; font-size: 12px; }
+
+dl.tags { margin: 10px 0 0; display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; font-size: 13.5px; }
+dl.tags dt { font-family: ui-monospace, monospace; color: var(--dc-ink-4); }
+dl.tags dd { margin: 0; }
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+
+table { border-collapse: collapse; width: 100%; margin: 4px 0 14px; font-size: 13.5px; }
+thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--dc-ink-3);
+  padding: 0 10px 6px 0;
+  border-bottom: 1px solid var(--dc-ink-2);
+}
+tbody th { text-align: left; font-weight: 600; vertical-align: top; padding: 7px 12px 7px 0; white-space: nowrap; }
+tbody td { vertical-align: top; padding: 7px 12px 7px 0; }
+tbody tr + tr th, tbody tr + tr td { border-top: 1px solid var(--dc-gridline); }
+
+.members { table-layout: fixed; }
+.members th { font-family: ui-monospace, monospace; font-weight: 400; color: var(--dc-ink); white-space: normal; overflow-wrap: anywhere; }
+.members thead th:nth-child(1) { width: 20%; }
+.members thead th:nth-child(2) { width: 30%; }
+.members .opt { color: var(--dc-c2); font-weight: 700; }
+.members .ty code { overflow-wrap: anywhere; }
+.members .why { color: var(--dc-ink-3); }
+.members .why p { margin: 0 0 6px; }
+.members .why p:last-child { margin-bottom: 0; }
+
+/* Keys left, values and their custom-property names packed against them, so a
+   four-entry ramp does not sit half a page from its own name. */
+.values { table-layout: fixed; max-width: 780px; }
+.values th { font-family: ui-monospace, monospace; font-weight: 400; white-space: normal; width: 40%; }
+.values td:nth-child(3) { width: 34%; }
+.values td:nth-child(4) { width: 20%; }
+.values .hint { display: block; font-family: var(--dc-font-sans); font-size: 12px; font-weight: 400; color: var(--dc-ink-3); white-space: normal; }
+.values .sub { font-family: ui-monospace, monospace; color: var(--dc-ink-3); width: 5em; }
+.values .unkeyed { color: var(--dc-ink-4); }
+
+.chip {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 7px;
+  vertical-align: -2px;
+  border-radius: 3px;
+  background: var(--chip);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+}
+.ramp { display: inline-flex; margin-right: 8px; }
+.ramp .chip { margin: 0; border-radius: 0; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.07); }
+.ramp .chip:first-child { border-radius: 3px 0 0 3px; }
+.ramp .chip:last-child { border-radius: 0 3px 3px 0; }
+
+/* ── Mark defaults table ──────────────────────────────────────────────────── */
+
+.marks th code { background: none; padding: 0; font-size: 13px; color: var(--dc-ink); }
+.marks .glyph { width: 136px; }
+.marks .props { display: table-cell; }
+
+svg.swatch {
+  display: block;
+  background: var(--dc-paper);
+  border: 1px solid var(--dc-gridline);
+  border-radius: 3px;
+}
+
+.prop {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 0 6px 5px 0;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--dc-paper-warm);
+  border: 1px solid var(--dc-gridline);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.prop code { background: none; padding: 0; color: var(--dc-ink-3); }
+.prop b { font-family: ui-monospace, monospace; font-weight: 600; color: var(--dc-ink); }
+.prop.pinned { background: var(--dc-accent-tint); border-color: var(--dc-accent); }
+.prop.pinned code { color: var(--dc-accent-deep); }
+.prop.pinned b { color: var(--dc-accent-deep); }
+
+.legend { font-size: 12.5px; color: var(--dc-ink-3); max-width: 74ch; line-height: 2.1; }
+
+/* ── Derived mark card (on a wrapper's own entry) ─────────────────────────── */
+
+.markcard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: var(--dc-paper-warm);
+  border-radius: 5px;
+}
+.markcard > div { min-width: 0; }
+.markcard .trail { margin: 0 0 8px; font-size: 13px; color: var(--dc-ink-3); }
+.markcard .trail code { background: var(--dc-paper); }
+.markcard .props { margin: 0; }
+.markcard .prop { background: var(--dc-paper); }
+
+/* ── Small screens ────────────────────────────────────────────────────────── */
+
+@media (max-width: 880px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--dc-rule); }
+  #nav { max-height: 40vh; overflow-y: auto; }
+  main { padding: 28px 20px 80px; }
+  h1 { font-size: 30px; }
+}

@@ -1,0 +1,243 @@
+/**
+ * Figure-block chrome — the frame the chart sits inside.
+ *
+ * Everything here styles markup **this package emits itself**, from
+ * `src/figure.tsx` (`GLFigure`, `GLLegend`) and from
+ * `reference/build-reference.mjs`'s hand-written `figure()`. None of it is a
+ * workaround: TanStack never sees these elements, so these rules are the only
+ * thing that puts them on spec, and they are not expected to go away.
+ *
+ * Contrast with `patch.css` and `shapes.css`, whose every rule exists only
+ * because TanStack bakes a value into a presentation attribute — those are
+ * deletable; these are not.
+ *
+ * Values come from the custom properties in `tokens.css`, which `theme.css`
+ * imports ahead of this file.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Figure block chrome
+   Five elements, in this order: label · title · subtitle · [chart] · source.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * `margin: 0` and `line-height` are not cosmetic defaults — they are the two
+ * things a host page silently imposes on a figure. `<figure>` carries a UA
+ * margin of `1em 40px`, so without the reset every chart sits 80px narrower than
+ * its container and 40px out of line with the prose beside it. Leading is the
+ * same class of leak: a host that sets `line-height` on `body` reaches the
+ * legend rows and the source line, which are the only multi-line text a figure
+ * owns. Both are set here so the block is self-contained wherever it is mounted.
+ */
+.gl-figure {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  line-height: 1.4;
+}
+
+/* "FIGURE 4" — accent blue, uppercase, numbered sequentially. */
+.gl-figure__label {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 0.5em;
+}
+
+/* The finding. Serif, and it always ends in a period. */
+.gl-figure__title {
+  font-family: var(--font-serif);
+  font-size: var(--size-chart-title);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* Units, period, unit of analysis. Sans, no trailing period. */
+.gl-figure__subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink-3);
+  margin: 0.25em 0 0;
+}
+
+/**
+ * The chart container. TanStack resolves `foreground`, `muted` and `grid` to
+ * `currentColor` and inherits typography from the container's CSS font, so
+ * these three declarations are what put in-chart text and axis ink on spec.
+ * Anything the theme object can't carry (font family, size, weight) has to
+ * arrive here or per-mark — the library has no typography tokens at all.
+ *
+ * `.gl-chart` is in the same rule deliberately: a chart used without `GLFigure`
+ * (`glChart()` puts the class on `<Chart>` for exactly this) must still inherit
+ * the same type and ink, so the two selectors cannot carry different values.
+ */
+.gl-figure__plot,
+.gl-chart {
+  margin: 0.75em 0 0;
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Always required. Italic serif distinguishes provenance from the narrative. */
+.gl-figure__source {
+  font-family: var(--font-serif);
+  font-size: var(--size-chart-text);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink-2);
+  margin: 0.75em 0 0;
+}
+
+/* ── Legend ─────────────────────────────────────────────────────────────── */
+/* Prefer direct end-labels where the chart allows it; a legend costs the reader
+   a lookup that a label on the line does not. */
+
+/*
+ * Placement is the figure's decision, not the call site's (§3.11).
+ *
+ * `GLFigure` renders the legend into one of these two slots from its
+ * `legendPlacement` prop, so a legend cannot end up above the plot by being
+ * written above `<Chart>` in the JSX — which is how this package previously
+ * had legends in three different places across one gallery.
+ */
+.gl-figure__legend {
+  display: flex;
+  /* Flush left, on the figure block's own edge — the same one the label, title,
+     subtitle and source all start from (§3.11). Not centred on the plot: the
+     legend belongs to the figure, not to the panel. */
+  justify-content: flex-start;
+  margin: 0.5em 0 0;
+}
+
+.gl-figure__body--legend-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.gl-figure__body--legend-right > .gl-figure__plot {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Beside the plot: top-aligned with it, and vertical, so the entries run in
+   the stack's own top-to-bottom order. */
+.gl-figure__legend--right {
+  flex: 0 0 auto;
+  margin-top: 0.75em;
+}
+
+.gl-legend {
+  display: flex;
+  flex-wrap: wrap;
+  /* Cross-axis alignment. In the default ROW this centres each entry on the
+     row's height — harmless. Turn the container into a column and the cross
+     axis becomes horizontal, so the same declaration centres the entries on
+     each other and the swatches step inward down the list. Hence the explicit
+     `flex-start` on both column forms below. */
+  align-items: center;
+  gap: 4px var(--legend-item-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * The two ways a legend becomes a column: `vertical` on `GLLegend` itself, and
+ * `legendPlacement="right"` on the figure. One rule for both, because they are
+ * the same layout and had already drifted once — the figure-level form was
+ * inheriting the row's `align-items: center` and right-ragging its entries.
+ */
+.gl-legend--vertical,
+.gl-figure__legend--right .gl-legend {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--legend-mark-gap);
+}
+
+.gl-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--legend-mark-gap);
+}
+
+/*
+ * The mark is an inline SVG, not a coloured box: §3.11 makes it a miniature of
+ * the mark it names, so a line gets a rule and a scatter gets a stroked dot.
+ * Tone, stroke and dash are set per item in `figure.tsx` — this only reserves
+ * the box and keeps it on the label's optical centre.
+ */
+.gl-legend__mark {
+  flex: none;
+  height: var(--legend-mark-size);
+  overflow: visible;
+}
+
+/* The text takes the DARK tone. Set inline per series (Decision Rule 6). */
+.gl-legend__label {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ── Ramp legend ────────────────────────────────────────────────────────── */
+/*
+ * The legend form a BINNED encoding takes (§3.11): the steps the chart can
+ * paint, with the cut points under them. Swatches labelled "Lower" and "Higher"
+ * name the direction of a ramp but not where any cell sits on it.
+ */
+
+.gl-ramp-legend {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.gl-ramp-legend__label {
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0 0 6px;
+}
+
+/* Steps abut: they partition a continuum, so a gap would invent a break. */
+.gl-ramp-legend__steps {
+  display: flex;
+  height: var(--legend-mark-size);
+}
+
+.gl-ramp-legend__step { flex: 1 1 0; }
+
+/*
+ * Boundary labels sit UNDER their cut point, not under a bin — which means each
+ * one is centred on an edge and the two ends overhang by half a label. That
+ * overhang is correct: the number belongs to the boundary.
+ */
+.gl-ramp-legend__bounds {
+  position: relative;
+  height: 1.4em;
+  margin-top: var(--tick-label-offset);
+}
+
+.gl-ramp-legend__bound {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  line-height: 1.2;
+}

@@ -25,3 +25,19 @@ Thumbs.db
 # Smoke-test run folders (eval/reports/<stamp>/) stay local; the per-run
 # evaluation reports (eval/reports/<stamp>.md) are committed.
 eval/reports/*/
+
+# Node
+node_modules/
+
+# gl-charts build output. All three are derived from committed sources and are
+# re-created by their own npm script, so none of them belongs in the tree:
+#   gallery/out/   `npm run gallery`  — renders diffed against crops of the spec PDF
+#   examples/out/  `npm run examples` — the bundled self-contained demo page (~8 MB)
+#   docs/out/      `npm run docs`     — the built vocabulary page (~1.8 MB)
+# What IS committed beside them: gallery/reports/<date>.md (the written fidelity
+# reports, same convention as eval/reports/<stamp>.md) and reference/, which is
+# the hand-computed visual target the gallery diffs against.
+packages/gl-charts/gallery/out/
+packages/gl-charts/examples/out/
+packages/gl-charts/docs/out/
+packages/gl-charts/.tmp/
