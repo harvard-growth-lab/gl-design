@@ -51,6 +51,34 @@ else
   warn "Marp CLI not found" "npm install -g @marp-team/marp-cli  (md2slides will npx it on demand)"
 fi
 
+# ---- slides (pptx) ----------------------------------------------------------
+# gl-pptx needs nothing but Python: no pandoc, no Node, no Chromium, no fonts.
+printf '\nAnalysis → pptx (python-pptx)\n'
+# Probe candidates by actually running them: on Windows a `python3` shim exists on PATH
+# that only advertises the Microsoft Store and exits 0, so `command -v` is not proof.
+PY=""; PYV=""
+for cand in python3 python py; do
+  have "$cand" || continue
+  v="$("$cand" -c 'import sys; print(sys.version.split()[0])' 2>/dev/null)"
+  case "$v" in
+    [0-9]*) PY="$cand"; PYV="$v"; break ;;
+  esac
+done
+if [ -n "$PY" ]; then
+  ok "python $PYV ($(command -v "$PY"))"
+  "$PY" -c 'import pptx' 2>/dev/null \
+    && ok "python-pptx" \
+    || bad "python-pptx (gl-pptx)" "$PY -m pip install python-pptx pillow"
+  "$PY" -c 'import PIL' 2>/dev/null \
+    && ok "pillow (image fitting)" \
+    || warn "pillow not found" "$PY -m pip install pillow  (without it images are not fitted to placeholders)"
+  "$PY" -c 'import matplotlib' 2>/dev/null \
+    && ok "matplotlib (gl_chart.py)" \
+    || warn "matplotlib not found" "$PY -m pip install matplotlib  (only needed to draw charts in Python)"
+else
+  bad "python3 (gl-pptx)" "$PM python3"
+fi
+
 # ---- charts (R) -------------------------------------------------------------
 printf '\nCharts (R / ggplot2)\n'
 if have Rscript; then

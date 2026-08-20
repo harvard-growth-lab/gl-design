@@ -40,8 +40,13 @@ contract, not a second copy of the values:
   focus series; paint highlighted points once at full opacity). Save only at the named
   `save_fig()` sizes. After generating charts, run the **chart-audit** skill.
 - **Documents** → render through the GL pipelines, never ad-hoc pandoc: `md2docx` (Word),
-  `md2pdf` (PDF), `md2html` (HTML), `md2slides` (16:9 deck). To restyle an existing Word
+  `md2pdf` (PDF), `md2html` (HTML), `md2slides` (16:9 PDF deck). To restyle an existing Word
   doc, use `gl-docx-retheme`.
+- **Slide decks** → `md2slides` when the deck is prose and ships as a flat PDF; **`gl-pptx`**
+  when it is built from an analysis and must stay editable in PowerPoint (charts, data,
+  tables on the team template). Both apply `recipes/slide.md`.
+- **Charts in Python** → `gl-pptx`'s `scripts/gl_chart.py` is the matplotlib counterpart of
+  `theme_gl.R` (`gl_setup()`, the same tokens and named sizes). The R path stays `gl-ggplot`.
 
 These skills carry the full API and the exact conventions; they auto-trigger on the right
 tasks, or invoke them by name. Chart scripts start with:
