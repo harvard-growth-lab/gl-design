@@ -72,11 +72,20 @@ if [ -n "$PY" ]; then
   "$PY" -c 'import PIL' 2>/dev/null \
     && ok "pillow (image fitting)" \
     || warn "pillow not found" "$PY -m pip install pillow  (without it images are not fitted to placeholders)"
-  "$PY" -c 'import matplotlib' 2>/dev/null \
-    && ok "matplotlib (gl_chart.py)" \
-    || warn "matplotlib not found" "$PY -m pip install matplotlib  (only needed to draw charts in Python)"
 else
   bad "python3 (gl-pptx)" "$PM python3"
+fi
+
+# ---- charts (Python) --------------------------------------------------------
+printf '
+Charts (Python / matplotlib)
+'
+if [ -n "$PY" ]; then
+  mplv="$("$PY" -c 'import matplotlib; print(matplotlib.__version__)' 2>/dev/null)"
+  if [ -n "$mplv" ]; then ok "matplotlib $mplv"
+  else bad "matplotlib (gl-matplotlib)" "$PY -m pip install matplotlib"; fi
+else
+  bad "python3 (gl-matplotlib)" "$PM python3"
 fi
 
 # ---- charts (R) -------------------------------------------------------------
@@ -90,6 +99,8 @@ if have Rscript; then
   else
     warn "R $rmajor is below 4.1" "theme_gl.R needs R >= 4.1 (lambda syntax); upgrade R if charts error"
   fi
+  # jsonlite is checked separately below: only gl_export_fig() needs it, so its absence
+  # is a warning, not a failure of the chart path.
   pkgs=$(Rscript -e 'cat(setdiff(c("ggplot2","systemfonts","ragg","textshaping"), rownames(installed.packages())), sep=" ")' 2>/dev/null)
   if [ -z "${pkgs// }" ]; then
     ok "R packages: ggplot2, systemfonts, ragg, textshaping"
@@ -99,6 +110,13 @@ if have Rscript; then
     fi
   else
     bad "missing R packages:$pkgs" "Rscript -e 'install.packages(c($(echo $pkgs | sed "s/[^ ]*/\"&\"/g;s/ /,/g")))'"
+  fi
+  # Only gl_export_fig() needs jsonlite (deck-ready figures with a figures.json entry);
+  # the theme and save_fig() work without it, so this is a warning.
+  if Rscript -e 'q(status = as.integer(!requireNamespace("jsonlite", quietly = TRUE)))' 2>/dev/null; then
+    ok "jsonlite (gl_export_fig -> deck-ready figures)"
+  else
+    warn "jsonlite not installed" "Rscript -e 'install.packages(\"jsonlite\")'  (only gl_export_fig() needs it; save_fig() is unaffected)"
   fi
 else
   bad "Rscript" "$PM r-base  (or install R from CRAN)"

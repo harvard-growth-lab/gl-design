@@ -85,7 +85,7 @@ rules come back.
 ## Figure sizes per class
 
 A full-slide figure contained in a half-width box leaves most of the box empty. Match the
-export size to the class (`references/python-figures.md` has the full table):
+export size to the class (`references/figures.md` has the full table):
 
 | Class | Size | Inches |
 |---|---|---|

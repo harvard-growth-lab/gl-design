@@ -599,7 +599,7 @@ def add_chart_slide(prs, title: str, image_path, source: str = "", eyebrow: str 
     (recipe rule 5) — `validate_deck` flags ones that do not.
 
     The slide owns the title and source, so a deck-bound chart image should carry NEITHER
-    baked in (that is what `gl_chart.chart_text` is for on standalone PNGs).
+    baked in (that is what gl-matplotlib's `chart_text` is for, on standalone PNGs).
     """
     s = _add(prs, L_SINGLE)
     delta = _set_title_with_eyebrow(s, 14, title, eyebrow)
@@ -1011,7 +1011,7 @@ def save_deck(prs: Presentation, name: str, out_dir: Path | None = None) -> Path
 
 # ───────────────────── figures: the figs/ pipeline ─────────────────────
 # Charts arrive as images and this skill does not care what drew them — matplotlib
-# (`gl_chart.py`), ggplot (`save_fig("slide", ...)` from gl-ggplot), or anything else.
+# (gl-matplotlib), ggplot (gl-ggplot's `save_fig`/`gl_export_fig`), or anything else.
 FIG_SIZES = {                                  # inches; mirror gl-ggplot's named sizes
     "slide": (10, 5.625),                      # 16:9, the default for a chart slide
     "slide_half": (4.9, 5.0),                  # side-by-side pair on a cols slide

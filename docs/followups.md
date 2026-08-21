@@ -246,12 +246,22 @@ which is the recipe's 1280 × 720 px at 96 DPI, so every recipe value is exactly
 
 Two other notes for whoever picks this up:
 
-- **The chart theme now exists in Python too** (`gl-pptx/scripts/gl_chart.py`), because the
-  kit's chart tooling was R-only and matplotlib users had no on-brand default. It imports
-  its colors from `gl_pptx.py` and mirrors `theme_gl.R`'s API (`gl_setup`, the `gl` token
-  list, named `save_fig` sizes, muted-by-default geoms). If it earns its keep it should
-  probably graduate into its own `gl-matplotlib` skill beside `gl-ggplot`, rather than
-  living inside the deck builder.
+- **The chart theme now exists in Python too**, as the **`gl-matplotlib`** skill beside
+  `gl-ggplot`: the kit's chart tooling was R-only, so matplotlib users had no on-brand
+  default. It mirrors `theme_gl.R`'s API (`gl_setup`, the `gl` token list, the named sizes,
+  muted-by-default geoms) and carries its own token copy with its own `check_token_drift()`,
+  exactly as the R theme does. It started inside `gl-pptx` and was moved out, because a
+  researcher who just wants an on-brand chart for a memo should not have to reach into a
+  PowerPoint skill to get one.
+
+- **Deck-ready figures now work from R as well as Python.** `gl_export_fig()` in
+  `theme_gl.R` writes the same `figures.json` manifest the Python side writes (schema in
+  `skills/gl-pptx/references/figures.md`), so `gl-pptx` cannot tell which language produced
+  a figure and R figures arrive with their title, source and language rather than needing
+  them retyped at deck-build time. It is the only function in the kit that needs
+  **`jsonlite`**; the theme and `save_fig()` are unaffected. The reader (`find_fig`) lives
+  in `gl-pptx` because slides are the only consumer today — if a report pipeline ever wants
+  figure metadata, promote the schema and both writers to a shared root module.
 - **`skills/gl-graph-modes/` is not listed in `.claude-plugin/marketplace.json`.** Per the
   README's packaging rule ("add it to the `skills` array"), the plugin will not expose it.
   Left untouched here — it predates this branch and belongs in its own fix.

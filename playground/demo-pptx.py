@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Dogfood example for the `gl-pptx` skill — the pptx twin of `demo-deck.md`.
 
-Builds charts with `gl_chart.py`, exports them through the figs/ pipeline (including a
+Builds charts with `gl-matplotlib`, exports them through the figs/ pipeline (including a
 Spanish variant, to exercise the language feature), then assembles a deck that uses every
 slide class and validates it.
 
@@ -20,38 +20,39 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "skills" / "gl-matplotlib" / "scripts"))
 sys.path.insert(0, str(ROOT / "skills" / "gl-pptx" / "scripts"))
 
 import gl_pptx as gp            # noqa: E402
-import gl_chart as gc           # noqa: E402
+import gl_matplotlib as gm      # noqa: E402
 
 
 def build_figures(figs_root: Path):
     """Three charts, each exported deck-ready. The export call sits with the code that
     builds the chart — that is the rule, so figures regenerate with the analysis."""
-    gc.gl_setup()                                       # slide mode
+    gm.gl_setup(mode="slide", family="Source Sans Pro")  # slide sizing, deck font
     rng = np.random.default_rng(11)
     years = np.arange(2010, 2025)
 
     # 1. Highlight by muting: one focus series against a muted backdrop.
-    fig, ax = gc.subplots("slide")
+    fig, ax = gm.subplots("slide")
     for _ in range(7):
         ax.plot(years, 100 + np.cumsum(rng.normal(0, 4, len(years))))
     focus = 100 + np.cumsum(rng.normal(2.4, 3, len(years)))
-    ax.plot(years, focus, color=gc.gl["highlight"], linewidth=gc.FOCUS_LW)
-    gc.endlabel(ax, years[-1] + 0.2, focus[-1], "Sindh", gc.gl["highlight"])
-    gc.style_axes(ax, ylabel="Index (2010 = 100)", year_axis=True)
+    ax.plot(years, focus, color=gm.gl["highlight"], linewidth=gm.FOCUS_LW)
+    gm.endlabel(ax, years[-1] + 0.2, focus[-1], "Sindh", gm.gl["highlight"])
+    gm.style_axes(ax, ylabel="Index (2010 = 100)", year_axis=True)
     gp.export_fig(fig, "demo", "exports-index", title="Exports pull away after 2018.",
                   source="Source: Growth Lab analysis of example data.",
                   root=figs_root)
 
     # Same chart, Spanish labels -> a second language variant of the same `name`.
-    fig, ax = gc.subplots("slide")
+    fig, ax = gm.subplots("slide")
     for _ in range(7):
         ax.plot(years, 100 + np.cumsum(rng.normal(0, 4, len(years))))
-    ax.plot(years, focus, color=gc.gl["highlight"], linewidth=gc.FOCUS_LW)
-    gc.endlabel(ax, years[-1] + 0.2, focus[-1], "Sindh", gc.gl["highlight"])
-    gc.style_axes(ax, ylabel="Índice (2010 = 100)", year_axis=True)
+    ax.plot(years, focus, color=gm.gl["highlight"], linewidth=gm.FOCUS_LW)
+    gm.endlabel(ax, years[-1] + 0.2, focus[-1], "Sindh", gm.gl["highlight"])
+    gm.style_axes(ax, ylabel="Índice (2010 = 100)", year_axis=True)
     gp.export_fig(fig, "demo", "exports-index", lang="es",
                   title="Las exportaciones se despegan después de 2018.",
                   source="Fuente: análisis del Growth Lab con datos de ejemplo.",
@@ -60,17 +61,17 @@ def build_figures(figs_root: Path):
     # 2 & 3. A pair for a cols slide: two tones of one hue, not two unrelated colors.
     for i, (name, label) in enumerate([("composition", "Goods vs. services"),
                                        ("wages", "Wage premium")]):
-        fig, ax = gc.subplots("slide_half")
+        fig, ax = gm.subplots("slide_half")
         cats = ["Goods", "Services"]
         vals = rng.uniform(20, 60, (2, 5))
         bottom = np.zeros(5)
         x = np.arange(2020, 2025)
         for j, cat in enumerate(cats):
             ax.bar(x, vals[j], bottom=bottom, label=cat,
-                   color=gp.CAT["c-1"]["main" if j == 0 else "light"])
+                   color=gm.CAT["c-1"]["main" if j == 0 else "light"])
             bottom += vals[j]
         ax.legend(loc="upper left")
-        gc.style_axes(ax, ylabel=label, year_axis=True)
+        gm.style_axes(ax, ylabel=label, year_axis=True)
         gp.export_fig(fig, "demo", name, size="slide_half",
                       title=label + ".", source="Source: example data.", root=figs_root)
 
@@ -123,9 +124,11 @@ def main(argv=None):
     out_dir = Path(a.out)
     figs_root = out_dir / "figs"
 
-    drift = gp.check_token_drift()
-    print("token drift: " + ("OK (" + str(drift["checked"]) + " hexes match grammar.md)"
-                             if drift["ok"] else str(drift["missing"])))
+    for who, drift in (("gl_pptx", gp.check_token_drift()),
+                       ("gl_matplotlib", gm.check_token_drift())):
+        print("token drift " + who + ": "
+              + ("OK (" + str(drift["checked"]) + " hexes match grammar.md)"
+                 if drift["ok"] else str(drift["missing"])))
     build_figures(figs_root)
     deck = build_deck(figs_root, out_dir, lang=a.lang)
     print("built " + str(deck))

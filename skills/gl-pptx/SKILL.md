@@ -1,7 +1,7 @@
 ---
 name: gl-pptx
 description: Build an editable PowerPoint (.pptx) deck on the official Growth Lab template, from an analysis. Use this skill when the user wants to build a slide deck or presentation, "turn this into slides", draft a deck from data, charts or an analysis script, or stitch several finished section decks into one presentation. Output is always a valid, editable .pptx on GL_presentation_template.potx (12 branded layouts, logos baked in). For a flat 16:9 PDF deck from prose markdown, use md2slides instead.
-compatibility: Requires Python 3.9+ with python-pptx (and pillow for image fitting; matplotlib + pandas for the chart/table paths). No pandoc, Node or Chromium needed.
+compatibility: Requires Python 3.9+ with python-pptx (pillow for image fitting, pandas for table slides). Charts come from gl-matplotlib or gl-ggplot, so no plotting library is needed here. No pandoc, Node or Chromium.
 metadata:
   version: "1.0"
 ---
@@ -20,8 +20,7 @@ not computed, and nobody needs to edit it afterwards. `gl-pptx` produces an **ed
 .pptx** from an analysis — reach for it when the deck is built from charts, data and
 scripts, and colleagues will reorder slides, retype a title, or present from PowerPoint.
 
-Two workflows: **A — create** a section deck; **C — compile** section decks into one.
-(There is deliberately no "restyle someone's existing deck" workflow; see *Not in scope*.)
+Two workflows: **A — create** a section deck; **B — compile** section decks into one.
 
 ## Core stance — a presentation partner, not a generator
 
@@ -35,7 +34,7 @@ Two workflows: **A — create** a section deck; **C — compile** section decks 
 ## Setup
 
 1. `python -c "import pptx"` — if it fails: `python -m pip install python-pptx pillow`.
-   The chart and table paths also want `matplotlib` and `pandas`.
+   Table slides also want `pandas`.
 2. Run scripts with that interpreter, e.g.
    `python "$CLAUDE_PLUGIN_ROOT/skills/gl-pptx/scripts/compile_deck.py" --help`.
 3. Nothing else — no fonts to install (the deck inherits the template master, and the
@@ -75,7 +74,7 @@ cropped); photos use cover-fit.
    *and* its proposed class ("two charts -> `cols`"). When the class is not obvious from
    what the user said, confirm it.
 4. **Build** with `gl_pptx` (snippet below). Do **not** add title/closing slides by
-   default — an A deck is one *section*, and Workflow C adds them. Add them only for a
+   default — an A deck is one *section*, and Workflow B adds them. Add them only for a
    standalone deck.
 5. **Validate**: `gp.validate_deck(path, strict=True)`.
 6. **Hand back** the path, a slide-by-slide summary, and any open questions.
@@ -94,7 +93,7 @@ out = gp.save_deck(prs, "section-macro")               # -> $GL_SLIDES_DIR or th
 gp.validate_deck(out, strict=True)
 ```
 
-## Workflow C — compile section decks into one
+## Workflow B — compile section decks into one
 
 ```bash
 python scripts/compile_deck.py part1.pptx part2.pptx \
@@ -109,8 +108,10 @@ Inputs are assumed already on the template — the compiler does not audit or re
 
 ## Charts and figures
 
-Charts arrive as **images**, and the deck does not care what drew them — matplotlib, ggplot
-(`save_fig("slide", ...)` from `gl-ggplot`), anything. Three cases, in order of preference:
+Charts arrive as **images**, and the deck does not care what drew them: `gl-matplotlib`
+(Python), `gl-ggplot` (R), or anything else that can write a PNG. Both chart skills write
+the same `figures.json` manifest, so **R and Python figures are equally deck-ready** —
+`find_fig` cannot tell which language produced one. Three cases, in order of preference:
 
 **1. The analysis already exports figures.** Look them up and embed:
 
@@ -133,21 +134,29 @@ gp.export_fig(fig, "exports", "gdp-trend", title="Growth stalls after 2018.",
               source="Source: Growth Lab analysis of WDI data.")
 ```
 
-**3. There is no chart yet.** Write one with `gl_chart.py`, the Python counterpart of
-`theme_gl.R` — same tokens, same palettes, same axis conventions, same named sizes:
+**3. There is no chart yet.** Draw it with the chart skill for that language — **`gl-matplotlib`**
+(Python) or **`gl-ggplot`** (R) — then export it:
 
 ```python
-import gl_chart as gc
-gc.gl_setup()                                  # slide mode
-fig, ax = gc.subplots("slide")
+import gl_matplotlib as gm                     # see the gl-matplotlib skill
+gm.gl_setup(mode="slide", family="Source Sans Pro")   # slide sizing, deck's font
+fig, ax = gm.subplots("slide")
 for s in others: ax.plot(s.x, s.y)             # muted by default
-ax.plot(f.x, f.y, color=gc.gl["highlight"], linewidth=gc.FOCUS_LW)
-gc.endlabel(ax, f.x[-1], f.y[-1], "Sindh", gc.gl["highlight"])
-gc.style_axes(ax, ylabel="Index (2010 = 100)", year_axis=True)
+ax.plot(f.x, f.y, color=gm.gl["highlight"], linewidth=gm.FOCUS_LW)
+gm.endlabel(ax, f.x[-1], f.y[-1], "Sindh", gm.gl["highlight"])
+gm.style_axes(ax, ylabel="Index (2010 = 100)", year_axis=True)
 gp.export_fig(fig, "exports", "gdp-trend", title="Growth stalls after 2018.", source="...")
 ```
 
-Details and the R-vs-Python size table: `references/python-figures.md`.
+```r
+# R — gl-ggplot writes the same manifest, so the deck cannot tell the difference
+source(paste0(Sys.getenv("CLAUDE_PLUGIN_ROOT"), "/skills/gl-ggplot/assets/theme_gl.R"))
+gl_setup(mode = "slide")
+gl_export_fig("exports", "gdp-trend", title = "Growth stalls after 2018.",
+              source = "Source: Growth Lab analysis of WDI data.", size = "slide")
+```
+
+Schema, sizes and both languages' export calls: `references/figures.md`.
 
 **Never read a figure out of a running notebook, and never execute someone's analysis to
 get a picture.** `scan_figures.py` reads files; it does not run them.
@@ -196,18 +205,18 @@ findings, not labels). Always finish a deck with it.
   arbitrary decks have no reliable mapping onto them; a preserve-and-recolor path was cut
   deliberately. Rebuild the deck through Workflow A instead.
 - **A flat PDF deck from prose.** That is `md2slides`.
-- **Charts in R.** That is `gl-ggplot`; export at the `slide` size and embed the PNG.
+- **Drawing charts.** That is `gl-matplotlib` (Python) or `gl-ggplot` (R). This skill
+  embeds figures; it does not style them.
 
 ## Files
 
 | Path | Role |
 |---|---|
 | `scripts/gl_pptx.py` | The engine: grammar tokens + type scale, the 11 slide-class builders, tables, `copy_slide`, the figs/ pipeline, `fit_above_footer`, `validate_deck`, `check_token_drift`. |
-| `scripts/gl_chart.py` | Python/matplotlib chart theme — the counterpart of `theme_gl.R`. |
-| `scripts/compile_deck.py` | Workflow C — compile section decks into one. |
+| `scripts/compile_deck.py` | Workflow B — compile section decks into one. |
 | `scripts/scan_figures.py` | Read a `.py`/`.ipynb`/`.R` and report which figures exist and which are deck-ready. |
 | `assets/GL_presentation_template.potx` | The official GL template (12 layouts, logos baked in). |
 | `references/slide-classes.md` | Class -> layout mapping, placeholder indices, geometry, when to use each. |
-| `references/python-figures.md` | The three figure cases, sizes, and the chart-theme API. |
+| `references/figures.md` | The manifest schema, the three figure cases, sizes, and the R + Python export calls. |
 | `references/intake-checklist.md` | Plain-language "what to give me" guide for the user. |
 | `../../playground/demo-pptx.py` | Dogfood example — builds charts, exports them, assembles a deck using every class, validates. |
