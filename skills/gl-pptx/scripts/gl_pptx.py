@@ -546,6 +546,30 @@ def _source_line(slide, text: str, top=None):
     return _box
 
 
+_BULLET_CHARS = {0: "•", 1: "–", 2: "–"}
+
+
+def _set_bullet(paragraph, level: int, size: float):
+    """Give a paragraph a real PowerPoint bullet with a hanging indent.
+
+    Prepending "• " to the text instead (the obvious shortcut) leaves wrapped lines
+    starting underneath the glyph, so a two-line bullet loses its left edge. `marL` with a
+    negative `indent` is what makes continuation lines align with the text.
+    """
+    pPr = paragraph._p.get_or_add_pPr()
+    step = int(Pt(px(26)))                        # one indent step per level
+    hang = int(Pt(px(22)))                        # glyph-to-text distance
+    pPr.set("marL", str(step * (level + 1)))
+    pPr.set("indent", str(-hang))
+    # OOXML child order: spcBef/spcAft come first, then buFont, then buChar.
+    for tag, attrs in (("a:buFont", {"typeface": "Arial", "panose": "020B0604020202020204",
+                                     "pitchFamily": "34", "charset": "0"}),
+                       ("a:buChar", {"char": _BULLET_CHARS.get(level, "–")})):
+        for old in pPr.findall(qn(tag)):
+            pPr.remove(old)
+        pPr.append(pPr.makeelement(qn(tag), attrs))
+
+
 def _body_textbox(slide, left, top, width, height, body, size=None, bullets=True):
     """A body block: 24px/18pt, ink-2, one item per paragraph. `body` is a string or a
     list of strings / (text, level) tuples."""
@@ -554,15 +578,10 @@ def _body_textbox(slide, left, top, width, height, body, size=None, bullets=True
     items = [body] if isinstance(body, str) else list(body)
     for i, item in enumerate(items):
         t, level = (item if isinstance(item, tuple) else (item, 0))
-        prefix = ""
-        if bullets and len(items) > 1:
-            prefix = "•  " if level == 0 else "–  "
-        p = _para(tf, i == 0, prefix + t, size, color=INK["ink-2"],
+        p = _para(tf, i == 0, t, size, color=INK["ink-2"],
                   space_after=px(9))       # recipe section 3: list item 0.35em
-        try:
-            p.level = level
-        except Exception:
-            pass
+        if bullets and len(items) > 1:
+            _set_bullet(p, level, size)
     return _box
 
 
@@ -712,12 +731,18 @@ def add_table_slide(prs, title: str, dataframe, source: str = "", max_rows: int 
     table.first_row = False
     table.horz_banding = False
     numeric = [_is_numeric_col(df, c) for c in df.columns]
+    # Precision is decided per COLUMN, from its largest value: mixing 31.5 with 5.17 in one
+    # column reads as sloppiness, and a column is only scannable if its decimal points line
+    # up.
+    fmts = [_column_fmt(df[c]) if numeric[j] else None
+            for j, c in enumerate(df.columns)]
     for j, col in enumerate(df.columns):
         _set_cell_text(table.cell(0, j), str(col), PT["table_header"], INK["ink"],
                        bold=True, right=numeric[j])
     for i, (_, row) in enumerate(df.iterrows(), start=1):
         for j, val in enumerate(row):
-            _set_cell_text(table.cell(i, j), _fmt(val), PT["table_cell"], INK["ink-2"],
+            text = fmts[j](val) if fmts[j] else _fmt(val)
+            _set_cell_text(table.cell(i, j), text, PT["table_cell"], INK["ink-2"],
                            right=numeric[j])
     _table_rules(table)
     if source:
@@ -764,6 +789,31 @@ def _looks_like_image(v) -> bool:
 
 
 # ───────────────────────── table internals ─────────────────────────
+def _column_fmt(series):
+    """A single formatter for one numeric column, so every cell in it shows the same
+    number of decimals — chosen from the column's largest magnitude."""
+    try:
+        import math
+        vals = [abs(float(v)) for v in series
+                if v is not None and not (isinstance(v, float) and math.isnan(v))]
+        top = max(vals) if vals else 0.0
+        all_int = all(float(v).is_integer() for v in series
+                      if v is not None and not (isinstance(v, float) and math.isnan(v)))
+    except Exception:
+        return _fmt
+    dec = 0 if (all_int or top >= 1000) else (1 if top >= 10 else 2)
+
+    def f(val):
+        try:
+            import math
+            if val is None or (isinstance(val, float) and math.isnan(val)):
+                return ""
+            return "{:,.{}f}".format(float(val), dec)
+        except Exception:
+            return _fmt(val)
+    return f
+
+
 def _is_numeric_col(df, col) -> bool:
     try:
         import pandas as pd
@@ -851,19 +901,29 @@ def _table_rules(table):
 
 
 def _fmt(val):
-    """Format a cell value. Numbers get thousands separators (tabular figures are a font
-    feature the master font applies)."""
+    """Format a cell value for a slide: thousands separators, and precision scaled to
+    magnitude rather than a fixed two decimals.
+
+    A slide is read across a room, so `33,841.96` spends four glyphs on precision nobody
+    can use and makes the column harder to scan. Significant digits, not decimal places:
+    thousands round to whole units, values under ten keep two decimals.
+    """
     try:
         import math
         if val is None:
             return ""
-        if isinstance(val, float) and math.isnan(val):
-            return ""
         if isinstance(val, bool):
             return str(val)
+        if isinstance(val, float) and math.isnan(val):
+            return ""
         if isinstance(val, int) or (isinstance(val, float) and val == int(val)):
             return "{:,}".format(int(val))
         if isinstance(val, float):
+            a = abs(val)
+            if a >= 1000:
+                return "{:,.0f}".format(val)
+            if a >= 10:
+                return "{:,.1f}".format(val)
             return "{:,.2f}".format(val)
     except Exception:
         pass
@@ -1013,9 +1073,12 @@ def save_deck(prs: Presentation, name: str, out_dir: Path | None = None) -> Path
 # Charts arrive as images and this skill does not care what drew them — matplotlib
 # (gl-matplotlib), ggplot (gl-ggplot's `save_fig`/`gl_export_fig`), or anything else.
 FIG_SIZES = {                                  # inches; mirror gl-ggplot's named sizes
-    "slide": (10, 5.625),                      # 16:9, the default for a chart slide
+    "slide": (10, 5.625),                      # 16:9 — the whole slide's aspect
     "slide_half": (4.9, 5.0),                  # side-by-side pair on a cols slide
     "slide_wide": (11.5, 4.4),                 # wide/short, e.g. a ranked bar chart
+    # Fills the Single Visual chart area (12.4 x 5.42 in = aspect 2.29, wider than 16:9),
+    # so a full-slide chart has no dead margin either side. Prefer this on a chart slide.
+    "slide_fill": (12.4, 5.4),
     "full": (6.5, 4.0), "full_tall": (6.5, 6.0), "full_square": (6.5, 6.5),
     "half": (3.167, 3.0),
 }

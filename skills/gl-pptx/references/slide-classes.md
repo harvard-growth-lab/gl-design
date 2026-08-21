@@ -89,7 +89,8 @@ export size to the class (`references/figures.md` has the full table):
 
 | Class | Size | Inches |
 |---|---|---|
-| `chart` | `slide` | 10 x 5.625 |
+| `chart` | `slide_fill` | 12.4 x 5.4 |
 | `cols`, `map` | `slide_half` | 4.9 x 5.0 |
 | `cols` (image + text) | `slide_half` | 4.9 x 5.0 |
 | wide ranked bars on `chart` | `slide_wide` | 11.5 x 4.4 |
+| a chart that also travels alone | `slide` | 10 x 5.625 |

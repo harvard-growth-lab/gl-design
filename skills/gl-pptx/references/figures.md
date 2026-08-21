@@ -125,7 +125,8 @@ figure of the same named size are interchangeable on a slide.
 
 | Name | Inches | For |
 |---|---|---|
-| `slide` | 10 × 5.625 | a `chart` slide (16:9) |
+| `slide_fill` | 12.4 × 5.4 | **a `chart` slide** — fills the image area exactly |
+| `slide` | 10 × 5.625 | 16:9; a chart that may also be viewed on its own |
 | `slide_half` | 4.9 × 5.0 | one side of a `cols` / `map` slide |
 | `slide_wide` | 11.5 × 4.4 | wide, short charts (ranked bars) |
 | `full` | 6.5 × 4.0 | report full-width |
@@ -134,8 +135,11 @@ figure of the same named size are interchangeable on a slide.
 | `major` | 4.278 × 4.0 | report, beside text |
 | `half` | 3.167 × 3.0 | report, side-by-side |
 
-Match the size to the slide class: a full-slide figure contained in a half-width
-placeholder leaves most of the box empty. Export at 200–300 DPI; bigger is not better, as
+Match the size to the slide class. Two traps: a full-slide figure contained in a
+half-width placeholder leaves most of the box empty; and a `chart` slide's image area is
+12.4 × 5.42 in — an aspect of 2.29, **wider than 16:9** — so a `slide` figure fits by
+height there and leaves a margin each side. Use `slide_fill` for a chart meant to occupy
+the slide. Export at 200–300 DPI; bigger is not better, as
 a 10 × 5.625 in PNG at 300 DPI is already 3000 px wide, more than any projector resolves.
 
 ## The one rule about titles

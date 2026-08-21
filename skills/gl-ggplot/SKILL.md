@@ -388,6 +388,7 @@ save_fig("half", "small-sidebar-chart.png")
 | `slide` | 10 × 5.625" | 16:9 slide deck (Marp, PowerPoint) |
 | `slide_half` | 4.9 × 5.0" | one side of a two-up slide |
 | `slide_wide` | 11.5 × 4.4" | wide, short chart on a slide (ranked bars) |
+| `slide_fill` | 12.4 × 5.4" | fills a gl-pptx chart slide's image area (aspect 2.29, wider than 16:9) |
 
 Figures land in `imgs/` by default. To redirect a whole script, set
 `options(gl.fig.dir = "path/to/dir")` once at the top (or pass `dir =` per

@@ -643,7 +643,10 @@ gl_fig <- list(
     # contained in a half-width placeholder leaves most of the box empty, so a two-up
     # slide wants slide_half. Report `half` is too small to read at projection distance.
     slide_half  = list(w = 4.9,   h = 5.0),
-    slide_wide  = list(w = 11.5,  h = 4.4)
+    slide_wide  = list(w = 11.5,  h = 4.4),
+    # slide_fill matches the deck's chart area (12.4 x 5.42in, aspect 2.29 — wider than
+    # 16:9), so a full-slide chart leaves no dead margin either side.
+    slide_fill  = list(w = 12.4,  h = 5.4)
 )
 
 #' Save a plot at a named recipe size

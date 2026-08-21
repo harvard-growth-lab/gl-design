@@ -204,9 +204,14 @@ MAP_LW = 0.375              # 0.5px — choropleth polygon borders
 FIG_SIZES = {
     "full": (6.5, 4.0), "full_tall": (6.5, 6.0), "full_square": (6.5, 6.5),
     "major": (4.278, 4.0), "half": (3.167, 3.0), "half_tall": (3.167, 5.0),
-    "slide": (10, 5.625),          # 16:9 — a full chart slide
+    "slide": (10, 5.625),          # 16:9 — the whole slide's aspect
     "slide_half": (4.9, 5.0),      # one side of a two-up slide
     "slide_wide": (11.5, 4.4),     # wide and short, e.g. ranked bars
+    # The Single Visual chart area is 12.4 x 5.42 in (the slide minus the title and
+    # footer bands), an aspect of 2.29 — WIDER than 16:9. So a `slide` figure can never
+    # fill it: contained, it fits by height and leaves a margin each side. `slide_fill`
+    # matches the chart area, for a chart meant to occupy the whole slide.
+    "slide_fill": (12.4, 5.4),
 }
 
 BASE_SIZE = {"report": 9, "slide": 12}
@@ -307,15 +312,33 @@ def subplots(size: str = "full", **kw):
 
 
 # ───────────────────────── axes conventions (grammar section 3.5) ─────────────────────────
+def _is_categorical(axis) -> bool:
+    """True when matplotlib is drawing string categories on this axis (bar/barh with
+    text labels). Their formatter must never be replaced — doing so relabels the
+    categories with their integer positions."""
+    try:
+        import matplotlib.category as mcat
+        return isinstance(axis.get_major_formatter(), mcat.StrCategoryFormatter)
+    except Exception:
+        return False
+
+
 def style_axes(ax, ylabel: str = None, xlabel: str = None, grid: str = "y",
-               zero_line: bool = None, thousands: bool = True, year_axis: bool = False):
+               zero_line: bool = None, thousands: bool = True, year_axis: bool = False,
+               value_axis: str = None):
     """Apply the grammar's axis conventions to one Axes.
 
       - gridlines on ONE axis only (default y), 1px `gridline`, behind the data;
       - y tick labels right-aligned (flush to the axis), x labels top-aligned;
       - the zero baseline at axis weight, not gridline weight;
-      - thousands separators on numeric ticks (tabular figures come from the font);
-      - `year_axis=True` drops the x label — the ticks already say 'years'.
+      - thousands separators on the value axis (tabular figures come from the font);
+      - integer ticks on a year axis, and `year_axis=True` drops the x label — the tick
+        labels already say what the dimension is.
+
+    `value_axis` is where the numbers live: 'y' for a normal chart, 'x' for `barh`. It
+    defaults to whichever axis carries the gridlines (they coincide — gridlines belong on
+    the axis the reader estimates values against), so `grid="x"` implies `value_axis="x"`.
+    The category axis is left alone regardless, so a `barh`'s labels survive.
     """
     if grid in ("y", "both"):
         ax.yaxis.grid(True, color=gl["gridline"], linewidth=HAIRLINE_LW)
@@ -328,18 +351,28 @@ def style_axes(ax, ylabel: str = None, xlabel: str = None, grid: str = "y",
         ax.set_xlabel(xlabel, labelpad=15)
     if year_axis:
         ax.set_xlabel("")
+        # Years are integers: a numeric axis would otherwise offer 2007.5, 2010.0, ...
+        ax.xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _p: "{:.0f}".format(v)))
     for lbl in ax.get_yticklabels():
         lbl.set_horizontalalignment("right")
     for lbl in ax.get_xticklabels():
         lbl.set_verticalalignment("top")
-    if thousands:
-        ax.yaxis.set_major_formatter(FuncFormatter(
+
+    va = value_axis or ("x" if grid == "x" else "y")
+    axis = ax.xaxis if va == "x" else ax.yaxis
+    if thousands and not _is_categorical(axis) and not (va == "x" and year_axis):
+        axis.set_major_formatter(FuncFormatter(
             lambda v, _p: "{:,.0f}".format(v) if abs(v) >= 1000 else "{:g}".format(v)))
-    lo, hi = ax.get_ylim()
+
+    lo, hi = ax.get_xlim() if va == "x" else ax.get_ylim()
     if zero_line is None:
         zero_line = lo < 0 < hi
     if zero_line:
-        ax.axhline(0, color=gl["ink_2"], linewidth=HAIRLINE_LW, zorder=2)
+        # On a barh the zero baseline is VERTICAL; drawing it horizontally puts a rule
+        # under the bottom category instead of at the origin.
+        draw = ax.axvline if va == "x" else ax.axhline
+        draw(0, color=gl["ink_2"], linewidth=HAIRLINE_LW, zorder=2)
     return ax
 
 

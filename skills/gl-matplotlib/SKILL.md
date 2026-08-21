@@ -110,7 +110,8 @@ hue** over unrelated colors (rule 7): `gm.CAT["c-1"]["main"]` and `["light"]`.
 | `major` | 4.278 × 4.0 | 4-column chart beside text |
 | `half` | 3.167 × 3.0 | side-by-side pair |
 | `half_tall` | 3.167 × 5.0 | tall narrow |
-| `slide` | 10 × 5.625 | a 16:9 chart slide |
+| `slide` | 10 × 5.625 | a 16:9 chart, viewed on its own |
+| `slide_fill` | 12.4 × 5.4 | fills a gl-pptx chart slide's image area |
 | `slide_half` | 4.9 × 5.0 | one side of a two-up slide |
 | `slide_wide` | 11.5 × 4.4 | wide and short (ranked bars) |
 
