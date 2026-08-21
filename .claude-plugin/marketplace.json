@@ -12,15 +12,17 @@
     {
       "name": "gl-design",
       "source": "./",
-      "description": "The full Growth Lab design kit — the /design-kit session primer plus eight sub-skills: gl-ggplot, chart-audit, md2docx, md2pdf, md2html, md2slides, md2pdf-minimal, gl-docx-retheme.",
+      "description": "The full Growth Lab design kit — the /design-kit session primer plus ten sub-skills: gl-ggplot, gl-matplotlib, chart-audit, md2docx, md2pdf, md2html, md2slides, gl-pptx, md2pdf-minimal, gl-docx-retheme.",
       "strict": false,
       "skills": [
         "./skills/gl-ggplot",
+        "./skills/gl-matplotlib",
         "./skills/chart-audit",
         "./skills/md2docx",
         "./skills/md2pdf",
         "./skills/md2html",
         "./skills/md2slides",
+        "./skills/gl-pptx",
         "./skills/md2pdf-minimal",
         "./skills/gl-docx-retheme"
       ]

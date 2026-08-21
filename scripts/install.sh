@@ -6,7 +6,7 @@
 #     claude plugin install gl-design
 #
 # Use THIS script if you are not on the plugin system. It:
-#   1. symlinks the eight skills in skills/ into ~/.claude/skills/
+#   1. symlinks every skill in skills/ into ~/.claude/skills/
 #   2. copies the bundled fonts into your user font dir (so the PDF/slide paths find them)
 #   3. runs doctor.sh to report any remaining system dependencies (it does NOT install them)
 #

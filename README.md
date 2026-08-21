@@ -2,8 +2,9 @@
 
 A visual grammar for all Growth Lab outputs — reports, slides, briefs, charts — codified
 as a **source-of-truth grammar** ([`grammar.md`](grammar.md)), per-medium **recipes**
-([`recipes/`](recipes/)), and the **runnable tools** that apply them: an R/ggplot theme,
-markdown→Word/PDF/HTML/slide pipelines, and audit checklists. The goal: you absorb the
+([`recipes/`](recipes/)), and the **runnable tools** that apply them: R/ggplot and
+Python/matplotlib themes, markdown→Word/PDF/HTML/slide pipelines, an editable-pptx deck
+builder, and audit checklists. The goal: you absorb the
 system by *using* it, not by reading a spec.
 
 Three layers, each separable: the **grammar** holds the medium-agnostic primitives (color,
@@ -26,13 +27,21 @@ ships these skills:
 |---|---|
 | **/design-kit** | **Start here.** Session primer — verifies tooling, loads the grammar + report recipe, and makes every chart and document you produce follow GL conventions for the rest of the session |
 | **gl-ggplot** | GL theme, palettes, and `save_fig` sizes for R/ggplot2 charts |
+| **gl-matplotlib** | The same, for Python/matplotlib charts |
 | **chart-audit** | Visual audit checklist to run after generating charts |
 | **md2docx** | Markdown → Word (.docx) with citations + cross-references |
 | **md2pdf** | Markdown → styled PDF |
 | **md2html** | Markdown → self-contained, portable HTML |
 | **md2slides** | Markdown → 16:9 PDF slide deck (Marp) |
+| **gl-pptx** | Analysis → **editable** 16:9 PowerPoint deck on the GL template (python-pptx) |
 | **md2pdf-minimal** | Node-only fallback for PDF when the pandoc path is unavailable |
 | **gl-docx-retheme** | Restyle an existing Word doc to the GL theme |
+
+> **Slides: two renderers, one recipe.** `md2slides` turns prose markdown into a flat 16:9
+> **PDF** — the right call when the deck is written, not computed, and nobody edits it
+> afterwards. `gl-pptx` builds an **editable .pptx** from an analysis (charts, data,
+> scripts) on the team template, for decks colleagues reorder and present from PowerPoint.
+> Both apply [`recipes/slide.md`](recipes/slide.md).
 
 > **These skills ship together as the `gl-design` plugin — they are not standalone.**
 > They share one source of truth: `grammar.md` and `recipes/` at the plugin root. The
@@ -61,7 +70,7 @@ cd gl-design
 ### 2. Check / install dependencies
 
 The kit leans on a few external tools (pandoc + pandoc-crossref, headless Chromium, Node +
-Marp, R with ggplot2/systemfonts/ragg). Run the doctor to see what's present and get the
+Marp, R with ggplot2/systemfonts/ragg, Python with matplotlib/python-pptx). Run the doctor to see what's present and get the
 exact install command for anything missing:
 
 ```bash
@@ -78,6 +87,10 @@ It does **not** install anything — it tells you what to run. Install the items
 | systemfonts (R pkg) | 1.1.0 | font registration (`match_fonts`) |
 | ggplot2 (R pkg) | 3.3 | charts |
 | ragg, textshaping (R pkg) | any recent | chart raster output |
+| jsonlite (R pkg) | any recent | `gl_export_fig()` only (deck-ready R figures) |
+| Python | 3.9 | gl-matplotlib charts; gl-pptx decks |
+| python-pptx (Python pkg) | any recent | gl-pptx (`pillow` for image fitting, `pandas` for tables) |
+| matplotlib (Python pkg) | any recent | gl-matplotlib charts |
 | pandoc + pandoc-crossref | any recent (crossref must match your pandoc) | md2docx / md2pdf / md2html |
 | Node.js + Marp CLI | any LTS (Marp via `npx` on demand) | md2slides |
 | Chromium / chrome-headless-shell | any recent | md2pdf / md2slides PDF rendering |
@@ -106,7 +119,7 @@ R/ggplot path reads the bundled fonts directly and needs nothing). So run
 bash scripts/install.sh
 ```
 
-This symlinks the eight skills into `~/.claude/skills/`, installs the fonts (via
+This symlinks every skill into `~/.claude/skills/`, installs the fonts (via
 `install-fonts.sh`), and re-runs the doctor.
 
 ## Use
@@ -177,9 +190,19 @@ When you change a token in `grammar.md`, grep these and update every copy that c
 | `skills/md2pdf/assets/md2pdf-style.css` | CSS `:root` vars (shared by md2html) |
 | `skills/md2pdf-minimal/assets/md2pdf-style.css` | CSS `:root` vars (minimal fallback) |
 | `skills/md2slides/assets/themes/gl.css` | Marp theme CSS |
+| `skills/gl-pptx/scripts/gl_pptx.py` | Python constants: the token dict, the slide-recipe type scale and padding (px→pt, exact ×0.75). **Deliberate** type-stack and `opsz` compromises live here, documented in-file. `check_token_drift()` self-checks every hex against `grammar.md` |
+| `skills/gl-matplotlib/scripts/gl_matplotlib.py` | Python: the token dict (`gl`, mirroring `theme_gl.R`'s names), palettes, line weights (px→pt), axis conventions, ramps, `save_fig` sizes. Self-checks with `check_token_drift()` |
 
 `docs/nil/` and `playground/` are **out of scope** for drift checks: the former is upstream,
 the latter is derived output.
+
+`gl-pptx` ships a drift check you can run instead of grepping — it fails loudly if any hex
+it carries has drifted from `grammar.md`:
+
+```bash
+python skills/gl-pptx/scripts/gl_pptx.py              # "token drift: OK (89 hexes ...)"
+python skills/gl-matplotlib/scripts/gl_matplotlib.py  # same, for the chart theme
+```
 
 ## Auditing for drift (and for LLMs)
 
@@ -202,7 +225,9 @@ assets/               # Static embodiments of grammar + recipe
 
 skills/               # Runnable, Claude-consumable tools
   gl-ggplot/          # GL design system for R/ggplot2 (theme, scales, sizes)
-    assets/theme_gl.R   # Sourceable R file — the portable runtime
+    assets/theme_gl.R   # Sourceable R file — the portable runtime (+ gl_export_fig)
+  gl-matplotlib/      # GL design system for Python/matplotlib — the gl-ggplot twin
+    scripts/gl_matplotlib.py   # Importable module — theme, palettes, sizes
   md2docx/            # Markdown → Word conversion (pandoc + Lua filters)
     assets/templates/gl.docx       # GL Word reference doc (the live --theme gl)
     assets/templates/gl.dotx       # Template twin for manual Word users
@@ -211,6 +236,9 @@ skills/               # Runnable, Claude-consumable tools
   md2pdf/             # Markdown → PDF via pandoc + headless Chromium
   md2html/            # Markdown → self-contained HTML (shares md2pdf assets)
   md2slides/          # Markdown → 16:9 PDF deck via Marp + gl theme
+  gl-pptx/            # Analysis → editable 16:9 .pptx on the GL team template
+    assets/GL_presentation_template.potx   # The 12 branded layouts (logos baked in)
+    scripts/gl_pptx.py    # Engine: tokens, slide-class builders, figs/ pipeline, validate
   md2pdf-minimal/     # Node-only PDF fallback when pandoc is unavailable
   chart-audit/        # Visual audit checklist for ggplot charts
 
@@ -264,7 +292,7 @@ in `marketplace.json` — the `commands`/`skills`/`agents` fields there are dire
 truth — `grammar.md`, `recipes/`, and `assets/fonts` at the plugin root — and reference it
 via `../../grammar.md`-style links and `${CLAUDE_PLUGIN_ROOT}`. That resolves only because
 the whole repo is the plugin root; a skill copied out on its own will break. This is why
-the repo is packaged as one plugin rather than eight per-skill plugins.
+the repo is packaged as one plugin rather than one per skill.
 
 **Fonts on the plugin path.** `claude plugin install` does not run any script, so plugin
 users must run `scripts/install-fonts.sh` once to register the fonts system-wide. Only the

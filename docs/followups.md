@@ -211,3 +211,57 @@ grammar / recipe / tooling.
 - Keep them in `assets/fonts/` indefinitely as historical reference / for
   any inherited Rmd that hasn't migrated.
 - Move to a separate `assets/fonts/legacy/` subfolder.
+
+## 12. PowerPoint (pptx) fidelity — the type-stack exception
+
+`skills/gl-pptx/` renders the slide recipe as an **editable .pptx** on the team template
+(`GL_presentation_template.potx`), alongside `md2slides`' PDF. Two deviations from the
+grammar are baked in deliberately; both are recorded in `gl_pptx.py`'s module docstring and
+need a ruling if the grammar is ever to cover this medium formally.
+
+- **Type stack: Source Sans Pro, not Source Serif 4 + Inter.** The template's 12 layouts
+  are the ground truth for PowerPoint — logos, footer band, cover artwork and title styling
+  are baked into them, and the master font is Source Sans Pro. The builders therefore never
+  set a font at all; placeholder text inherits the master, which also means a deck cannot
+  render with box glyphs on a machine that lacks the grammar's fonts. The consequence is
+  that the grammar's serif-for-voice / sans-for-function split collapses, and is carried by
+  **weight and italic** instead: headings semibold, chart source italic, eyebrows uppercase
+  and tracked.
+
+  **Resolution options:** (a) keep the exception, and treat the template as authoritative
+  for pptx (current state, user decision); (b) rebuild the .potx from grammar tokens the way
+  `build_gl_template.py` rebuilds `gl.docx`, giving pptx the real two-family stack at the
+  cost of owning the template's artwork and requiring the fonts to be installed; (c) set
+  the grammar fonts explicitly on every run over the template's master, which renders
+  correctly only where both fonts are installed.
+
+- **`opsz` is unavailable.** OOXML cannot express a variable-font axis, so the optical-size
+  values in grammar §2 have no expression here. Per grammar §2 this stub defaults to text
+  optical size.
+
+Everything else follows the grammar and `recipes/slide.md` exactly. The px→pt conversion is
+**lossless**, unlike the Word path's: the template canvas is 13.333 × 7.5 in = 960 × 540 pt,
+which is the recipe's 1280 × 720 px at 96 DPI, so every recipe value is exactly ×0.75 (body
+24 px → 18 pt, H1 40 → 30, cover 64 → 48, chart source 16 → 12).
+
+Two other notes for whoever picks this up:
+
+- **The chart theme now exists in Python too**, as the **`gl-matplotlib`** skill beside
+  `gl-ggplot`: the kit's chart tooling was R-only, so matplotlib users had no on-brand
+  default. It mirrors `theme_gl.R`'s API (`gl_setup`, the `gl` token list, the named sizes,
+  muted-by-default geoms) and carries its own token copy with its own `check_token_drift()`,
+  exactly as the R theme does. It started inside `gl-pptx` and was moved out, because a
+  researcher who just wants an on-brand chart for a memo should not have to reach into a
+  PowerPoint skill to get one.
+
+- **Deck-ready figures now work from R as well as Python.** `gl_export_fig()` in
+  `theme_gl.R` writes the same `figures.json` manifest the Python side writes (schema in
+  `skills/gl-pptx/references/figures.md`), so `gl-pptx` cannot tell which language produced
+  a figure and R figures arrive with their title, source and language rather than needing
+  them retyped at deck-build time. It is the only function in the kit that needs
+  **`jsonlite`**; the theme and `save_fig()` are unaffected. The reader (`find_fig`) lives
+  in `gl-pptx` because slides are the only consumer today — if a report pipeline ever wants
+  figure metadata, promote the schema and both writers to a shared root module.
+- **`skills/gl-graph-modes/` is not listed in `.claude-plugin/marketplace.json`.** Per the
+  README's packaging rule ("add it to the `skills` array"), the plugin will not expose it.
+  Left untouched here — it predates this branch and belongs in its own fix.

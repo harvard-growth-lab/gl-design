@@ -35,13 +35,17 @@ read `~/.claude/skills/gl-ggplot/assets/theme_gl.R` and the repo's `grammar.md` 
 The detailed rules live in the files above and in the skills below — this is the behavioral
 contract, not a second copy of the values:
 
-- **Charts** → use the `gl-ggplot` skill. Every chart script sources `theme_gl.R` and calls
-  `gl_setup()`; **do not override the theme per chart**. Highlight by muting (overpaint the
-  focus series; paint highlighted points once at full opacity). Save only at the named
-  `save_fig()` sizes. After generating charts, run the **chart-audit** skill.
+- **Charts** → `gl-ggplot` for R, **`gl-matplotlib`** for Python. R scripts source
+  `theme_gl.R`; Python scripts import `gl_matplotlib`. Either way call `gl_setup()` once and
+  **do not override the theme per chart**. Highlight by muting (overpaint the focus series;
+  paint highlighted points once at full opacity). Save only at the named `save_fig()` sizes.
+  After generating charts, run the **chart-audit** skill.
 - **Documents** → render through the GL pipelines, never ad-hoc pandoc: `md2docx` (Word),
-  `md2pdf` (PDF), `md2html` (HTML), `md2slides` (16:9 deck). To restyle an existing Word
+  `md2pdf` (PDF), `md2html` (HTML), `md2slides` (16:9 PDF deck). To restyle an existing Word
   doc, use `gl-docx-retheme`.
+- **Slide decks** → `md2slides` when the deck is prose and ships as a flat PDF; **`gl-pptx`**
+  when it is built from an analysis and must stay editable in PowerPoint (charts, data,
+  tables on the team template). Both apply `recipes/slide.md`.
 
 These skills carry the full API and the exact conventions; they auto-trigger on the right
 tasks, or invoke them by name. Chart scripts start with:
@@ -49,6 +53,14 @@ tasks, or invoke them by name. Chart scripts start with:
 ```r
 source(paste0(Sys.getenv("CLAUDE_PLUGIN_ROOT"), "/skills/gl-ggplot/assets/theme_gl.R"))
 gl_setup()                  # report mode; gl_setup(mode = "slide") for standalone charts
+```
+
+```python
+import sys, os
+sys.path.insert(0, os.path.join(os.environ["CLAUDE_PLUGIN_ROOT"],
+                                "skills/gl-matplotlib/scripts"))
+import gl_matplotlib as gm
+gm.gl_setup()               # report mode; gm.gl_setup(mode="slide") for standalone charts
 ```
 
 Confirm to the user, in one line, that the GL design kit is active, and note anything the
