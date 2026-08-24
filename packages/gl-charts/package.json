@@ -1,0 +1,101 @@
+{
+  "name": "@growth-lab/gl-charts",
+  "version": "0.1.0",
+  "description": "The Growth Lab data-visualization spec as a themed layer over TanStack Charts v0.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "src",
+    "scripts",
+    "reference",
+    "tokens.json",
+    "README.md",
+    "gallery",
+    "docs"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./shapes": "./src/shapes.ts",
+    "./react": "./src/figure.tsx",
+    "./theme.css": "./src/theme.css",
+    "./fonts.css": "./src/fonts.css",
+    "./tokens": "./src/tokens.ts",
+    "./tokens.json": "./tokens.json",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "tokens": "node scripts/emit-tokens.mjs",
+    "tokens:check": "node scripts/check-tokens.mjs",
+    "tokens:downstream": "node scripts/check-tokens.mjs --downstream",
+    "reference": "node reference/build-reference.mjs",
+    "gallery": "node gallery/run.mjs",
+    "gallery:plates": "node gallery/plates.mjs",
+    "gallery:render": "node gallery/render.mjs",
+    "gallery:compare": "node gallery/compare.mjs",
+    "gallery:audit": "node gallery/audit.mjs",
+    "docs": "node docs/build-docs.mjs",
+    "docs:check": "node docs/build-docs.mjs --check",
+    "examples": "node examples/build.mjs",
+    "examples:check": "node examples/check.mjs",
+    "examples:data": "node examples/atlas/extract.mjs && node examples/atlas/geometry.mjs",
+    "examples:data:check": "node examples/atlas/extract.mjs --check",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/run-tests.mjs",
+    "check": "npm run tokens:check && npm run typecheck && npm run test",
+    "gallery:tanstack": "node gallery/tanstack-ref.mjs",
+    "gallery:tanstack:audit": "node gallery/tanstack-ref.mjs --audit"
+  },
+  "peerDependencies": {
+    "@tanstack/charts": "0.6.5",
+    "@tanstack/charts-scales": "0.6.5",
+    "@tanstack/react-charts": "0.6.5",
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-charts": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "comments": {
+    "peerDependencies": "TanStack Charts is pre-alpha and has shipped API changes in PATCH releases, so the peers are pinned exactly rather than caret-ranged. Bumping them is a deliberate act: re-run `npm run reference` and diff the render before accepting a new version.",
+    "exports": "Ships TypeScript source, matching this repo's convention of sourceable assets over build artifacts. Your bundler compiles it. TanStack itself ships built ESM + .d.ts, so it needs no special handling.",
+    "devDependencies": "The TanStack devDeps are pinned to the same exact versions as the peers. A caret range would let the gallery render against a version the package does not claim to support, which is precisely the drift `npm run gallery` exists to catch.",
+    "check": "The three cheap gates, in the order that fails fastest: tokens:check catches a hand-edit of a generated file, typecheck catches the API, test runs tests/*.test.ts (bundled through esbuild by scripts/run-tests.mjs, because the package ships TypeScript source and has no build step). `npm run gallery` is the expensive gate and stays separate — it needs Chrome and the fonts.",
+    "tokens": "Every design value is authored once in tokens.json and emitted into src/tokens.ts and src/tokens.css. tokens:check re-emits into memory and fails if either file drifts from the source; tokens:downstream reports (never fails on) the repo's other hand-carried token copies listed in README.md's propagation table.",
+    "dependencies": "Five d3 LAYOUT packages, and the shape of the rule is the same for all five: TanStack Charts ships marks and transforms but no layout of any kind (marks are rect/bar/line/dot/area/arrow/hexagon/link/rule/text/tick; transforms are bin/stack/group/normalize/rank/reduce/window/cumulative). Where a chart needs geometry computed before any mark exists, the geometry has to come from somewhere, and d3 is where it comes from — TanStack's own treemap catalog entry reaches for d3-hierarchy too (see reference/tanstack-treemap.md). d3-hierarchy owns the treemap, sunburst, nested donut and tidy tree; d3-sankey the flow diagram; d3-force the network; d3-delaunay the triangulation and its Voronoi dual; d3-contour the iso-lines. Every one is a REAL dependency, declared and pinned exactly, never a transitive one — none is in TanStack's dependency tree, and src/shapes/geo.ts explains at length why this package never imports a d3 specifier it has not declared. They are pinned rather than caret-ranged because a layout change moves every mark on the chart, so a minor bump is a deliberate act: re-run `npm run gallery` and diff the render before accepting one. d3-geo is the deliberate exception and stays UNDECLARED: a projection is an editorial choice the caller makes, so the geo entry takes a factory as an argument and derives its types from TanStack's descriptor.",
+    "docs": "The primitives reference (docs/) is the third question the package answers about itself: the gallery asks whether a chart type can be drawn on-spec, the examples page whether it survives real data, and this one what each exported primitive actually IS. It draws no chart — the mark swatches are 120x32 glyphs stroked from `glDefaults(kind, {})` called at build time, not TanStack renders — and every word on it is extracted: signatures and prose from `src/**` through the TypeScript compiler API, the mark defaults table by CALLING the library and probing each property with a sentinel to measure pinned-vs-overridable, token values from tokens.json. `docs:check` fails on a module that parsed to nothing (a rename, or a parser regression, would silently drop a whole section) and on any external reference, and REPORTS documentation coverage rather than failing on it — the two-line `gl*` wrappers are deliberately doc-free, and a gate that failed on them could only ever be satisfied with filler prose.",
+    "examples": "The examples page (examples/) is the gallery's counterpart: the gallery proves each chart type can be drawn on-spec from synthetic data shaped to be awkward, and the examples page proves the same types survive contact with a real dataset that was not designed to flatter them. `examples` bundles it to ONE self-contained HTML — fonts, data and code inlined — so it can be handed to someone who does not have this repo. `examples:check` mounts that file in Chrome and fails if any demo did not draw, lost its source panel, or lost its source line. `examples:data` re-pulls the committed Atlas snapshots and is the only script that needs the 11 GB release mounted (set ATLAS_HOME); everything else builds from the JSON in examples/data/. It is deliberately NOT part of `check` — it needs the network and a local Atlas release, which no CI gate should assume.",
+    "dependencySize": "The four layout packages added for the catalog work are small and dependency-light: d3-contour and d3-sankey pull d3-array (and d3-shape for sankey), d3-force pulls d3-dispatch/d3-quadtree/d3-timer, d3-delaunay pulls delaunator. They are only reachable through @growth-lab/gl-charts/shapes, which is a separate entry point precisely so a consumer who never draws a network never pays for one."
+  },
+  "dependencies": {
+    "d3-contour": "4.0.2",
+    "d3-delaunay": "6.0.4",
+    "d3-force": "3.0.0",
+    "d3-hierarchy": "3.1.2",
+    "d3-sankey": "0.12.3"
+  },
+  "devDependencies": {
+    "@tanstack/charts": "0.6.5",
+    "@tanstack/charts-scales": "0.6.5",
+    "@tanstack/react-charts": "0.6.5",
+    "@types/d3-contour": "^3.0.6",
+    "@types/d3-delaunay": "^6.0.4",
+    "@types/d3-force": "^3.0.10",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-sankey": "^0.12.5",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "esbuild": "^0.28.1",
+    "puppeteer-core": "^25.5.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^5.9.3"
+  }
+}

@@ -603,7 +603,7 @@ range of a value axis — sparse negatives count — that axis needs
   gl_endlabel_room()                       # clip off + right margin + no legend
   ```
 - **Tabular figures — enabled.** The spec asks for
-  `font-variant-numeric: tabular-nums` on all numerals (Decision Rule 11). Fonts
+  `font-variant-numeric: tabular-nums` on all numerals (Decision Rule 8). Fonts
   are registered through `systemfonts` (not `showtext`), so every Inter family
   carries the `tnum` OpenType feature and all numerals — tick labels included —
   render at equal width. Charts must be rasterized through a systemfonts-aware

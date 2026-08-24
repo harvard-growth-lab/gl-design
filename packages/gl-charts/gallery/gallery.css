@@ -1,0 +1,94 @@
+/*
+ * Gallery chrome only.
+ *
+ * Nothing here may style a chart. If a rule in this file changes how a mark, an
+ * axis, a label or a figure block LOOKS, it belongs in src/theme.css and the
+ * gallery is lying about what the library produces. These rules do two things:
+ * put a plate on white paper at a fixed width, and lay a vertical legend beside
+ * a plot.
+ */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+
+/* One plate per screenshot. The padding is trimmed by the crop, not the shot. */
+.gl-plate {
+  padding: 12px 16px;
+  background: #ffffff;
+}
+
+/*
+ * `.gl-plate__row` used to live here: a plot with its legend stacked beside it,
+ * hand-rolled per plate for Figures 3, 3B and 5.
+ *
+ * It is gone because legend placement is not the gallery's decision to make.
+ * §3.11 gives the system two positions and a rule for choosing between them, so
+ * `GLFigure` owns both — `legendPlacement="right"` renders the same layout from
+ * `chrome.css`, and every consumer of the package gets it rather than just the
+ * plates that remembered to wrap themselves in a div. Three legends in three
+ * different places across one gallery was the symptom of putting this here.
+ */
+
+/*
+ * Two marginal panels side by side above a joint plot — the marginal-histogram
+ * specimen, and the only plate that needs it.
+ *
+ * This is placement, which is what this file is allowed to do, and it is also
+ * the recorded gap: a linked-panel layout would guarantee the shared scales that
+ * the plate currently has to pin on all three charts by hand. When `gl-charts`
+ * grows one, this rule goes away with it.
+ */
+.gl-plate__panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.gl-plate__panels > * {
+  min-width: 0;
+}
+
+/*
+ * A joint plot with its two marginals — the marginal-histogram specimen.
+ *
+ * Two columns and two rows: the x marginal sits directly above the joint plot
+ * and the y marginal directly beside it, so each shares the axis it summarises.
+ * The alignment itself is done by matching the charts' own margins, not here;
+ * this rule only supplies the boxes. Same recorded gap as the panel grid above.
+ */
+.gl-plate__joint {
+  display: grid;
+  grid-template-columns: 1fr 118px;
+  align-items: start;
+}
+
+.gl-plate__joint > * {
+  min-width: 0;
+}
+
+/*
+ * A captioned panel inside that grid — the projection gallery, where a map has
+ * no axis to carry its own name.
+ *
+ * The type is not invented here: every value below is a custom property from
+ * `tokens.css`, so the caption is the design system's chart text and a token
+ * change reaches it. Placement (the margin) is this file's business; the size,
+ * family and ink are not, and are only referenced.
+ */
+.gl-plate__panel {
+  margin: 0;
+}
+
+.gl-plate__panel figcaption {
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: center;
+}

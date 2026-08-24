@@ -39,6 +39,10 @@ contract, not a second copy of the values:
   `gl_setup()`; **do not override the theme per chart**. Highlight by muting (overpaint the
   focus series; paint highlighted points once at full opacity). Save only at the named
   `save_fig()` sizes. After generating charts, run the **chart-audit** skill.
+- **Charts for the browser** (React, a site, an app) → use the `gl-charts` skill instead —
+  the GL layer over TanStack Charts v0. Same grammar, different runtime; its gate is
+  `npm run check && npm run gallery` inside `packages/gl-charts`, not chart-audit. Don't
+  mix runtimes in one deliverable.
 - **Documents** → render through the GL pipelines, never ad-hoc pandoc: `md2docx` (Word),
   `md2pdf` (PDF), `md2html` (HTML), `md2slides` (16:9 deck). To restyle an existing Word
   doc, use `gl-docx-retheme`.
