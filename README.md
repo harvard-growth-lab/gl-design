@@ -26,6 +26,7 @@ ships these skills:
 |---|---|
 | **/design-kit** | **Start here.** Session primer — verifies tooling, loads the grammar + report recipe, and makes every chart and document you produce follow GL conventions for the rest of the session |
 | **gl-ggplot** | GL theme, palettes, and `save_fig` sizes for R/ggplot2 charts |
+| **gl-graph-modes** | Two chart modes on top of gl-ggplot: fast, colorful research graphs (default) or production graphs held to the full grammar. Production passes over many charts open a chart-brief questionnaire (local form) where the author states what each chart says before Claude builds it |
 | **chart-audit** | Visual audit checklist to run after generating charts |
 | **md2docx** | Markdown → Word (.docx) with citations + cross-references |
 | **md2pdf** | Markdown → styled PDF |
@@ -106,7 +107,7 @@ R/ggplot path reads the bundled fonts directly and needs nothing). So run
 bash scripts/install.sh
 ```
 
-This symlinks the eight skills into `~/.claude/skills/`, installs the fonts (via
+This symlinks the nine skills into `~/.claude/skills/`, installs the fonts (via
 `install-fonts.sh`), and re-runs the doctor.
 
 ## Use
@@ -203,6 +204,9 @@ assets/               # Static embodiments of grammar + recipe
 skills/               # Runnable, Claude-consumable tools
   gl-ggplot/          # GL design system for R/ggplot2 (theme, scales, sizes)
     assets/theme_gl.R   # Sourceable R file — the portable runtime
+  gl-graph-modes/     # Research vs production chart modes (sources gl-ggplot's theme)
+    assets/gl_graph.R   # Mode setup, 12-hue research palette, save_graph()
+    assets/questionnaire/  # Chart-brief form: the author states each chart's message
   md2docx/            # Markdown → Word conversion (pandoc + Lua filters)
     assets/templates/gl.docx       # GL Word reference doc (the live --theme gl)
     assets/templates/gl.dotx       # Template twin for manual Word users
@@ -264,7 +268,7 @@ in `marketplace.json` — the `commands`/`skills`/`agents` fields there are dire
 truth — `grammar.md`, `recipes/`, and `assets/fonts` at the plugin root — and reference it
 via `../../grammar.md`-style links and `${CLAUDE_PLUGIN_ROOT}`. That resolves only because
 the whole repo is the plugin root; a skill copied out on its own will break. This is why
-the repo is packaged as one plugin rather than eight per-skill plugins.
+the repo is packaged as one plugin rather than nine per-skill plugins.
 
 **Fonts on the plugin path.** `claude plugin install` does not run any script, so plugin
 users must run `scripts/install-fonts.sh` once to register the fonts system-wide. Only the

@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chart briefs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
+<!--GL_BOOT-->
+<style>
+/* Growth Lab grammar tokens (grammar.md): warm ink ramp, accent, paper, c-N tones. */
+:root {
+  --ink: #1A1714; --ink-2: #2C2823; --ink-3: #4F4A42; --ink-4: #9A9389;
+  --accent: #1A5A8E; --accent-main: #2F87C8; --accent-tint: #E1F0FA;
+  --paper: #FFFFFF; --paper-warm: #F4F1EA; --cover-bg: #F3F2EA; --rule: #DDDDDD;
+  --red-dark: #8A2C2B; --red-light: #F4D5D5;
+  --teal: #2AA584; --teal-dark: #1A6B53; --teal-light: #D5EFE7;
+  --orange: #EA822D; --orange-dark: #A8580F; --orange-light: #FBE5D5;
+  --muted: #AFB5BE; --muted-dark: #5F6773; --muted-light: #CDD2D9;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --rail: 268px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink-2);
+  font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+button, input, textarea, select { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+/* ---- Top bar ---- */
+.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center;
+  gap: 24px; padding: 12px 24px; background: var(--cover-bg); border-bottom: 1px solid var(--rule); }
+.top .brand { flex: 1; min-width: 0; }
+.eyebrow { font: 600 11px/1.3 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.top h1 { margin: 2px 0 0; font: 500 21px/1.25 var(--serif); color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+.bar { width: 120px; height: 6px; background: var(--muted-light); border-radius: 3px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--teal); width: 0; transition: width .25s; }
+.depth { display: inline-flex; align-items: center; gap: 6px; }
+.depth .seg-b { padding: 4px 10px; font-size: 12.5px; }
+
+/* ---- Layout ---- */
+.layout { display: grid; grid-template-columns: var(--rail) 1fr; min-height: calc(100vh - 62px); }
+.rail { border-right: 1px solid var(--rule); background: var(--paper); padding: 12px 0;
+  position: sticky; top: 62px; height: calc(100vh - 62px); overflow-y: auto; }
+.ri { display: grid; grid-template-columns: 22px 52px 1fr 12px; align-items: center; gap: 8px;
+  width: 100%; padding: 6px 14px; border: 0; background: none; text-align: left; cursor: pointer; }
+.ri:hover { background: var(--paper-warm); }
+.ri.cur { background: var(--accent-tint); box-shadow: inset 3px 0 0 var(--accent); }
+.ri .n { font: 500 12px var(--sans); color: var(--ink-4); text-align: right; font-variant-numeric: tabular-nums; }
+.ri .th { width: 52px; height: 26px; object-fit: cover; border: 1px solid var(--rule); border-radius: 2px; background: var(--paper-warm); }
+.ri .th.blank { display: block; }
+.ri .lb { font-size: 13px; line-height: 1.25; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ri .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.ri.s-partial .dot { background: var(--orange); border-color: var(--orange-dark); }
+.ri.s-done .dot { background: var(--teal); border-color: var(--teal-dark); }
+.ri.s-delegated .dot { background: #fff; border: 1.5px dashed var(--accent); }
+.ri.s-delegated .lb { color: var(--ink-3); font-style: italic; }
+.ri.s-cut .dot, .ri.s-merged .dot { background: var(--muted-light); border-color: var(--muted-dark); }
+.ri.s-cut .lb, .ri.s-merged .lb { color: var(--ink-4); text-decoration: line-through; }
+.rail .sep { height: 1px; background: var(--rule); margin: 8px 14px; }
+
+main { padding: 28px 36px 80px; min-width: 0; }
+.card { max-width: 1320px; margin: 0 auto; }
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.card-actions { display: flex; gap: 18px; white-space: nowrap; }
+.card h2 { margin: 4px 0 6px; font: 500 26px/1.25 var(--serif); color: var(--ink); }
+.lede { max-width: 72ch; color: var(--ink-3); margin: 0 0 22px; }
+.gid { color: var(--ink-4); text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+.graph-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+.fig { margin: 0; position: sticky; top: 86px; }
+.fig img { width: 100%; height: auto; display: block; border: 1px solid var(--rule); cursor: zoom-in; background: #fff; }
+.fig figcaption { font-size: 12px; color: var(--ink-4); margin-top: 4px; }
+.plots { margin: 12px 0 0; font-size: 14px; color: var(--ink-3); }
+.plots .k { font-weight: 600; color: var(--ink-3); }
+.noimg { padding: 48px 20px; text-align: center; color: var(--ink-3); background: var(--paper-warm); border: 1px dashed var(--muted); }
+
+/* ---- Questions ---- */
+.q { margin: 0 0 22px; }
+.q-label { display: block; font: 600 15px/1.35 var(--sans); color: var(--ink); margin-bottom: 2px; }
+.req-mark { color: var(--accent); }
+.q-help { font-size: 13.5px; color: var(--ink-3); margin-bottom: 8px; max-width: 70ch; }
+.in { width: 100%; padding: 9px 11px; border: 1px solid #C9C4BA; border-radius: 4px; background: #fff;
+  line-height: 1.45; resize: none; overflow: hidden; }
+.in:focus { outline: 2px solid var(--accent-main); outline-offset: -1px; border-color: transparent; }
+textarea.serif { font: 500 19px/1.35 var(--serif); color: var(--ink); }
+.q.missing .in, .q.missing .opts, .q.missing .seg, .q.missing .chips { box-shadow: 0 0 0 2px var(--red-light); border-color: var(--red-dark); }
+.q.missing .q-label::after { content: " Required"; font: 500 12px var(--sans); color: var(--red-dark); }
+.count { float: right; font: 12px var(--sans); color: var(--ink-4); font-variant-numeric: tabular-nums; margin-top: 3px; }
+.count.over { color: var(--orange-dark); }
+.lint { margin-top: 6px; }
+.lint div { font-size: 13px; color: var(--orange-dark); background: var(--orange-light); padding: 5px 9px; border-radius: 3px; margin-top: 4px; }
+
+.opts { display: grid; gap: 6px; border-radius: 4px; }
+.opts.compact { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.opt { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 11px; text-align: left;
+  border: 1px solid var(--rule); border-radius: 4px; background: #fff; cursor: pointer; }
+.opt:hover { border-color: var(--accent-main); }
+.opt.on { border-color: var(--accent); background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent); }
+.opt-l { font-weight: 600; color: var(--ink); font-size: 14px; }
+.opt-h { font-size: 12.5px; color: var(--ink-3); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-radius: 4px; }
+.chip { padding: 4px 11px; border: 1px solid var(--rule); border-radius: 999px; background: #fff; cursor: pointer; font-size: 13.5px; }
+.chip:hover { border-color: var(--accent-main); }
+.chip.on { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.chip.none.on { background: var(--muted-light); border-color: var(--muted-dark); color: var(--ink-2); }
+.chip-add { width: 150px; padding: 4px 10px; border: 1px dashed var(--muted); border-radius: 999px; font-size: 13.5px; }
+
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; flex-wrap: wrap; background: #fff; }
+.seg-b { padding: 7px 14px; border: 0; border-right: 1px solid var(--rule); background: #fff; cursor: pointer; font-weight: 500; }
+.seg-b:last-child { border-right: 0; }
+.seg-b.on { background: var(--accent); color: #fff; }
+.seg-b[data-v=cut].on { background: var(--muted-dark); }
+.placement .sub { display: grid; gap: 8px; margin-top: 10px; max-width: 560px; }
+.collapsed-note { padding: 14px 16px; background: var(--paper-warm); color: var(--ink-3); border-radius: 4px; margin-bottom: 22px; font-size: 14px; }
+
+details.more { margin: 2px 0 22px; border-top: 1px solid var(--rule); padding-top: 12px; }
+details.more > summary { cursor: pointer; font: 600 13px/1.4 var(--sans); color: var(--ink-3); list-style: none; margin-bottom: 14px; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "▸ "; color: var(--ink-4); }
+details.more[open] > summary::before { content: "▾ "; }
+details.more > summary .opt-list { font-weight: 400; color: var(--ink-4); }
+
+.compare { margin: 4px 0 26px; padding: 14px 16px; border: 1px solid var(--rule); border-left: 3px solid var(--muted); border-radius: 4px; background: var(--paper); }
+.compare.ready { border-left-color: var(--accent); }
+.compare.revealed { border-left-color: var(--accent); background: var(--accent-tint); }
+.compare-head { font: 600 11px/1.3 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.compare .q-help { margin: 0; }
+.reading { margin: 4px 0 14px; font: 400 17px/1.4 var(--serif); color: var(--ink); }
+.compare .q { margin-bottom: 12px; }
+.compare .opt.on { background: var(--accent); }
+.compare .opt.on .opt-l { color: #fff; }
+
+.btn { padding: 8px 16px; border: 1px solid var(--accent); border-radius: 4px; background: #fff; color: var(--accent); font-weight: 600; cursor: pointer; }
+.btn:hover { background: var(--accent-tint); }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary:hover { background: #154a75; }
+.btn.quiet { border-color: var(--rule); color: var(--ink-3); font-weight: 500; }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--ink-3); text-decoration: underline; cursor: pointer; font-size: 13px; }
+.linkbtn:hover { color: var(--red-dark); }
+.linkbtn.alt:hover { color: var(--accent); }
+
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--rule); }
+.nav .hint { font-size: 12.5px; color: var(--ink-4); }
+kbd { font: 500 11.5px var(--sans); padding: 1px 5px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; background: var(--paper-warm); }
+
+/* ---- Storyline ---- */
+.narrow { max-width: 860px; }
+.argument { padding: 14px 18px; background: var(--paper-warm); border-radius: 4px; margin: 0 0 26px; }
+.argument .q-help { margin: 0 0 4px; }
+.argument p { margin: 0; font: 400 17px/1.45 var(--serif); color: var(--ink); white-space: pre-wrap; }
+.ghost { list-style: none; padding: 0; margin: 0 0 8px; counter-reset: g; }
+.ghost li { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--rule); counter-increment: g; }
+.ghost li::before { content: counter(g); font: 500 13px/1.9 var(--sans); color: var(--ink-4); text-align: right; font-variant-numeric: tabular-nums; }
+.ghost.app li::before { content: "A" counter(g); }
+.ghost .t { font: 500 18px/1.35 var(--serif); color: var(--ink); cursor: pointer; }
+.ghost .t.empty { color: var(--red-dark); font: italic 400 15px/1.5 var(--serif); }
+.ghost .t.deleg { color: var(--ink-3); font: italic 400 15px/1.5 var(--serif); }
+.ghost .id { display: block; font: 12px var(--sans); color: var(--ink-4); margin-top: 1px; }
+.ghost .mv { display: flex; gap: 4px; }
+.ghost .mv button { width: 28px; height: 28px; border: 1px solid var(--rule); border-radius: 4px; background: #fff; cursor: pointer; color: var(--ink-3); }
+.ghost .mv button:disabled { opacity: .35; cursor: default; }
+h3 { font: 600 13px/1.3 var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 28px 0 8px; }
+.gone { font-size: 14px; color: var(--ink-3); }
+.gone span { text-decoration: line-through; }
+.problems { margin: 18px 0; padding: 14px 18px; border-radius: 4px; background: var(--red-light); color: var(--red-dark); }
+.problems.warn { background: var(--orange-light); color: var(--orange-dark); }
+.problems b { display: block; margin-bottom: 6px; }
+.problems ul { margin: 0; padding-left: 18px; }
+.problems a { color: inherit; cursor: pointer; text-decoration: underline; }
+.submit-row { display: flex; gap: 12px; align-items: center; margin-top: 18px; }
+
+.final { max-width: 640px; margin: 12vh auto; text-align: center; }
+.final h2 { font: 500 30px/1.25 var(--serif); color: var(--ink); }
+.final p { color: var(--ink-3); }
+.final code { font-size: 13px; background: var(--paper-warm); padding: 2px 6px; border-radius: 3px; word-break: break-all; }
+
+#zoom { position: fixed; inset: 0; z-index: 20; background: rgba(26, 23, 20, .82); display: flex; align-items: center; justify-content: center; padding: 3vw; cursor: zoom-out; }
+#zoom img { max-width: 100%; max-height: 100%; background: #fff; }
+
+@media (max-width: 1180px) {
+  .graph-grid { grid-template-columns: 1fr; gap: 22px; }
+  .fig { position: static; }
+  .meta .bar { display: none; }
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 6px; }
+  .ri { grid-template-columns: auto 12px; width: auto; flex: 0 0 auto; padding: 6px 10px; }
+  .ri .th, .ri .lb { display: none; }
+  .rail .sep { display: none; }
+  .top { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+  .meta { flex-wrap: wrap; }
+  main { padding: 20px 16px 60px; }
+  .card-head { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="eyebrow">Growth Lab · chart briefs</div><h1 id="title">Loading…</h1></div>
+  <div class="meta">
+    <span class="depth">Depth <span class="seg" id="depth"></span></span>
+    <span id="progress"></span><span class="bar"><i id="bar"></i></span>
+    <span id="saved"></span>
+    <button type="button" class="btn quiet" id="pause" hidden>Save &amp; finish later</button>
+  </div>
+</header>
+<div class="layout">
+  <nav class="rail" id="rail" aria-label="Sections"></nav>
+  <main id="main"></main>
+</div>
+<div id="zoom" hidden><img alt=""></div>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------------------
+// Question presets. A spec can replace them (deck_questions, graph_questions)
+// or append to them (extra_deck_questions, extra_graph_questions, and per-chart
+// extra_questions). Types: text, longtext, choice, multi, chips.
+//
+// Depth sets the friction; the author can switch it at any time. `need` maps
+// each depth to "req" (blocks submit), "opt" (shown; folded under "More
+// detail") or "hide". Spec questions without `need` fall back to `required`
+// (true = req at every depth, else opt).
+// ---------------------------------------------------------------------------
+const DEPTHS = [
+  { value: "quick", label: "Quick", help: "Takeaway and placement only" },
+  { value: "standard", label: "Standard", help: "Takeaway, evidence and placement; the rest optional" },
+  { value: "deep", label: "Thorough", help: "Every question, plus the storyline check" }
+];
+const ALL = { quick: "req", standard: "req", deep: "req" };
+
+const DECK_QUESTIONS = [
+  { id: "destination", short: "Destination", type: "choice", need: ALL,
+    label: "Where will these charts live?",
+    options: [
+      { value: "slide", label: "Slide deck", help: "Title, subtitle and source render inside each chart." },
+      { value: "report", label: "Report", help: "Title and source go in the document's figure block." },
+      { value: "both", label: "Both" } ] },
+  { id: "audience", short: "Audience", type: "longtext", rows: 2, need: { quick: "hide", standard: "opt", deep: "req" },
+    label: "Who is this for, and what will they decide or do after seeing it?",
+    placeholder: "e.g. The Finance Minister, deciding whether to back an export-led adjustment in the next budget." },
+  { id: "argument", short: "Argument", type: "longtext", rows: 3, need: { quick: "opt", standard: "req", deep: "req" },
+    label: "Before you look at the charts: what is the argument, in two or three sentences?",
+    help: "At the end you will read the chart titles alone, in order, and check them against this. You can revise it then." }
+];
+
+const COLOR_OPTIONS = [
+  { value: "popup", label: "Pop-up", help: "Mute everything; color only the focus." },
+  { value: "categorical", label: "Categorical", help: "Up to six hues, no single focus." },
+  { value: "tones", label: "Tones of one hue", help: "Categories share a parent." },
+  { value: "ramp", label: "Ramp", help: "Ordered values, or a real midpoint." },
+  { value: "claude", label: "Let Claude choose", help: "Derived from your focus answer." }
+];
+
+const GRAPH_QUESTIONS = [
+  { id: "takeaway", short: "Takeaway", type: "longtext", rows: 2, need: ALL, lint: "takeaway",
+    label: "What does this chart say?",
+    help: "One sentence, stated as a finding. It becomes the chart title. Not what the chart shows (“Electricity prices by country”) but what the reader learns (“Firms here pay more for power than anywhere else in the region.”).",
+    placeholder: "Your sentence, ending with a period." },
+  { id: "evidence", short: "Evidence", type: "longtext", rows: 2, need: { quick: "opt", standard: "req", deep: "req" }, lint: "evidence",
+    label: "Where in the chart does the reader see it?",
+    help: "Name the series, years, gap or point that makes your sentence true. This is what gets highlighted or annotated." },
+  { id: "so_what", short: "So what", type: "longtext", rows: 2, need: { quick: "hide", standard: "opt", deep: "req" },
+    label: "So what?",
+    help: "Why does your audience need this chart? What should they believe or do differently after seeing it?" },
+  { id: "focus", short: "Focus", type: "chips", options_from: "entities", none_label: "Nothing in particular",
+    need: { quick: "hide", standard: "opt", deep: "opt" },
+    label: "What should the eye land on first?",
+    help: "Pick the series or entities to highlight; everything else is muted. Type to add one that is missing." },
+  { id: "color_strategy", short: "Color", type: "choice", compact: true, need: { quick: "hide", standard: "opt", deep: "req" },
+    label: "Color strategy", options: COLOR_OPTIONS },
+  { id: "skeptic", short: "Skeptic", type: "longtext", rows: 2, need: { quick: "hide", standard: "opt", deep: "opt" },
+    label: "What would a skeptic say?",
+    help: "A caveat, a confounder, an odd scale or a missing comparator. It may become a subtitle or a note." },
+  { id: "source", short: "Source", type: "text", default_from: "source", need: { quick: "opt", standard: "req", deep: "req" },
+    label: "Source line", placeholder: "Source: …" }
+];
+// Always shown up front, even when optional at this depth: they are the point.
+const UP_FRONT = ["takeaway", "evidence"];
+const STORY_NEED = { quick: "opt", standard: "opt", deep: "req" };
+
+const PLACEMENTS = [
+  { value: "main", label: "Main body" }, { value: "appendix", label: "Appendix" },
+  { value: "merge", label: "Merge into another" }, { value: "cut", label: "Cut" }
+];
+const PLACEMENT_LABEL = { main: "main body", appendix: "appendix", merge: "merged", cut: "cut" };
+
+// ---------------------------------------------------------------------------
+// Lint: nudges, never blockers. Required fields block; style only warns.
+// ---------------------------------------------------------------------------
+const DESCRIPTIVE = /^(this|the)\s+(chart|graph|figure|plot|panel)\b|^(chart|graph|plot|figure)\s+(of|showing)\b|^(evolution|distribution|composition|breakdown|overview|comparison|decomposition|share|trends?|dynamics|levels?)\s+(of|in|by|across)\b|\b(over time|by year|by sector|by country|across countries)\.?$/i;
+const VAGUE = /\b(interesting|various|notable|dynamics|landscape|evolution|trends?)\b/i;
+
+function titleLimit() { return S.deck.destination === "report" ? 140 : 90; }
+
+function lintTakeaway(text, g) {
+  const s = (text || "").trim(), w = [];
+  if (!s) return w;
+  const words = s.split(/\s+/).length;
+  if (/\?$/.test(s)) w.push("A question is not a finding. Answer it.");
+  else if (!/\.$/.test(s)) w.push("End with a period: a chart title is a finding, not a label.");
+  if (words < 5) w.push("Too short to state a finding. Which direction, how big, compared with what?");
+  if (DESCRIPTIVE.test(s)) w.push("This describes the chart. Say what the reader learns from it.");
+  else if (VAGUE.test(s)) w.push(`“${s.match(VAGUE)[0]}” is vague. Say which way, how much, or compared with what.`);
+  const lim = titleLimit();
+  if (s.length > lim) w.push(`${s.length} characters is long for a ${lim === 90 ? "slide" : "figure"} title. Aim for ${lim} or fewer.`);
+  const a = S.graphs[g.id];
+  if (a.reveal && a.reveal.revealed && g.claude_reading && similarity(s, g.claude_reading) > 0.75)
+    w.push("Almost the same words as Claude's reading. Is this your claim, in your words?");
+  return w;
+}
+function lintEvidence(text) {
+  const s = (text || "").trim();
+  if (s && s.split(/\s+/).length < 4) return ["Point at something specific: a series, years, a gap, a point."];
+  return [];
+}
+function similarity(a, b) {
+  const tok = t => new Set(t.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(x => x.length > 2));
+  const A = tok(a), B = tok(b);
+  if (!A.size || !B.size) return 0;
+  let inter = 0; A.forEach(x => { if (B.has(x)) inter++; });
+  return inter / (A.size + B.size - inter);
+}
+
+// ---------------------------------------------------------------------------
+// Small DOM helper
+// ---------------------------------------------------------------------------
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "value") e.value = v;
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    e.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return e;
+}
+const isEmpty = v => v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && !v.length);
+const NONE = "__none__";
+// Size to content (never to the placeholder); empty boxes keep their rows height.
+function autoGrow(el) { el.style.height = ""; if (el.value) el.style.height = (el.scrollHeight + 2) + "px"; }
+function growAll() { document.querySelectorAll("main textarea").forEach(autoGrow); }
+function hhmm(d) { return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+let SPEC, GRAPHS, BY_ID, KEY, REVEAL, DECK_QS, S, SERVED;
+const UI = { showMissing: false, confirmWarnings: false, moreOpen: false };
+
+(async function boot() {
+  let bootData = window.__GL_BOOT__ || null;
+  SERVED = !bootData;
+  if (SERVED) {
+    try { bootData = await (await fetch("/api/spec", { cache: "no-store" })).json(); }
+    catch (e) {
+      document.getElementById("main").append(h("div", { class: "final" },
+        h("h2", {}, "The questionnaire is not running."),
+        h("p", {}, "Ask Claude to reopen it. Your answers so far are saved as a draft.")));
+      return;
+    }
+  }
+  SPEC = bootData.spec;
+  GRAPHS = SPEC.graphs;
+  BY_ID = Object.fromEntries(GRAPHS.map(g => [g.id, g]));
+  KEY = "glq:" + (SPEC.key || SPEC.title);
+  REVEAL = SPEC.reveal || "after_answer";
+  DECK_QS = (SPEC.deck_questions || DECK_QUESTIONS).concat(SPEC.extra_deck_questions || []);
+
+  // Newest of: the server's draft file, this browser's autosave.
+  let local = null;
+  try { local = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { /* storage blocked */ }
+  const candidates = [bootData.draft, local].filter(x => x && x.v === 1);
+  candidates.sort((a, b) => String(b.saved_at || "").localeCompare(String(a.saved_at || "")));
+  S = Object.assign(freshState(), candidates[0] || {});
+  normalizeState();
+
+  document.title = "Chart briefs: " + SPEC.title;
+  document.getElementById("title").textContent = SPEC.title;
+  const pause = document.getElementById("pause");
+  if (SERVED) { pause.hidden = false; pause.addEventListener("click", pauseNow); }
+  buildDepth();
+  buildRail();
+  go(S.current, true);
+  setInterval(tick, 5000);
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); step(e.shiftKey ? -1 : 1); }
+    if (e.key === "Escape") document.getElementById("zoom").hidden = true;
+  });
+  document.getElementById("zoom").addEventListener("click", e => { e.currentTarget.hidden = true; });
+  window.addEventListener("resize", growAll);
+  if (document.fonts) document.fonts.ready.then(growAll);
+})();
+
+function freshState() {
+  return { v: 1, depth: SPEC.depth || "standard", deck: SPEC.destination ? { destination: SPEC.destination } : {},
+           graphs: {}, order: [], storyline: {}, current: "deck", active: {},
+           started_at: new Date().toISOString(), saved_at: null };
+}
+function normalizeState() {
+  for (const g of GRAPHS) S.graphs[g.id] = S.graphs[g.id] || {};
+  S.order = (S.order || []).filter(id => BY_ID[id]);
+  for (const g of GRAPHS) if (!S.order.includes(g.id)) S.order.push(g.id);
+  if (!sections().includes(S.current)) S.current = "deck";
+  if (!DEPTHS.some(d => d.value === S.depth)) S.depth = SPEC.depth || "standard";
+  S.active = S.active || {}; S.storyline = S.storyline || {};
+}
+function needOf(q) {
+  if (q.need) return q.need[S.depth] || "opt";
+  return q.required ? "req" : "opt";
+}
+const withNeed = q => Object.assign({}, q, { required: needOf(q) === "req" });
+function graphQs(g) {
+  return (SPEC.graph_questions || GRAPH_QUESTIONS).concat(SPEC.extra_graph_questions || [], g.extra_questions || []);
+}
+function val(g, q) {
+  const v = S.graphs[g.id][q.id];
+  if (v === undefined && q.default_from) return g[q.default_from] ?? SPEC[q.default_from];
+  return v;
+}
+
+// ---------------------------------------------------------------------------
+// Saving
+// ---------------------------------------------------------------------------
+let saveTimer = null, postTimer = null;
+function save() {
+  S.saved_at = new Date().toISOString();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private window */ }
+    document.getElementById("saved").textContent = "Draft saved " + hhmm(new Date());
+  }, 400);
+  if (SERVED) {
+    clearTimeout(postTimer);
+    postTimer = setTimeout(() => {
+      fetch("/api/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S) })
+        .catch(() => { document.getElementById("saved").textContent = "Saved in this browser only"; });
+    }, 1200);
+  }
+}
+function tick() {
+  if (document.visibilityState === "visible" && document.hasFocus()) {
+    S.active[S.current] = (S.active[S.current] || 0) + 5;
+    save();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Status
+// ---------------------------------------------------------------------------
+function graphMissing(g) {
+  const a = S.graphs[g.id], m = [];
+  if (a.delegated || a.placement === "cut") return m;
+  if (a.placement === "merge") { if (!a.merge_into) m.push("which chart to merge into"); return m; }
+  for (const q of graphQs(g)) if (needOf(q) === "req" && isEmpty(val(g, q))) m.push((q.short || q.label).toLowerCase());
+  if (S.depth !== "quick" && a.reveal && a.reveal.revealed && g.claude_reading && REVEAL !== "never" && !a.same_reading)
+    m.push("same reading as Claude?");
+  if (!a.placement) m.push("placement");
+  return m;
+}
+function graphStatus(g) {
+  const a = S.graphs[g.id];
+  if (a.delegated) return "delegated";
+  if (a.placement === "cut") return "cut";
+  if (a.placement === "merge" && a.merge_into) return "merged";
+  if (!graphMissing(g).length) return "done";
+  const touched = Object.keys(a).some(k => k !== "reveal" && !isEmpty(a[k]));
+  return touched ? "partial" : "todo";
+}
+function deckMissing() {
+  return DECK_QS.filter(q => needOf(q) === "req" && isEmpty(S.deck[q.id])).map(q => (q.short || q.label).toLowerCase());
+}
+function deckStatus() { return deckMissing().length ? (DECK_QS.some(q => !isEmpty(S.deck[q.id])) ? "partial" : "todo") : "done"; }
+function storyStatus() { return isEmpty(S.storyline.check) ? "todo" : "done"; }
+function sections() { return ["deck", ...GRAPHS.map(g => g.id), "story"]; }
+
+// ---------------------------------------------------------------------------
+// Header controls, rail, progress
+// ---------------------------------------------------------------------------
+function buildDepth() {
+  const el = document.getElementById("depth");
+  el.replaceChildren(...DEPTHS.map(d => h("button", { type: "button", class: "seg-b" + (S.depth === d.value ? " on" : ""),
+    title: d.help, onclick: () => { S.depth = d.value; UI.confirmWarnings = false; save(); buildDepth(); go(S.current); } }, d.label)));
+}
+function buildRail() {
+  const rail = document.getElementById("rail");
+  rail.replaceChildren();
+  const item = (id, n, label, thumb) => h("button", { type: "button", class: "ri", "data-id": id, title: label, onclick: () => go(id) },
+    h("span", { class: "n" }, n),
+    thumb ? h("img", { class: "th", src: thumb, alt: "", loading: "lazy" }) : h("span", { class: "th blank" }),
+    h("span", { class: "lb" }, label),
+    h("span", { class: "dot" }));
+  rail.append(item("deck", "0", "The deliverable"), h("div", { class: "sep" }));
+  GRAPHS.forEach((g, i) => rail.append(item(g.id, String(i + 1), g.label || g.id, g.image_url)));
+  rail.append(h("div", { class: "sep" }), item("story", "✓", "Storyline & submit"));
+  refreshStatus();
+}
+function refreshStatus() {
+  const st = { deck: deckStatus(), story: storyStatus() };
+  GRAPHS.forEach(g => { st[g.id] = graphStatus(g); });
+  document.querySelectorAll(".ri").forEach(el => {
+    el.className = "ri s-" + st[el.dataset.id] + (el.dataset.id === S.current ? " cur" : "");
+  });
+  const n = GRAPHS.length, count = k => GRAPHS.filter(g => st[g.id] === k).length;
+  const settled = GRAPHS.filter(g => ["done", "cut", "merged", "delegated"].includes(st[g.id])).length;
+  const extra = [count("cut") && `${count("cut")} cut`, count("delegated") && `${count("delegated")} left to Claude`].filter(Boolean);
+  document.getElementById("progress").textContent = `${settled} of ${n} settled` + (extra.length ? " · " + extra.join(" · ") : "");
+  document.getElementById("bar").style.width = (100 * settled / n) + "%";
+}
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+function go(id, first) {
+  S.current = id;
+  if (!first) save();
+  const main = document.getElementById("main");
+  main.replaceChildren();
+  if (id === "deck") main.append(renderDeck());
+  else if (id === "story") main.append(renderStory());
+  else main.append(renderGraph(BY_ID[id]));
+  refreshStatus();
+  const cur = document.querySelector(".ri.cur");
+  if (cur) cur.scrollIntoView({ block: "nearest", inline: "nearest" });
+  window.scrollTo(0, 0);
+  requestAnimationFrame(growAll);
+}
+function step(d) {
+  const all = sections(), i = all.indexOf(S.current);
+  const j = Math.min(all.length - 1, Math.max(0, i + d));
+  if (j !== i) go(all[j]);
+}
+function navBar() {
+  const all = sections(), i = all.indexOf(S.current);
+  const name = id => id === "deck" ? "The deliverable" : id === "story" ? "Storyline & submit" : `Chart ${GRAPHS.indexOf(BY_ID[id]) + 1}`;
+  return h("div", { class: "nav" },
+    i > 0 ? h("button", { type: "button", class: "btn quiet", onclick: () => step(-1) }, "← " + name(all[i - 1])) : h("span"),
+    h("span", { class: "hint" }, h("kbd", {}, "Ctrl"), " + ", h("kbd", {}, "Enter"), " next"),
+    i < all.length - 1 ? h("button", { type: "button", class: "btn", onclick: () => step(1) }, name(all[i + 1]) + " →") : h("span"));
+}
+
+// ---------------------------------------------------------------------------
+// Generic question renderer (q.required is the effective, depth-aware flag)
+// ---------------------------------------------------------------------------
+function renderQ(q, get, set, opts) {
+  opts = opts || {};
+  const wrap = h("div", { class: "q", "data-q": q.id });
+  wrap.append(h("label", { class: "q-label" }, q.label, q.required ? h("span", { class: "req-mark", title: "Required" }, " *") : null));
+  if (q.help) wrap.append(h("div", { class: "q-help" }, q.help));
+  const lint = h("div", { class: "lint" });
+  let counter = null;
+  const markMissing = () => wrap.classList.toggle("missing", UI.showMissing && q.required && isEmpty(get()));
+  const runLint = () => {
+    const ws = opts.lint ? opts.lint(get()) : [];
+    lint.replaceChildren(...ws.map(w => h("div", {}, w)));
+    if (counter) {
+      const len = (get() || "").trim().length, lim = titleLimit();
+      counter.textContent = `${len} / ${lim}`;
+      counter.classList.toggle("over", len > lim);
+    }
+  };
+  const changed = v => { set(v); markMissing(); runLint(); };
+  const v0 = get();
+  let control;
+
+  if (q.type === "text" || q.type === "longtext") {
+    control = q.type === "text"
+      ? h("input", { type: "text", class: "in", placeholder: q.placeholder || "", value: v0 || "" })
+      : h("textarea", { class: "in" + (q.lint === "takeaway" ? " serif" : ""), rows: q.rows || 3, placeholder: q.placeholder || "", value: v0 || "" });
+    control.addEventListener("input", e => { if (q.type === "longtext") autoGrow(e.target); changed(e.target.value); });
+    if (q.lint === "takeaway") { counter = h("span", { class: "count" }); wrap.append(counter); }
+  } else if (q.type === "choice") {
+    control = h("div", { class: "opts" + (q.compact ? " compact" : ""), role: "radiogroup" });
+    for (const o of q.options) {
+      const oo = typeof o === "string" ? { value: o, label: o } : o;
+      const b = h("button", { type: "button", class: "opt" + (v0 === oo.value ? " on" : ""), "data-v": oo.value },
+        h("span", { class: "opt-l" }, oo.label), oo.help ? h("span", { class: "opt-h" }, oo.help) : null);
+      b.addEventListener("click", () => {
+        const nv = get() === oo.value ? undefined : oo.value;
+        control.querySelectorAll(".opt").forEach(x => x.classList.toggle("on", x.dataset.v === nv));
+        changed(nv);
+      });
+      control.append(b);
+    }
+  } else if (q.type === "chips" || q.type === "multi") {
+    control = h("div", { class: "chips" });
+    const base = (q.options || (opts.graph && q.options_from ? (opts.graph[q.options_from] || []) : [])).map(String);
+    const draw = () => {
+      const cur = get() || [];
+      const all = [...base, ...cur.filter(x => x !== NONE && !base.includes(x))];
+      control.replaceChildren();
+      for (const o of all) {
+        control.append(h("button", { type: "button", class: "chip" + (cur.includes(o) ? " on" : ""), onclick: () => {
+          const c = (get() || []).filter(x => x !== NONE);
+          changed(c.includes(o) ? c.filter(x => x !== o) : [...c, o]); draw();
+        } }, o));
+      }
+      if (q.none_label) control.append(h("button", { type: "button", class: "chip none" + (cur.includes(NONE) ? " on" : ""),
+        onclick: () => { changed((get() || []).includes(NONE) ? [] : [NONE]); draw(); } }, q.none_label));
+      if (q.type === "chips") {
+        const add = h("input", { type: "text", class: "chip-add", placeholder: "+ add…" });
+        add.addEventListener("keydown", e => {
+          if (e.key !== "Enter" || !add.value.trim()) return;
+          e.preventDefault();
+          const c = (get() || []).filter(x => x !== NONE);
+          if (!c.includes(add.value.trim())) changed([...c, add.value.trim()]);
+          draw(); control.querySelector(".chip-add").focus();
+        });
+        control.append(add);
+      }
+    };
+    draw();
+  }
+  wrap.append(control, lint);
+  markMissing(); runLint();
+  wrap.relint = runLint;
+  return wrap;
+}
+
+// ---------------------------------------------------------------------------
+// Deck section
+// ---------------------------------------------------------------------------
+function renderDeck() {
+  const n = GRAPHS.length;
+  const card = h("section", { class: "card narrow" },
+    h("div", { class: "eyebrow" }, "Before the charts"),
+    h("h2", {}, "The deliverable"),
+    h("p", { class: "lede" }, SPEC.intro ||
+      `You will go through ${n} chart${n === 1 ? "" : "s"} and say, in your own words, what each one tells the reader. ` +
+      "Claude turns your answers into the production charts: your sentence becomes the title, your evidence becomes the highlight."),
+    h("p", { class: "lede" }, "Set how much to answer with Depth at the top. If a chart is not worth your time, use “Let Claude draft it”; " +
+      "the record will show which charts you left to Claude. And if you cannot say what a chart shows, that is useful too: move it to the appendix or cut it."));
+  for (const q of DECK_QS) {
+    if (needOf(q) === "hide") continue;
+    card.append(renderQ(withNeed(q), () => S.deck[q.id], v => { S.deck[q.id] = v; save(); refreshStatus(); }));
+  }
+  card.append(navBar());
+  return card;
+}
+
+// ---------------------------------------------------------------------------
+// Chart card
+// ---------------------------------------------------------------------------
+function renderGraph(g) {
+  const a = S.graphs[g.id], idx = GRAPHS.indexOf(g);
+  const card = h("section", { class: "card" });
+  const placement = placementBlock(g, () => sync());
+  card.append(h("div", { class: "card-head" },
+    h("div", {},
+      h("div", { class: "eyebrow" }, `Chart ${idx + 1} of ${GRAPHS.length}`, h("span", { class: "gid" }, " · " + g.id)),
+      g.label ? h("h2", {}, g.label) : null),
+    h("div", { class: "card-actions" },
+      h("button", { type: "button", class: "linkbtn alt", title: "Claude writes this chart's takeaway and design. The record shows it was left to Claude.",
+        onclick: () => { a.delegated = true; save(); sync(); } }, "Let Claude draft it"),
+      h("button", { type: "button", class: "linkbtn", onclick: () => { a.delegated = false; a.placement = "cut"; save(); placement.sync(); sync(); } }, "Cut this chart"))));
+
+  const fig = h("figure", { class: "fig" });
+  if (g.image_url) {
+    fig.append(h("img", { src: g.image_url, alt: g.label || g.id, onclick: () => zoom(g.image_url) }),
+               h("figcaption", {}, "Click to enlarge" + (g.image ? " · " + g.image : "")));
+  } else {
+    fig.append(h("div", { class: "noimg" }, g.image_note ? "No image: " + g.image_note : "No draft image yet. Answer from the description below."));
+  }
+  if (g.what_it_plots) fig.append(h("p", { class: "plots" }, h("span", { class: "k" }, "What it plots: "), g.what_it_plots));
+
+  const body = h("div", { class: "q-body" });
+  const note = h("div", { class: "collapsed-note" });
+  const qs = graphQs(g).filter(q => needOf(q) !== "hide");
+  const upFront = qs.filter(q => needOf(q) === "req" || UP_FRONT.includes(q.id));
+  const optional = qs.filter(q => !upFront.includes(q));
+  const els = {};
+  const compare = g.claude_reading && REVEAL !== "never" ? compareBox(g, () => sync()) : null;
+  const anchor = ["evidence", "takeaway"].find(id => upFront.some(q => q.id === id));
+  const make = q => {
+    const lint = q.lint === "takeaway" ? t => lintTakeaway(t, g) : q.lint === "evidence" ? lintEvidence : null;
+    return (els[q.id] = renderQ(withNeed(q), () => val(g, q), v => { a[q.id] = v; save(); sync(q.id); }, { graph: g, lint }));
+  };
+  for (const q of upFront) {
+    body.append(make(q));
+    if (compare && q.id === anchor) body.append(compare);
+  }
+  if (compare && !anchor) body.append(compare);
+  if (optional.length) {
+    const more = h("details", { class: "more" }, h("summary", {}, "More detail (optional) ",
+      h("span", { class: "opt-list" }, "· " + optional.map(q => (q.short || q.label).toLowerCase()).join(", "))));
+    optional.forEach(q => more.append(make(q)));
+    more.open = UI.moreOpen || optional.some(q => !isEmpty(a[q.id]));
+    more.addEventListener("toggle", () => { UI.moreOpen = more.open; if (more.open) growAll(); });
+    body.append(more);
+  }
+
+  function sync(changedId) {
+    const gone = a.delegated || a.placement === "cut" || a.placement === "merge";
+    body.hidden = gone;
+    placement.hidden = !!a.delegated;
+    note.hidden = !gone;
+    note.replaceChildren();
+    if (a.delegated) {
+      note.append("Claude will draft this chart's takeaway and design, and the record will show it was left to Claude. ",
+        h("button", { type: "button", class: "linkbtn alt", onclick: () => { a.delegated = false; save(); sync(); requestAnimationFrame(growAll); } }, "Write it myself"));
+    } else if (a.placement === "cut") {
+      note.append("This chart is cut, so its questions are hidden. Pick another placement below to bring them back.");
+    } else if (a.placement === "merge") {
+      note.append("This chart will be merged into another, so its questions are hidden. Answer them on the chart it merges into.");
+    }
+    if (compare && (changedId === undefined || changedId === "takeaway" || changedId === "evidence")) compare.update();
+    if (changedId === "same_reading" || changedId === undefined) els.takeaway && els.takeaway.relint();
+    refreshStatus();
+  }
+  card.append(h("div", { class: "graph-grid" }, fig, h("div", { class: "qs" }, note, body, placement)), navBar());
+  sync();
+  return card;
+}
+
+function placementBlock(g, onChange) {
+  const a = S.graphs[g.id];
+  const wrap = h("div", { class: "q placement", "data-q": "placement" },
+    h("label", { class: "q-label" }, "Does this chart earn its place?", h("span", { class: "req-mark" }, " *")),
+    h("div", { class: "q-help" }, "If you struggled to write the takeaway, take that as a signal: appendix, merge, or cut."));
+  const seg = h("div", { class: "seg" });
+  const sub = h("div", { class: "sub" });
+  for (const p of PLACEMENTS) {
+    seg.append(h("button", { type: "button", class: "seg-b", "data-v": p.value, onclick: () => {
+      a.placement = a.placement === p.value ? undefined : p.value; save(); wrap.sync(); onChange();
+    } }, p.label));
+  }
+  wrap.sync = () => {
+    seg.querySelectorAll(".seg-b").forEach(b => b.classList.toggle("on", b.dataset.v === a.placement));
+    wrap.classList.toggle("missing", UI.showMissing && !a.placement);
+    sub.replaceChildren();
+    if (a.placement === "merge") {
+      const sel = h("select", { class: "in" }, h("option", { value: "" }, "Merge into which chart?"),
+        GRAPHS.filter(x => x.id !== g.id).map(x => h("option", { value: x.id, selected: a.merge_into === x.id },
+          `${GRAPHS.indexOf(x) + 1}. ${x.label || x.id}`)));
+      sel.addEventListener("change", e => { a.merge_into = e.target.value || undefined; save(); onChange(); });
+      const mn = h("textarea", { class: "in", rows: 2, placeholder: "What should the merged chart show that neither shows alone?", value: a.merge_note || "" });
+      mn.addEventListener("input", e => { autoGrow(e.target); a.merge_note = e.target.value; save(); });
+      sub.append(sel, mn);
+    } else if (a.placement === "cut") {
+      const r = h("input", { type: "text", class: "in", placeholder: "Why cut? Optional, e.g. “repeats chart 4” or “no clear message”.", value: a.cut_reason || "" });
+      r.addEventListener("input", e => { a.cut_reason = e.target.value; save(); });
+      sub.append(r);
+    }
+  };
+  wrap.append(seg, sub);
+  wrap.sync();
+  return wrap;
+}
+
+function compareBox(g, onChange) {
+  const a = S.graphs[g.id];
+  const box = h("div", { class: "compare" });
+  let shown = null;
+  box.update = () => {
+    // Opens only once the author has committed to a claim (and, when the depth
+    // asks for it, pointed at the evidence).
+    const t = (a.takeaway || "").trim();
+    const evQ = graphQs(g).find(q => q.id === "evidence");
+    const needsEvidence = evQ && needOf(evQ) === "req";
+    const claimed = t.split(/\s+/).filter(Boolean).length >= 6 && !DESCRIPTIVE.test(t) && (!needsEvidence || !isEmpty(a.evidence));
+    if (REVEAL === "always" && !(a.reveal && a.reveal.revealed)) a.reveal = { revealed: true, at: null, before: null };
+    const state = a.reveal && a.reveal.revealed ? "revealed" : claimed ? "ready" : "locked";
+    if (state === shown) return;
+    shown = state;
+    box.className = "compare " + state;
+    box.replaceChildren(h("div", { class: "compare-head" }, "How Claude reads this chart"));
+    if (state === "locked") {
+      box.append(h("p", { class: "q-help" }, "Opens once you have written your takeaway (a finding, not a description)" +
+        (needsEvidence ? " and where the reader sees it" : "") + ". If your reading and Claude's differ, your readers may misread the chart too."));
+    } else if (state === "ready") {
+      box.append(h("button", { type: "button", class: "btn", onclick: () => {
+        a.reveal = { revealed: true, at: new Date().toISOString(), before: a.takeaway || "" };
+        save(); box.update(); onChange();
+      } }, "Compare with Claude's reading"));
+    } else {
+      box.append(h("blockquote", { class: "reading" }, g.claude_reading));
+      const fixQ = { id: "clarity_fix", type: "longtext", rows: 2, label: "What would make your reading the obvious one?",
+        help: "An annotation, a highlight, a reference line, a different cut of the data, or a sharper takeaway." };
+      const fixEl = renderQ(fixQ, () => a.clarity_fix, v => { a.clarity_fix = v; save(); });
+      const showFix = () => { fixEl.hidden = !(a.same_reading === "partly" || a.same_reading === "different"); };
+      const sameQ = { id: "same_reading", type: "choice", compact: true, required: S.depth !== "quick",
+        label: "Do you and Claude read this chart the same way?",
+        options: [{ value: "same", label: "Same" }, { value: "partly", label: "Partly" }, { value: "different", label: "Different" }] };
+      const sameEl = renderQ(sameQ, () => a.same_reading, v => { a.same_reading = v; save(); showFix(); onChange("same_reading"); });
+      showFix();
+      box.append(sameEl, fixEl);
+      requestAnimationFrame(() => box.querySelectorAll("textarea").forEach(autoGrow));
+    }
+  };
+  return box;
+}
+
+function zoom(src) {
+  const z = document.getElementById("zoom");
+  z.querySelector("img").src = src;
+  z.hidden = false;
+}
+
+// ---------------------------------------------------------------------------
+// Storyline + submit
+// ---------------------------------------------------------------------------
+function placementOf(id) { return S.graphs[id].placement || "main"; }
+
+function renderStory() {
+  const card = h("section", { class: "card narrow" },
+    h("div", { class: "eyebrow" }, "Last step"),
+    h("h2", {}, "Read the titles alone"),
+    h("p", { class: "lede" }, "These are your takeaways, in order, as the reader will meet them. Read them top to bottom without looking at the charts. " +
+      "Do they make your argument? Reorder with the arrows; click a title to edit its chart."));
+  card.append(h("div", { class: "argument" },
+    h("div", { class: "q-help" }, "Your argument, from the start:"),
+    h("p", {}, S.deck.argument || "(not written)")));
+  const lists = h("div");
+  const drawLists = () => {
+    lists.replaceChildren();
+    const ghost = (kind, cls) => {
+      const ids = S.order.filter(id => placementOf(id) === kind);
+      const ol = h("ol", { class: "ghost " + cls });
+      ids.forEach((id, i) => {
+        const a = S.graphs[id], t = (a.takeaway || "").trim();
+        const title = a.delegated ? h("span", { class: "t deleg", onclick: () => go(id) }, t ? t + " (Claude will rewrite)" : "Left to Claude to draft")
+          : h("span", { class: "t" + (t ? "" : " empty"), onclick: () => go(id) }, t || "No takeaway yet");
+        ol.append(h("li", {},
+          h("div", {}, title,
+            h("span", { class: "id" }, `${GRAPHS.indexOf(BY_ID[id]) + 1} · ${id}` + (a.placement || a.delegated ? "" : " · placement not chosen"))),
+          h("div", { class: "mv" },
+            h("button", { type: "button", title: "Move up", disabled: i === 0, onclick: () => move(ids, i, -1) }, "↑"),
+            h("button", { type: "button", title: "Move down", disabled: i === ids.length - 1, onclick: () => move(ids, i, 1) }, "↓"))));
+      });
+      return ids.length ? ol : h("p", { class: "gone" }, "None.");
+    };
+    lists.append(h("h3", {}, "Main body"), ghost("main", "main"));
+    if (S.order.some(id => placementOf(id) === "appendix")) lists.append(h("h3", {}, "Appendix"), ghost("appendix", "app"));
+    const gone = S.order.filter(id => ["cut", "merge"].includes(placementOf(id)));
+    if (gone.length) {
+      lists.append(h("h3", {}, "Merged or cut"));
+      for (const id of gone) {
+        const a = S.graphs[id];
+        lists.append(h("p", { class: "gone" }, h("span", {}, id), " · ",
+          a.placement === "cut" ? "cut" + (a.cut_reason ? ": " + a.cut_reason : "") : "merged into " + (a.merge_into || "?")));
+      }
+    }
+  };
+  function move(ids, i, d) {
+    const x = ids[i], y = ids[i + d];
+    const ix = S.order.indexOf(x), iy = S.order.indexOf(y);
+    [S.order[ix], S.order[iy]] = [S.order[iy], S.order[ix]];
+    save(); drawLists();
+  }
+  drawLists();
+  card.append(lists);
+
+  const checkQ = { id: "check", type: "longtext", rows: 3, required: STORY_NEED[S.depth] === "req",
+    label: "Do these titles, in this order, make your argument? What is missing, repeated, or out of order?",
+    help: "If a gap shows up, say what chart would fill it. Claude will flag it rather than invent it." };
+  card.append(h("div", { style: "margin-top:28px" }, renderQ(checkQ, () => S.storyline.check, v => { S.storyline.check = v; save(); refreshStatus(); })));
+
+  const msgs = h("div");
+  card.append(msgs, h("div", { class: "submit-row" },
+    h("button", { type: "button", class: "btn primary", onclick: () => submit(msgs) }, "Submit briefs to Claude"),
+    h("span", { class: "q-help", style: "margin:0" }, SERVED ? "Claude picks them up as soon as you submit." : "Downloads a file for Claude to read.")));
+  card.append(navBar());
+  return card;
+}
+
+function collectProblems() {
+  const p = [];
+  const dm = deckMissing();
+  if (dm.length) p.push({ id: "deck", text: "The deliverable: " + dm.join(", ") });
+  GRAPHS.forEach((g, i) => { const m = graphMissing(g); if (m.length) p.push({ id: g.id, text: `Chart ${i + 1} · ${g.id}: ${m.join(", ")}` }); });
+  if (STORY_NEED[S.depth] === "req" && isEmpty(S.storyline.check)) p.push({ id: "story", text: "Storyline check" });
+  return p;
+}
+function collectWarnings() {
+  const w = [];
+  GRAPHS.forEach((g, i) => {
+    if (S.graphs[g.id].delegated || ["cut", "merge"].includes(placementOf(g.id))) return;
+    lintTakeaway(S.graphs[g.id].takeaway, g).forEach(x => w.push({ id: g.id, text: `Chart ${i + 1}: ${x}` }));
+  });
+  return w;
+}
+
+async function submit(msgs) {
+  msgs.replaceChildren();
+  const problems = collectProblems();
+  if (problems.length) {
+    UI.showMissing = true;
+    msgs.append(h("div", { class: "problems" },
+      h("b", {}, `${problems.length} thing${problems.length === 1 ? "" : "s"} still need${problems.length === 1 ? "s" : ""} an answer. ` +
+        "Answer them, switch Depth to Quick, or use “Let Claude draft it” on charts you want to skip."),
+      h("ul", {}, problems.map(x => h("li", {}, h("a", { onclick: () => go(x.id) }, x.text))))));
+    refreshStatus();
+    return;
+  }
+  const warnings = collectWarnings();
+  if (warnings.length && !UI.confirmWarnings) {
+    UI.confirmWarnings = true;
+    msgs.append(h("div", { class: "problems warn" }, h("b", {}, `${warnings.length} title note${warnings.length === 1 ? "" : "s"}. Fix them, or press Submit again to send as is.`),
+      h("ul", {}, warnings.map(x => h("li", {}, h("a", { onclick: () => go(x.id) }, x.text))))));
+    return;
+  }
+  const answers = buildAnswers();
+  const markdown = buildMarkdown(answers);
+  if (SERVED) {
+    try {
+      const r = await fetch("/api/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answers, markdown }) });
+      const j = await r.json();
+      try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+      finalScreen("Submitted.", "Claude has your briefs and is building the production charts. You can close this tab and go back to the chat.", j.answers);
+    } catch (e) {
+      msgs.append(h("div", { class: "problems" }, h("b", {}, "Could not reach the questionnaire server."),
+        "Your answers are saved in this browser. Ask Claude to reopen the questionnaire; it will pick up where you left off."));
+    }
+  } else {
+    answers.markdown = markdown;
+    window.__GL_ANSWERS__ = answers;
+    const blob = new Blob([JSON.stringify(answers, null, 2)], { type: "application/json" });
+    const name = (SPEC.title || "chart-briefs").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".answers.json";
+    const link = h("a", { href: URL.createObjectURL(blob), download: name });
+    document.body.append(link); link.click(); link.remove();
+    finalScreen("Answers downloaded.", `Tell Claude where ${name} is (usually your Downloads folder), or paste the summary into the chat.`, null, markdown);
+  }
+}
+
+function finalScreen(title, text, path, markdown) {
+  document.getElementById("pause").hidden = true;
+  document.getElementById("main").replaceChildren(h("div", { class: "final" }, h("h2", {}, title), h("p", {}, text),
+    path ? h("p", {}, h("code", {}, path)) : null,
+    markdown ? h("button", { type: "button", class: "btn", onclick: e => {
+      navigator.clipboard.writeText(markdown).then(() => { e.target.textContent = "Copied"; });
+    } }, "Copy summary") : null));
+}
+
+async function pauseNow() {
+  S.saved_at = new Date().toISOString();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ }
+  try {
+    await fetch("/api/pause", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S) });
+    finalScreen("Saved for later.", "Your draft is kept. When you are ready, ask Claude to reopen the questionnaire; it resumes where you stopped.");
+  } catch (e) {
+    document.getElementById("saved").textContent = "Saved in this browser only";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Output
+// ---------------------------------------------------------------------------
+function exportValue(v) {
+  if (Array.isArray(v)) return v.filter(x => x !== NONE);
+  return isEmpty(v) ? null : (typeof v === "string" ? v.trim() : v);
+}
+function buildAnswers() {
+  const main = S.order.filter(id => placementOf(id) === "main");
+  const appendix = S.order.filter(id => placementOf(id) === "appendix");
+  const deck = {};
+  for (const q of DECK_QS) deck[q.id] = exportValue(S.deck[q.id]);
+  const activeSec = Object.values(S.active).reduce((x, y) => x + y, 0);
+  return {
+    format: "gl-chart-briefs/1",
+    title: SPEC.title,
+    depth: S.depth,
+    submitted_at: new Date().toISOString(),
+    started_at: S.started_at,
+    active_minutes: Math.round(activeSec / 60),
+    deck,
+    storyline: { main, appendix, check: exportValue(S.storyline.check) },
+    graphs: GRAPHS.map(g => {
+      const a = S.graphs[g.id], p = placementOf(g.id);
+      const out = { id: g.id, label: g.label || null, image: g.image || null, script: g.script || null,
+        delegated: !!a.delegated,
+        placement: p, position: p === "main" ? main.indexOf(g.id) + 1 : p === "appendix" ? appendix.indexOf(g.id) + 1 : null,
+        merge_into: p === "merge" ? a.merge_into || null : null, merge_note: p === "merge" ? exportValue(a.merge_note) : null,
+        cut_reason: p === "cut" ? exportValue(a.cut_reason) : null };
+      const extra = {};
+      for (const q of graphQs(g)) {
+        const v = exportValue(val(g, q));
+        if (GRAPH_QUESTIONS.some(x => x.id === q.id)) out[q.id] = v; else extra[q.id] = v;
+      }
+      if (Array.isArray(a.focus) && a.focus.includes(NONE)) out.focus_none = true;
+      out.extra = extra;
+      out.claude_reading = g.claude_reading ? {
+        text: g.claude_reading,
+        revealed: !!(a.reveal && a.reveal.revealed),
+        takeaway_before_reveal: a.reveal ? a.reveal.before : null,
+        changed_after_reveal: a.reveal && a.reveal.before != null ? (a.reveal.before || "").trim() !== (a.takeaway || "").trim() : null,
+        same_reading: a.same_reading || null,
+        clarity_fix: exportValue(a.clarity_fix)
+      } : null;
+      out.warnings = a.delegated || ["cut", "merge"].includes(p) ? [] : lintTakeaway(a.takeaway, g);
+      out.active_seconds = S.active[g.id] || 0;
+      return out;
+    }),
+    _state: S
+  };
+}
+
+function buildMarkdown(ans) {
+  const L = [], byId = Object.fromEntries(ans.graphs.map(g => [g.id, g]));
+  const count = k => ans.graphs.filter(g => g.placement === k).length;
+  const deleg = ans.graphs.filter(g => g.delegated).length;
+  const fmt = v => Array.isArray(v) ? v.join(", ") : String(v);
+  const depth = (DEPTHS.find(d => d.value === ans.depth) || {}).label || ans.depth;
+  const title = g => g.delegated ? `(left to Claude${g.takeaway ? "; author's draft: " + g.takeaway : ""})` : (g.takeaway || "(no takeaway)");
+  L.push(`# Chart briefs: ${ans.title}`, "");
+  L.push(`Submitted ${ans.submitted_at.slice(0, 16).replace("T", " ")} UTC · ${depth} depth · ${ans.graphs.length} charts ` +
+    `(${count("main")} main, ${count("appendix")} appendix, ${count("merge")} merged, ${count("cut")} cut; ${deleg} left to Claude) · ${ans.active_minutes} active minutes`, "");
+  L.push("## The deliverable", "");
+  for (const q of DECK_QS) {
+    let v = ans.deck[q.id];
+    if (isEmpty(v)) continue;
+    if (q.type === "choice") { const o = q.options.find(o => (o.value || o) === v); v = o ? (o.label || o) : v; }
+    L.push(`- **${q.short || q.label}:** ${fmt(v)}`);
+  }
+  L.push("", "## Storyline: the titles alone, in order", "");
+  ans.storyline.main.forEach((id, i) => L.push(`${i + 1}. ${title(byId[id])}  \`${id}\``));
+  if (ans.storyline.appendix.length) {
+    L.push("", "Appendix:", "");
+    ans.storyline.appendix.forEach((id, i) => L.push(`- A${i + 1}. ${title(byId[id])}  \`${id}\``));
+  }
+  if (ans.storyline.check) L.push("", `**Storyline check:** ${ans.storyline.check}`);
+  L.push("", "## Charts", "");
+  const rank = { main: 0, appendix: 1, merge: 2, cut: 3 };
+  const ordered = [...ans.graphs].sort((a, b) => rank[a.placement] - rank[b.placement] || (a.position || 0) - (b.position || 0));
+  for (const g of ordered) {
+    const tag = g.placement === "main" ? `${g.position}. ` : g.placement === "appendix" ? `A${g.position}. ` : "";
+    L.push(`### ${tag}${g.id} (${PLACEMENT_LABEL[g.placement]}${g.delegated ? ", left to Claude" : ""})`, "");
+    if (g.image) L.push(`![${g.id}](${g.image})`, "");
+    if (g.placement === "cut") { L.push(`Cut.${g.cut_reason ? " " + g.cut_reason : ""}`, ""); continue; }
+    if (g.placement === "merge") { L.push(`Merge into \`${g.merge_into}\`.${g.merge_note ? " " + g.merge_note : ""}`, ""); continue; }
+    if (g.delegated) L.push("Left to Claude: the takeaway below (if any) is the author's unfinished draft.", "");
+    for (const q of graphQs(BY_ID[g.id])) {
+      let v = q.id in g ? g[q.id] : g.extra[q.id];
+      if (q.id === "focus" && g.focus_none) v = "nothing in particular";
+      if (isEmpty(v)) continue;
+      if (q.type === "choice") { const o = q.options.find(o => (o.value || o) === v); v = o ? (o.label || o) : v; }
+      if (q.id === "source" && /^source/i.test(String(v))) { L.push(`- ${fmt(v)}`); continue; }
+      L.push(`- **${q.short || q.label}:** ${fmt(v)}`);
+    }
+    const c = g.claude_reading;
+    if (c && c.revealed) {
+      L.push(`- **Claude's reading** (shown after the author drafted): ${c.text}`);
+      L.push(`  - Same reading? ${c.same_reading || "not answered"}` + (c.changed_after_reveal ? " · takeaway revised after comparing" : ""));
+      if (c.clarity_fix) L.push(`  - To make the author's reading obvious: ${c.clarity_fix}`);
+    } else if (c && !g.delegated) {
+      L.push("- Claude's reading: not opened");
+    }
+    if (g.warnings.length) L.push(`- Title notes: ${g.warnings.join(" ")}`);
+    L.push("");
+  }
+  return L.join("\n");
+}
+</script>
+</body>
+</html>
