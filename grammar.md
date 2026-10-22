@@ -55,8 +55,7 @@ WCAG AA contrast against paper.
 | `gridline`    | `#D8D4CC` | In-chart gridlines (see §3)                        |
 
 > **[revised — Nil, 2026-06-16]** `gridline` was `#ECE9E2` in the original
-> data-vis spec; Nil darkened it to `#D8D4CC` (commit `182ea68`). This value
-> is current — do not "correct" it back against `docs/nil/data-vis-rules.md`.
+> data-vis spec; Nil darkened it to `#D8D4CC` (commit `182ea68`).
 
 The split is deliberate: content pages are pure white so figures land
 on a neutral background and color reads true; the cover is warmer (`cover-bg`)
@@ -93,8 +92,6 @@ more, re-think the encoding or use the muted base in §3.
 
 > **[revised — Nil, 2026-06-16]** The main muted tone was `#999FA8` in the
 > original data-vis spec; Nil lightened it to `#AFB5BE` (commit `182ea68`).
-> This value is current — do not "correct" it back against
-> `docs/nil/data-vis-rules.md`.
 
 A cool grey that visually recedes behind the warm ink and the categorical
 hues. Used in the highlight pattern (§3.1).

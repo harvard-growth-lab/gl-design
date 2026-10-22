@@ -2,7 +2,7 @@
 
 A visual regression harness pointed at the inspiration source. It rebuilds every
 worked example in
-[`assets/design-library/GL_data_visualization_spec.pdf`](../../../assets/design-library/GL_data_visualization_spec.pdf)
+[`docs/nil/data-vis-spec.pdf`](../../../docs/nil/data-vis-spec.pdf)
 using nothing but `@growth-lab/gl-charts`, then puts the two side by side so the
 distance between "what the spec shows" and "what the library produces" is a
 picture instead of an opinion.

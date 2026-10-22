@@ -4,7 +4,7 @@
 > sample report). This captures the **explicit rules Nil wrote** — the prose
 > ("usage") notes, the per-element spec cards, the type scale, the palette, and
 > the decision rules — not values inferred from CSS alone. Companion to
-> [`data-vis-rules.md`](data-vis-rules.md), which covers charts.
+> [`data-vis-spec.md`](data-vis-spec.md), which covers charts.
 >
 > The HTML is a sample Growth Lab report (cover → colophon → content →
 > references) followed by a spec section that annotates each style. Page/section
@@ -230,7 +230,7 @@ acting as the page's sign-off. Standard running head + folio (page number only).
 3. **No trailing periods on headings.** Section headings, subsection headings,
    and TOC entries end without a period. *(Note: charts are the opposite — a
    chart **title** ends in a period because it reads as a finding. See
-   [`data-vis-rules.md`](data-vis-rules.md) §3.)*
+   [`data-vis-spec.md`](data-vis-spec.md) §3.)*
 4. **No all-caps body or headings.** Uppercase is reserved for eyebrows, running
    heads, and similar 9–11px chrome.
 5. **Color is for emphasis, not decoration.** Default ink layers: `--ink`

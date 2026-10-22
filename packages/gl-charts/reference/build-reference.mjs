@@ -1,7 +1,7 @@
 /**
  * Builds `spec-reference.html` — the visual target for the GL chart library.
  *
- * Every figure here is a hand-computed SVG that follows `docs/data-vis-spec-core.md`
+ * Every figure here is a hand-computed SVG that follows `docs/nil/data-vis-spec.md`
  * exactly. It exists so the rendered components can be diffed against a known-good
  * baseline, and so the axis geometry rules (which are fiddly) have one worked
  * implementation to copy.

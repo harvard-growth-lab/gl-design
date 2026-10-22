@@ -288,14 +288,14 @@ After `gl_setup()` the relevant defaults are:
 
 | Geom | Default |
 |------|---------|
-| `geom_line` / `geom_path` / `geom_step` | colour = `c_muted`, 2px — the muted backdrop of the pop-up pattern (Nil §11) |
+| `geom_line` / `geom_path` / `geom_step` | colour = `c_muted`, 2px — the muted backdrop of the pop-up pattern (Nil §14) |
 | `geom_point` | **shape 21**, fill = `c_muted`, colour (stroke) = `c_muted_dark` 1px, 0.8 alpha, size 3 (Nil §5: 5–7px radius) — every point has a fill + a darker stroke |
 | `geom_col` / `geom_bar` | fill = `c_muted`, **1px `paper` stroke** (gives the stacked-segment separation; invisible on a single bar) |
 | `geom_area` | fill = `c_muted`, no stroke (stacked areas stay gapless) |
 | `geom_smooth` | line `ink_4` (grammar §1: trendlines), ribbon `c_muted_light` |
 | `geom_ribbon` | fill = `c_muted_light`, alpha 0.5 |
-| `geom_boxplot` / `geom_violin` | **recede**: `c_muted_light` fill, `c_muted` outline — not a dark outline (Nil §11b) |
-| `geom_sf` | 0.5px `ink_3` borders between regions (Nil §10) |
+| `geom_boxplot` / `geom_violin` | **recede**: `c_muted_light` fill, `c_muted` outline — not a dark outline (Nil §11) |
+| `geom_sf` | 0.5px `ink_3` borders between regions (Nil §12) |
 | `geom_hline` / `geom_vline` | dashed `ink_3` (reference **threshold** — a zero baseline is `gl_zero_line()`, see rule 12) |
 | `geom_text` / `geom_label` | `ink_2`, sans family, size = `gl_text_size` (the 12px floor) |
 
@@ -402,7 +402,7 @@ When GDP per capita is on the x-axis, always use `scale_x_log10()`.
 ### 7. Prefer tones of one hue; three tones, three jobs
 
 **Whenever possible, limit the number of different colors and use different
-tones of the same hue instead** (spec §7). When two or three categories share
+tones of the same hue instead** (spec §8b–8c). When two or three categories share
 a parent — goods vs. services, low/medium/high, primary/intermediate/final —
 encode them with one hue's light/main(/dark) tones rather than reaching for
 unrelated colors. The shared hue keeps the chart reading as one total; the
@@ -489,7 +489,7 @@ and no source anywhere, which the checklist treats as incomplete.
 
 ### 10. Stacked bars: 1px gap between segments
 
-Spec §6 requires a **1px gap** separating each stacked-bar segment from the one
+Spec §8 requires a **1px gap** separating each stacked-bar segment from the one
 above — a clean boundary that also helps readers with low color discrimination.
 The `geom_col`/`geom_bar` default now carries a 1px `paper` stroke, so plain
 `geom_col()` already gives the gap; you don't add anything. Order categories
@@ -596,7 +596,7 @@ range of a value axis — sparse negatives count — that axis needs
   to vertical so the reader can estimate bar lengths:
   `theme(panel.grid.major.x = element_line(color = gl$gridline, linewidth = 0.35), panel.grid.major.y = element_blank())`.
 - **Prefer direct end labels over a legend** when the reader tracks 1–4 series
-  (Nil §3, §11). Filter each series to its last point, then:
+  (Nil §3, §14). Filter each series to its last point, then:
 
   ```r
   ends <- data |> group_by(series) |> filter(year == max(year)) |> ungroup()
@@ -606,7 +606,7 @@ range of a value axis — sparse negatives count — that axis needs
   gl_endlabel_room()                       # clip off + right margin + no legend
   ```
 - **Tabular figures — enabled.** The spec asks for
-  `font-variant-numeric: tabular-nums` on all numerals (Decision Rule 8). Fonts
+  `font-variant-numeric: tabular-nums` on all numerals (Decision Rule 11). Fonts
   are registered through `systemfonts` (not `showtext`), so every Inter family
   carries the `tnum` OpenType feature and all numerals — tick labels included —
   render at equal width. Charts must be rasterized through a systemfonts-aware
@@ -635,7 +635,7 @@ data |>
 
 ### 15. Choropleths and maps
 
-- Region borders: **0.5px `ink_3`** between polygons (Nil §10) — this is the
+- Region borders: **0.5px `ink_3`** between polygons (Nil §12) — this is the
   `geom_sf` default after `gl_setup()`, so plain `geom_sf()` is correct.
 - Fill: `scale_fill_gl_gradient("sequential_1")` for ordered values (darker =
   higher); a `diverging_*` palette **only** when the data has a real midpoint —
@@ -649,14 +649,14 @@ data |>
 There is no `theme_gl` helper for these; when improvising (e.g. `ggradar`,
 `treemapify`, or raw grid), apply Nil's values directly:
 
-**Radar (Nil §9):** series polygon fill `gl$c_1` at **`alpha = 0.25`** (the
+**Radar (Nil §10):** series polygon fill `gl$c_1` at **`alpha = 0.25`** (the
 one place fills drop below 0.8 — gridlines must read through), stroke `gl$c_1`
 full opacity 2px round join; vertex dots 3px `gl$c_1`, no stroke; grid rings
 1px `gl$gridline` with the **outermost ring `gl$ink_3`**; axis lines 1px
 `gl$ink_3`; axis labels Inter 12px / 500 / `ink_2` outside the ring; a second
 entity is `gl$c_muted` at the same opacities, drawn *under* the focus.
 
-**Treemap (Nil §8):** tiles in main tones at **full opacity**; labels Inter,
+**Treemap (Nil §9):** tiles in main tones at **full opacity**; labels Inter,
 white on dark tiles with a dark-text fallback on light tiles, value + share
 on a second line. For product-space / trade data use the sector palettes
 (`scale_fill_gl("hs_sectors")`), otherwise categorical order. The pop-up

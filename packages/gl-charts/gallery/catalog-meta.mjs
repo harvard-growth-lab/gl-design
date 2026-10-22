@@ -80,7 +80,7 @@ export const PLATES = [
     gaps: [
       'Divergence: the plate draws tiles at 0.8 opacity with dark strokes. ' +
         'grammar.md overrules that page — the PDF contradicts itself, see ' +
-        'docs/data-vis-spec-core.md §0 — so tiles render full opacity, no ' +
+        'docs/nil/data-vis-spec.md §0 — so tiles render full opacity, no ' +
         'stroke, separated by the 5px paper gutter of SPEC.md §3.4.1.',
       'Divergence: the plate is hand-laid, not squarified, so the arrangement ' +
         'will not match tile-for-tile at any plot width — only the gutter, the ' +

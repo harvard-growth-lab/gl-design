@@ -31,7 +31,7 @@
  *    contradicts its own marks page — which lists the treemap under "full
  *    opacity, no stroke" — and Decision Rule 3, which says single-layer marks
  *    stay at full opacity. `grammar.md` adjudicates in favour of the marks page.
- *    See `docs/data-vis-spec-core.md` §0 #1. Do not "fix" this back.
+ *    See `docs/nil/data-vis-spec.md` §0 #1. Do not "fix" this back.
  *
  * 2. **Tiles are separated by a GAP, not a stroke** — at every depth, including
  *    a flat single-level treemap. `SPEC.md` §3.4.1 rules it, and the ruling

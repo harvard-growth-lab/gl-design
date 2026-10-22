@@ -3,7 +3,7 @@
 # gl_lint.R — static lint for Growth Lab chart scripts.
 #
 # Catches the mechanically detectable violations of the GL data-vis grammar
-# (grammar.md §3; docs/nil/data-vis-rules.md) before a chart ever renders.
+# (grammar.md §3; docs/nil/data-vis-spec.md) before a chart ever renders.
 # Complements the judgment checks in skills/chart-audit/SKILL.md — a clean
 # lint is necessary, not sufficient.
 #
@@ -125,7 +125,7 @@ lint_file <- function(path) {
         if (grepl("geom_area\\s*\\(", ln) &&
             grepl("colou?r\\s*=\\s*(?!NA)", ln, perl = TRUE))
             flag(path, i, "area-stroke",
-                 "stacked areas sit edge-to-edge with no stroke (Nil §6) - drop the colour")
+                 "stacked areas sit edge-to-edge with no stroke (Nil §8) - drop the colour")
 
         # -- 8. Theme resets / mono fonts / raw devices ------------------------
         if (grepl("theme_(minimal|bw|classic|void|gr[ae]y|light|dark)\\s*\\(", ln))
