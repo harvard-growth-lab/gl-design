@@ -638,7 +638,15 @@ gl_fig <- list(
     major       = list(w = 4.278, h = 4.0),
     half        = list(w = 3.167, h = 3.0),
     half_tall   = list(w = 3.167, h = 5.0),
-    slide       = list(w = 10,    h = 5.625)
+    slide       = list(w = 10,    h = 5.625),
+    # Slide-composition sizes, shared with gl-matplotlib / gl-pptx: a full-slide figure
+    # contained in a half-width placeholder leaves most of the box empty, so a two-up
+    # slide wants slide_half. Report `half` is too small to read at projection distance.
+    slide_half  = list(w = 4.9,   h = 5.0),
+    slide_wide  = list(w = 11.5,  h = 4.4),
+    # slide_fill matches the deck's chart area (12.4 x 5.42in, aspect 2.29 — wider than
+    # 16:9), so a full-slide chart leaves no dead margin either side.
+    slide_fill  = list(w = 12.4,  h = 5.4)
 )
 
 #' Save a plot at a named recipe size
@@ -663,6 +671,113 @@ save_fig <- function(size_name, filename, plot = last_plot(), dpi = 300,
                requireNamespace("ragg", quietly = TRUE)) ragg::agg_png else NULL
     ggsave(file.path(dir, filename), plot = plot,
            width = sz$w, height = sz$h, dpi = dpi, device = dev)
+}
+
+# ---- Deck-ready export (figures.json manifest) -------------------------------
+#
+# `save_fig()` writes a PNG and nothing else, which is all a report needs — there the
+# document carries the figure label, title and source. A SLIDE deck has no document to
+# carry them: the deck builder (`gl-pptx`) has to fill the slide's own title and source
+# placeholders, and a PNG on disk cannot tell it what they say.
+#
+# `gl_export_fig()` fixes that by writing the PNG *and* recording its title, source and
+# language in a `figures.json` manifest beside it. `gl_pptx.find_fig()` reads that file, so
+# an R figure arrives in a deck exactly as complete as a Python one — same schema, same
+# folder layout, and the reader cannot tell which language produced it.
+#
+# Schema (documented in skills/gl-pptx/references/figures.md):
+#
+#   <figs>/<group>/<name>_<lang>.png
+#   <figs>/<group>/figures.json    { "<name>_<lang>": { name, file, lang,
+#                                                       title, source, caption } }
+
+#' Resolve the figures root: explicit arg -> option -> env -> nearest figs/ -> ./figs
+gl_figs_root <- function(root = NULL) {
+    if (!is.null(root)) return(root)
+    opt <- getOption("gl.figs.dir", NULL)
+    if (!is.null(opt)) return(opt)
+    env <- Sys.getenv("GL_FIGS_DIR", "")
+    if (nzchar(env)) return(env)
+    d <- normalizePath(getwd(), winslash = "/", mustWork = FALSE)
+    repeat {
+        cand <- file.path(d, "figs")
+        if (dir.exists(cand)) return(cand)
+        parent <- dirname(d)
+        if (identical(parent, d)) break
+        d <- parent
+    }
+    file.path(getwd(), "figs")
+}
+
+#' Save a plot deck-ready: PNG at a named size + an entry in figures.json
+#'
+#' @param group Bucket the figure belongs to (a script, a chapter, a topic). Becomes the
+#'   sub-directory under the figures root.
+#' @param name Figure name, WITHOUT the language suffix. Export the same `name` once per
+#'   language and the deck builder picks the one it needs.
+#' @param plot Plot object (defaults to last_plot())
+#' @param title The finding the chart shows, ending with a period — it becomes the slide
+#'   title, so write it as a sentence, not a label.
+#' @param source Provenance line, e.g. "Source: Growth Lab analysis of WDI data."
+#' @param caption Optional extra line.
+#' @param lang Language tag ("en", "es", ...). Defaults to $GL_FIG_LANG, else "en".
+#' @param size A named size. "slide" (10 x 5.625in) for a full chart slide; "slide_half"
+#'   for one side of a two-up slide; "slide_wide" for wide, short charts.
+#' @param dpi Resolution (default 300)
+#' @param root Figures root; see gl_figs_root().
+#' @return The PNG path, invisibly.
+#'
+#' Requires the `jsonlite` package (only this function does — the theme and `save_fig()`
+#' work without it).
+gl_export_fig <- function(group, name, plot = last_plot(), title = NULL, source = NULL,
+                          caption = NULL, lang = NULL, size = "slide", dpi = 300,
+                          root = NULL) {
+    if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        stop("gl_export_fig() needs the jsonlite package to write figures.json.\n",
+             "  install.packages(\"jsonlite\")\n",
+             "  (save_fig() still works without it, but the deck cannot then read the ",
+             "figure's title/source.)", call. = FALSE)
+    }
+    if (is.null(lang) || !nzchar(lang)) lang <- Sys.getenv("GL_FIG_LANG", "en")
+    if (is.null(gl_fig[[size]])) {
+        stop("Unknown size: ", size, ". Use: ", paste(names(gl_fig), collapse = ", "),
+             call. = FALSE)
+    }
+    dir <- file.path(gl_figs_root(root), group)
+    dir.create(dir, showWarnings = FALSE, recursive = TRUE)
+
+    stem <- paste0(name, "_", lang)
+    file <- paste0(stem, ".png")
+    save_fig(size, file, plot = plot, dpi = dpi, dir = dir)
+
+    manifest <- file.path(dir, "figures.json")
+    entries <- list()
+    if (file.exists(manifest)) {
+        entries <- tryCatch(
+            jsonlite::fromJSON(manifest, simplifyVector = FALSE),
+            error = function(e) list()
+        )
+        if (!is.list(entries)) entries <- list()
+    }
+    # NULL would vanish from the list, so absent fields are NA and written as JSON null
+    # (na = "null" below) — matching what the Python writer emits.
+    nn <- function(x) if (is.null(x)) NA_character_ else as.character(x)
+    entries[[stem]] <- list(name = name, file = file, lang = lang,
+                            title = nn(title), source = nn(source),
+                            caption = nn(caption))
+    # Normalise pre-existing entries too: fromJSON turns JSON null into NULL, which would
+    # silently drop those keys on the way back out.
+    entries <- lapply(entries, function(e) {
+        for (k in c("name", "file", "lang", "title", "source", "caption")) {
+            if (is.null(e[[k]])) e[[k]] <- NA_character_
+        }
+        e[c("name", "file", "lang", "title", "source", "caption")]
+    })
+    writeLines(
+        jsonlite::toJSON(entries, auto_unbox = TRUE, na = "null", pretty = 2),
+        manifest, useBytes = TRUE
+    )
+    invisible(file.path(dir, file))
 }
 
 # ---- Font registration (systemfonts) ----------------------------------------

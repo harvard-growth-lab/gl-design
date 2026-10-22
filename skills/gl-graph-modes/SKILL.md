@@ -1,10 +1,10 @@
 ---
 name: gl-graph-modes
-description: Generate Growth Lab charts in two modes — fast, colorful research graphs (default) or production/report-ready graphs compliant with the GL visual grammar (Nil's data-vis spec). Use when the user asks to create any chart, plot, or visualization.
-compatibility: Requires R >= 4.1, systemfonts >= 1.1.0, ggplot2 >= 3.3, and ragg (same floors as gl-ggplot, whose theme_gl.R this skill sources).
+description: Generate Growth Lab charts in two modes — fast, colorful research graphs (default) or production/report-ready graphs compliant with the GL visual grammar (Nil's data-vis spec). Production passes over many charts start with a chart-brief questionnaire where the author states what each chart says. Use when the user asks to create any chart, plot, or visualization.
+compatibility: Requires R >= 4.1, systemfonts >= 1.1.0, ggplot2 >= 3.3, and ragg (same floors as gl-ggplot, whose theme_gl.R this skill sources). The chart-brief questionnaire needs Python 3.8+ (standard library only); without it the brief falls back to the chat.
 metadata:
   author: jedaboin
-  version: "1.0"
+  version: "1.1"
 ---
 
 # GL Graph Modes
@@ -14,7 +14,8 @@ Inter, the Nil categorical palette with light/main/dark tones, warm ink ramp).
 This skill wraps the `gl-ggplot` design system with **two modes** that have
 different rules: exploration should be fast and colorful; deliverables should
 be spec-compliant and deliberate. **Write the R script; never run it** unless
-the user asks — the user executes scripts themselves.
+the user asks — the user executes scripts themselves. (The questionnaire
+helper below is the exception: Claude launches it.)
 
 ## Mode selection — do this first
 
@@ -23,21 +24,137 @@ the user asks — the user executes scripts themselves.
 - **Production mode** triggers when the invocation says `prod`, or the user's
   wording signals a deliverable: "final", "production", "report", "for the
   deck", "for the memo", "publication-ready", "to send", etc.
-- **On entering production mode, ask before writing any code** using the
-  AskUserQuestion tool. Cover (adapt to what's already known from context):
-  1. **Main message** — what single finding should the chart state? The answer
-     becomes the chart title (a full sentence ending in a period).
-  2. **Destination** — report document (report mode: no in-chart title/source,
-     `save_fig("full", ...)` etc.), slide deck or standalone PNG (slide mode:
-     title + subtitle + source render in-chart, `save_fig("slide", ...)`).
-  3. **Color strategy** — pop-up (mute everything, highlight 1–2 focus series —
-     and which entity is the focus), full categorical (≤6 unrelated
-     categories), or tones of one hue (categories sharing a parent).
-  4. **Source line** — the data attribution text (always required in
-     production).
+- **On entering production mode, get the brief before writing any code**
+  (see "The production brief" below). The author states what each chart says,
+  in their own words; Claude does not propose the message first.
 
-  Skip any question whose answer is unambiguous from the conversation; never
-  skip the main-message question.
+## The production brief
+
+The point is friction in the right place: the author, not Claude, decides
+what each chart says. Keep the rest cheap so nobody stops using the skill to
+avoid it. Every brief covers:
+
+1. **Main message**: the single finding the chart states. It becomes the
+   chart title (a full sentence ending in a period).
+2. **Destination**: report document (report mode: no in-chart title/source,
+   `save_fig("full", ...)` etc.), or slide deck / standalone PNG (slide mode:
+   title + subtitle + source render in-chart, `save_fig("slide", ...)`).
+3. **Color strategy**: pop-up (mute everything, highlight 1–2 focus series,
+   and which entity is the focus), full categorical (≤6 unrelated
+   categories), or tones of one hue (categories sharing a parent).
+4. **Source line**: the data attribution text (always required in
+   production).
+
+Skip anything unambiguous from the conversation, except the main message.
+**Never offer Claude-written messages as options to pick from**; that is
+the offloading this step exists to prevent.
+
+### 1–3 charts: ask in the chat
+
+Ask in plain chat, one line per chart: *"In one sentence, what should
+`<chart>` tell the reader?"* Destination and color strategy may go through
+AskUserQuestion (closed choices are fine there). If the author answers "you
+decide", draft the message yourself and label it as Claude's draft in the
+reply.
+
+### 4+ charts, or a whole deck/report pass: the chart-brief questionnaire
+
+A local form (`assets/questionnaire/`) shows each draft chart next to its
+questions, then a storyline page where the author reads the titles alone, in
+order. It replaces AskUserQuestion here because that tool stops at four
+multiple-choice questions.
+
+1. **Write the spec** at `briefs/<deliverable>.spec.json` in the project
+   (image paths are relative to the spec):
+
+   ```json
+   {
+     "title": "Pakistan FM meeting: external and fiscal position",
+     "depth": "standard",
+     "destination": "slide",
+     "source": "Source: IMF WEO; Growth Lab calculations.",
+     "graphs": [
+       { "id": "exports_per_capita",
+         "label": "Exports per capita by sector",
+         "image": "../plots/exports_per_capita.png",
+         "script": "R/exports_per_capita.R",
+         "what_it_plots": "Exports per person (constant 2023 USD), stacked by sector, 1995–2024.",
+         "claude_reading": "Exports per person peaked in 2011 and have lost a quarter since.",
+         "entities": ["Textiles", "Agriculture", "Total"] }
+     ]
+   }
+   ```
+
+   - `label` and `what_it_plots` must be **neutral**: axes, series, units,
+     period. No finding, no direction words ("rising", "peaks"). They are
+     shown up front; a finding there answers the question for the author.
+   - `claude_reading` is your honest one-sentence reading. The form hides it
+     until the author has written a takeaway and its evidence, then asks
+     whether the two readings agree.
+   - `entities` seeds the "what should the eye land on" chips.
+   - `depth`: `quick` (takeaway + placement), `standard` (default; adds the
+     evidence, everything else optional), or `deep` (all questions plus the
+     storyline check). Use `deep` only when the user asks for rigor or the
+     deliverable is final. The author can switch depth in the form.
+   - Optional: `destination`/`source` prefill; `reveal: "never" | "always"`;
+     `extra_questions` per chart; `extra_graph_questions` /
+     `extra_deck_questions` for the whole form.
+   - A chart with no draft yet can omit `image`; the author answers from
+     `what_it_plots`.
+
+2. **Launch it in the background** (Bash with `run_in_background: true`;
+   the user does not run this). Find Python with `python3 --version`, then
+   `py -3 --version`, then `python --version`; on Windows `python3` and
+   `python` may be Store stubs that print "Python was not found".
+
+   ```bash
+   python3 "<skill dir>/assets/questionnaire/gl_questionnaire.py" briefs/<deliverable>.spec.json --no-browser
+   ```
+
+   `<skill dir>` is this skill's folder (the base directory shown when the
+   skill loads): `${CLAUDE_PLUGIN_ROOT}/skills/gl-graph-modes` under the
+   plugin, `~/.claude/skills/gl-graph-modes` under the symlink install, or
+   `skills/gl-graph-modes` in a clone of the repo. Swap `python3` for
+   whichever command answered.
+
+   Read the task's output file for the `URL:` line. **In the Claude desktop
+   app, open that URL in the Browser pane** (`preview_start` with `url`),
+   so the form sits next to the chat. In a terminal session, drop
+   `--no-browser` and the system browser opens.
+
+3. **Tell the author in two lines**: the form is open; Depth sets how much
+   to answer; "Let Claude draft it" skips a chart (the record will show it);
+   "Save & finish later" keeps a draft. Then end the turn. Do not poll: the
+   process exits when they submit, and that wakes Claude.
+
+4. **On exit**, read the task output:
+   - code 0 → `ANSWERS_JSON:` names the answers file; the markdown record
+     sits next to it (`.answers.md`, keep it: it is the provenance of every
+     title).
+   - code 3 → the author paused. Acknowledge; relaunch the same command when
+     they are ready, and the draft restores.
+   - code 2 → timed out after 4 hours; the draft is kept the same way.
+
+5. **No Python, or the author declines the form**: don't push. Ask in chat
+   for one sentence per chart in a single numbered message. If they say
+   "just do it", draft the titles yourself and mark every one as Claude's
+   draft in the reply. Mention the form once, not again.
+
+### From answers to code
+
+| Answer | Use |
+|---|---|
+| `deck.destination` | `slide` / `report` mode and `save_fig()` size; `both` → slide first |
+| `takeaway` | The chart title, **verbatim**. Only fix typography (trailing period, a `\n` for wrapping). If `warnings` remain, keep the author's words and mention the note in the reply |
+| `evidence` | What to highlight or annotate: `highlight`, a direct label, a reference line, a shaded period |
+| `focus` / `focus_none` | Entities to overpaint in pop-up; `focus_none` → no single focus |
+| `color_strategy` | `popup` / `categorical` / `tones` / `ramp`; `claude` → derive from `focus` |
+| `skeptic` | Subtitle (slide) or a note for the figure block (report) |
+| `source` | `labs(caption = ...)` in slide mode; the figure block in report mode |
+| `placement` + `position` | `main` → produce in `storyline.main` order with an `NN_` filename prefix; `appendix` → `A1_`…; `merge` → fold into `merge_into`'s chart following `merge_note`; `cut` → don't produce, list in the reply |
+| `delegated: true` | Claude writes the takeaway. List these in the reply as "Claude's drafts: review" |
+| `claude_reading.same_reading` = partly/different | Apply `clarity_fix` (annotation, highlight, reordering). Without one, flag that readers may misread it |
+| `storyline.check` | If it names a gap, propose the missing chart in the reply. Do not invent it silently |
 
 ## Setup (both modes)
 
@@ -109,14 +226,15 @@ save_graph("exports_by_sector.png")
 
 ## PRODUCTION MODE (report / slide)
 
-Purpose: deliverables compliant with the GL visual grammar. After the
-AskUserQuestion round, apply the **full gl-ggplot rule set** —
+Purpose: deliverables compliant with the GL visual grammar. After the brief
+(chat or questionnaire), apply the **full gl-ggplot rule set** —
 `skills/gl-ggplot/SKILL.md` is the authority; its core rules, geom defaults,
 and checklist all apply unchanged. `gl_setup_graph(mode = "report"|"slide")`
 delegates straight to `gl_setup(mode)`, restoring the strict upstream
 defaults: muted-by-default geoms, 6-hue palette, report 9pt / slide 12pt base.
 
-The decisions from the question round map onto the grammar:
+The brief maps onto the grammar (the questionnaire's fields are in the table
+under "From answers to code"):
 
 - **Main message** → the chart title, a finding statement ending in a period
   (in-chart in slide mode; supplied by the document's figure block in report
@@ -167,4 +285,8 @@ production charts stay within c_1..c_6 and the external sector palettes.
 This skill deliberately duplicates nothing from `gl-ggplot`: `theme_gl.R`,
 fonts, and all upstream helpers are sourced from `skills/gl-ggplot/assets/`.
 Changes to the core grammar belong there; only the mode logic, the extended
-research palette, and `save_graph()` live in `assets/gl_graph.R`.
+research palette, and `save_graph()` live in `assets/gl_graph.R`. The
+questionnaire lives in `assets/questionnaire/`: `form.html` holds the
+questions, depth rules, lint and the markdown record; `gl_questionnaire.py`
+only serves the form and writes what it submits (`--static FORM.html` builds an
+offline copy with the images embedded).
