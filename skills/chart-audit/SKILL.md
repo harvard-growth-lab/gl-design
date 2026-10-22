@@ -114,7 +114,7 @@ Two passes — mechanical first, judgment second:
 |-----------|----------|---------|
 | Axis titles | Short, sentence case | Long prose axis titles |
 | `labs()` in report mode | Title/caption omitted (or marker strings) | Actual title/caption text that will be suppressed anyway |
-| Multi-series labeling | **Prefer direct line-end / series labels over a legend** (Nil §3, pop-up §11). Each series label uses the series' **dark tone** (`gl$c_N_dark`), Inter weight 600 | A legend used where 1–3 tracked series could be labeled directly at the line end; or series labels in the main tone instead of the dark tone |
+| Multi-series labeling | **Prefer direct line-end / series labels over a legend** (Nil §3, pop-up §14). Each series label uses the series' **dark tone** (`gl$c_N_dark`), Inter weight 600 | A legend used where 1–3 tracked series could be labeled directly at the line end; or series labels in the main tone instead of the dark tone |
 | Direct labels (if used) | `geom_text_repel()` / `geom_label_repel()`; text in the series dark tone | `geom_text()` with overlapping labels, or label color = main tone / `"black"` |
 
 ### 9. Visual weight and readability
@@ -127,9 +127,9 @@ This check requires reading the rendered PNG:
 | Highlight visibility | Focus series jumps out of the muted layer immediately | Focus and muted are similar weights / saturations |
 | Overplotting | Points/lines are distinguishable | Dense scatter with no alpha, or many overlapping lines |
 | Grid lines | Horizontal-only, `gridline` (`#D8D4CC`); no vertical or minor unless the chart is dense. **Horizontal-bar charts flip them**: vertical on, horizontal off | Heavy grid lines; both X and Y on a non-dense chart; horizontal gridlines running across horizontal bars (or none at all) |
-| Stacked areas | Edge-to-edge, no stroke (Nil §6) | `geom_area(color = "white")` gap strokes |
+| Stacked areas | Edge-to-edge, no stroke (Nil §8) | `geom_area(color = "white")` gap strokes |
 | Scatter point size | Default size 3 ≈ 5–7px radius (Nil §5) | Tiny dots (e.g. ggplot's old 1.5 default) or unexplained bubble sizes |
-| Map borders | `geom_sf` default: 0.5px `ink_3` between regions (Nil §10) | Heavy or colored polygon borders |
+| Map borders | `geom_sf` default: 0.5px `ink_3` between regions (Nil §12) | Heavy or colored polygon borders |
 
 ## Output format
 

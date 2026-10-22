@@ -269,7 +269,7 @@ const DEFAULTS: Record<GLMarkKind, (o: AnyOptions, c: PaintContext) => AnyOption
    * The spec PDF's treemap page asks for 0.8 opacity and a dark stroke; that
    * page contradicts both its own marks page and Decision Rule 3, and
    * `grammar.md` resolves it to full opacity with no stroke. See
-   * `docs/data-vis-spec-core.md` §0.
+   * `docs/nil/data-vis-spec.md` §0.
    */
   tile: (o, c) => ({
     fill: paint(o.fill, c.hasColor, c.tone[c.step]),

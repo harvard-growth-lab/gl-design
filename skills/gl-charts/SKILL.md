@@ -36,7 +36,7 @@ of thing live there, and the difference decides how you call them:
 R/ggplot charts destined for reports, PDFs, and slides. Same grammar, different
 medium — don't mix runtimes in one deliverable.
 
-Rules and values: [`docs/data-vis-spec-core.md`](../../docs/data-vis-spec-core.md).
+Rules and values: [`docs/nil/data-vis-spec.md`](../../docs/nil/data-vis-spec.md).
 Source of truth for every token: [`grammar.md`](../../grammar.md), encoded
 machine-readably in [`packages/gl-charts/tokens.json`](../../packages/gl-charts/tokens.json).
 

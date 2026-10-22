@@ -583,12 +583,6 @@ The one that will bite is `skills/chart-audit/scripts/gl_lint.R`, whose
 `grammar.md` silently makes the linter flag correct charts. It should read
 `tokens.json` instead of hard-coding the list.
 
-**Two stray hexes in the spec digest.** `docs/data-vis-spec-core.md:25-26`
-mentions `#ECE9E2` and `#999FA8` in a table comparing our values against
-`docs/nil/` — upstream's older values, quoted deliberately. Harmless, but the
-checker cannot tell a quotation from a value, so they keep appearing in the
-report until the table marks them.
-
 **Two dark-mode hexes.** `skills/gl-ggplot/SKILL.md:139-140` carries `#6B6560`
 and `#302C28` for a dark-mode axis and gridline. They are the only dark-mode
 values in the repo, the `AX`/`GR` constants they feed are referenced nowhere, and

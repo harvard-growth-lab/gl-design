@@ -1,7 +1,7 @@
 /**
  * plates.mjs — cut the reference plates out of the spec PDF.
  *
- * The inspiration source is `assets/design-library/GL_data_visualization_spec.pdf`.
+ * The inspiration source is `docs/nil/data-vis-spec.pdf`.
  * Each worked example in it is a *figure block*: the accent "FIGURE N" label, a
  * serif title, a subtitle, the plot, and an italic source line. That block is what
  * the library has to reproduce, so that block is what we crop.

@@ -3,7 +3,7 @@
 # sample_viz_test.R
 #
 # Self-contained style test: synthetic data, no external sources.
-# Exercises every major chart type from docs/nil/data-vis-rules.md.
+# Exercises every major chart type from docs/nil/data-vis-spec.md.
 #
 # Run from gl-design root:
 #   Rscript playground/sample_viz_test.R

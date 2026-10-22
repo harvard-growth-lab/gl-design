@@ -340,11 +340,11 @@ theme_gl <- function(base_size = NULL, mode = "report") {
 #
 # For this to work, an untyped geom must default to *muted*, not c-1. The
 # author opts *in* to color explicitly — that's the "color only when
-# necessary" principle (Nil §11 / decision rule 7). Setting the default to
+# necessary" principle (Nil §14 / decision rule 7). Setting the default to
 # c-1 would force authors to manually mute every supporting layer.
 #
 # So:
-#   geom_line / path / step                      → c_muted line, 2px — Nil §11:
+#   geom_line / path / step                      → c_muted line, 2px — Nil §14:
 #                                                  supporting data is c-muted.
 #                                                  A single-series chart opts in:
 #                                                  geom_line(color = highlight)
@@ -357,8 +357,8 @@ theme_gl <- function(base_size = NULL, mode = "report") {
 #                                                  (grammar §1: trendlines = ink-4)
 #   geom_boxplot / violin                        → recede: c_muted_light fill,
 #                                                  c_muted outline — NOT a dark
-#                                                  outline (Nil §11b)
-#   geom_sf                                      → 0.5px ink_3 borders (Nil §10)
+#                                                  outline (Nil §11)
+#   geom_sf                                      → 0.5px ink_3 borders (Nil §12)
 #   geom_hline / vline                           → dashed ink_3 (reference
 #                                                  threshold). A ZERO BASELINE is
 #                                                  different — use gl_zero_line()
@@ -367,7 +367,7 @@ theme_gl <- function(base_size = NULL, mode = "report") {
 # Called from gl_setup() — these mutate global ggplot2 state.
 
 gl_set_geom_defaults <- function() {
-    # Untyped lines are the muted backdrop of the pop-up pattern (Nil §11:
+    # Untyped lines are the muted backdrop of the pop-up pattern (Nil §14:
     # "paint supporting data in c-muted"). 2px standard weight (§5). A
     # single-series chart is a focus series — opt in with
     # geom_line(color = highlight). Using c_muted (not c_muted_dark) also keeps
@@ -389,7 +389,7 @@ gl_set_geom_defaults <- function() {
                                          size = 3, alpha = 0.8))
 
     # Bars: muted fill. A 1px paper-colored stroke gives the spec's separation
-    # between stacked segments (§6); on a single bar it is invisible against
+    # between stacked segments (§8); on a single bar it is invisible against
     # the white panel. Areas stay edge-to-edge (no stroke) — the spec keeps
     # stacked areas gapless.
     update_geom_defaults("col",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35))
@@ -404,7 +404,7 @@ gl_set_geom_defaults <- function() {
 
     # Boxplots and violins most often show the BACKGROUND distribution (peers)
     # behind a highlighted country line — so they recede: soft grey fill +
-    # medium-grey outline. Nil §11b is explicit: the muted main tone, NOT the
+    # medium-grey outline. Nil §11 is explicit: the muted main tone, NOT the
     # darker tone. The highlight line drawn on top carries the eye.
     update_geom_defaults("boxplot", list(fill = gl$c_muted_light, colour = gl$c_muted))
     update_geom_defaults("violin",  list(fill = gl$c_muted_light, colour = gl$c_muted))
@@ -412,7 +412,7 @@ gl_set_geom_defaults <- function() {
     update_geom_defaults("density", list(fill = gl$c_muted_light, colour = gl$c_muted,
                                          alpha = 0.8))
 
-    # Choropleth / map polygons: 0.5px ink-3 borders between regions (Nil §10).
+    # Choropleth / map polygons: 0.5px ink-3 borders between regions (Nil §12).
     tryCatch(
         update_geom_defaults("sf", list(colour = gl$ink_3, linewidth = 0.18)),
         error = function(e) NULL)
@@ -517,7 +517,7 @@ gl_dark <- function(x) {
 
 #' Direct series labels at line ends, in the series' dark tone
 #'
-#' The GL preference is direct line-end labels over a legend (Nil §3, §11).
+#' The GL preference is direct line-end labels over a legend (Nil §3, §14).
 #' This wraps ggrepel::geom_text_repel with the house conventions: Inter
 #' semibold at the 12px floor, dark tone, placed right of the final point.
 #'

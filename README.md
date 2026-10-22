@@ -165,9 +165,9 @@ machine-readable encoding of `grammar.md`'s tables, and the web/SVG token files 
 from it — see [Generated vs. hand-carried](#generated-vs-hand-carried) below.
 
 ```
-docs/nil/       UPSTREAM INSPIRATION — Nil's original deliverables.
-                Read-only. We distill from it; we never edit it, and it is not
-                authoritative once distilled.
+docs/nil/       UPSTREAM INSPIRATION — Nil's original deliverables (PDF, HTML) plus
+                our markdown distillations of them. The originals are read-only;
+                neither they nor the distillations outrank grammar.md.
   ↓ distilled into
 grammar.md      SOURCE OF TRUTH — canonical, medium-agnostic values: color ramps +
                 palettes, type stack, weights, type scale, in-chart conventions.
@@ -198,8 +198,10 @@ When you change a token in `grammar.md`, grep these and update every copy that c
 | `skills/gl-pptx/scripts/gl_pptx.py` | Python constants: the token dict, the slide-recipe type scale and padding (px→pt, exact ×0.75). **Deliberate** type-stack and `opsz` compromises live here, documented in-file. `check_token_drift()` self-checks every hex against `grammar.md` |
 | `skills/gl-matplotlib/scripts/gl_matplotlib.py` | Python: the token dict (`gl`, mirroring `theme_gl.R`'s names), palettes, line weights (px→pt), axis conventions, ramps, `save_fig` sizes. Self-checks with `check_token_drift()` |
 
-`docs/nil/` and `playground/` are **out of scope** for drift checks: the former is upstream,
-the latter is derived output.
+Nil's original deliverables in `docs/nil/` (the PDF and HTML files) and `playground/` are
+**out of scope** for drift checks: the former are upstream, the latter is derived output.
+The markdown distillations beside them (`data-vis-spec.md`, `typography-rules.md`) are in
+scope; `npm run tokens:downstream` checks `data-vis-spec.md`.
 
 `gl-pptx` ships a drift check you can run instead of grepping — it fails loudly if any hex
 it carries has drifted from `grammar.md`:
@@ -291,8 +293,11 @@ packages/
 
 docs/
   followups.md        # Open questions / Word-fidelity limits (cited by skills)
-  data-vis-spec-core.md  # Condensed core of the data-vis spec PDF (downstream of grammar.md)
   nil/                # Upstream inspiration — Nil's original spec deliverables (read-only)
+    data-vis-spec.pdf   # Nil's data-vis spec (rev. 2026-06-23)
+    data-vis-spec.md    # Condensed, implementable core of the PDF (downstream of grammar.md)
+    typography-spec.html  # Nil's typography spec & sample report
+    typography-rules.md   # Markdown transcription of the typography spec
 ```
 
 ## After any change: re-render the playground

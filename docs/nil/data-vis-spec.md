@@ -1,11 +1,11 @@
 # GL Data Visualization Spec — core content
 
-Condensed from [`assets/design-library/GL_data_visualization_spec.pdf`](../assets/design-library/GL_data_visualization_spec.pdf)
+Condensed from [`docs/nil/data-vis-spec.pdf`](data-vis-spec.pdf)
 (26 pp, *Growth Lab Design Spec Series*, rev. 2026-06-23). This is the dense,
 implementable form of that document — every rule and every value, none of the
 worked-example prose.
 
-> **Authority.** This file is **downstream of [`grammar.md`](../grammar.md)**, not a
+> **Authority.** This file is **downstream of [`grammar.md`](../../grammar.md)**, not a
 > second source of truth. It exists so an implementation (the R theme, the web chart
 > library, an audit checklist) can read the chart rules in one place without
 > re-reading a 26-page PDF. Where this file and `grammar.md` disagree, `grammar.md`
@@ -16,14 +16,12 @@ worked-example prose.
 
 ## 0. Reconciliation with `grammar.md`
 
-The PDF and `grammar.md` agree on every hex, size, and weight, with three exceptions.
-All three are already adjudicated — do not "fix" them back toward the PDF.
+The PDF and `grammar.md` agree on every hex, size, and weight, with one exception,
+which is already adjudicated — do not "fix" it back toward the PDF.
 
 | # | Topic | PDF says | `grammar.md` says | Resolution |
 |---|---|---|---|---|
 | 1 | Treemap tile opacity / stroke | §9 (p. 17): "category fill at 0.8 opacity and the matching darker stroke at full opacity" | §3.4: treemap = main tone, **full opacity, no stroke** | **`grammar.md` wins.** The PDF contradicts *itself* — its own §5 Marks (p. 10) lists treemap under "full opacity, no stroke", and its own Decision Rule 3 (p. 26) says "Single-layer marks (bars, treemap tiles, choropleth polygons) stay at full opacity." §9 is the outlier. Tiles are separated by a **paper gutter**, never by a stroke — see §3.4.1 and §9 below. |
-| 2 | Gridline hex | `#D8D4CC` | `#D8D4CC` | Agree. Noted only because `docs/nil/data-vis-rules.md` still carries the retired `#ECE9E2` — that upstream file is **not** authoritative. |
-| 3 | Muted main tone | `#AFB5BE` | `#AFB5BE` | Agree. Same note: `docs/nil/` still carries the retired `#999FA8`. |
 
 ### Open question — does the subtitle take a terminal period?
 
@@ -54,7 +52,7 @@ The PDF's own plate separates them and is legible.
 
 The rule may need a pop-up exception — separators whenever adjacent tiles share a fill.
 Surfaced by the fidelity run in
-[`packages/gl-charts/gallery/reports/`](../packages/gl-charts/gallery/reports/).
+[`packages/gl-charts/gallery/reports/`](../../packages/gl-charts/gallery/reports/).
 
 ### Open question — `paper` text on a `c-muted` tile fails WCAG AA
 

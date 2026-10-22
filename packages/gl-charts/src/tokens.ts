@@ -18,7 +18,7 @@
  * `tokens.json`, then re-emit and update every other downstream encoding
  * listed in README.md ("Where each value lives downstream").
  *
- * Chart-specific rules are condensed in `docs/data-vis-spec-core.md`.
+ * Chart-specific rules are condensed in `docs/nil/data-vis-spec.md`.
  * ─────────────────────────────────────────────────────────────────────────────
  *
  * Units: the spec is written in CSS px, and this is the web medium, so every

@@ -3,7 +3,7 @@
 The Growth Lab data-visualization spec, as a thin layer over
 [TanStack Charts v0](https://tanstack.com/charts/v0).
 
-Rules and values: [`docs/data-vis-spec-core.md`](../../docs/data-vis-spec-core.md).
+Rules and values: [`docs/nil/data-vis-spec.md`](../../docs/nil/data-vis-spec.md).
 Source of truth for every token: [`grammar.md`](../../grammar.md).
 
 ### Reading the `§` citations
@@ -287,7 +287,7 @@ npm run gallery   # crop the PDF, render in Chrome, audit, compose pairs (a minu
 - **`gallery/`** is the picture, and it has two tracks.
 
   **Plates** (`catalog-meta.mjs`, 13) rebuild every worked example in
-  `assets/design-library/GL_data_visualization_spec.pdf` using nothing but this
+  `docs/nil/data-vis-spec.pdf` using nothing but this
   package, and sit beside a crop of the PDF page they mirror. That diff asks:
   *did we reproduce the spec?*
 
