@@ -1,0 +1,79 @@
+/**
+ * GL chart theme — the package's public stylesheet.
+ *
+ *   import '@growth-lab/gl-charts/theme.css';
+ *
+ * THIS IMPORT IS NOT OPTIONAL.
+ * ────────────────────────────
+ * TanStack Charts bakes visual defaults into SVG presentation attributes with no
+ * public API to change them: gridlines at stroke-opacity 0.11, axis lines and
+ * ticks at 0.28, tick labels at 10–11px and fill-opacity 0.68, axis titles at
+ * 11px/600, areas at fill-opacity 0.2, colour-legend labels at 10px. Recolouring
+ * through the theme object cannot reach any of it — at 0.11 alpha even pure black
+ * composites to rgb(227,227,227) on white, which is already lighter than the
+ * spec's own gridline. A CSS declaration outranks a presentation attribute, so
+ * this stylesheet is the only thing that makes a TanStack chart spec-compliant.
+ * Without it, charts render with washed-out chrome and sub-12px text.
+ *
+ * IT IS ONLY HALF THE THEME.
+ * ──────────────────────────
+ * This sheet sets `--font-sans` / `--font-serif` to stacks headed by `Inter` and
+ * `Source Serif 4`; it does not LOAD either face. If the host does not already
+ * serve them under those exact family names, add:
+ *
+ *   import '@growth-lab/gl-charts/fonts.css';
+ *
+ * Skipping it fails silently and expensively. Inter and San Francisco are
+ * near-identical by design, so a page that fell through to the system sans looks
+ * plausible — and TanStack sizes axis gutters from measured text, so the layout
+ * is wrong too, not just the type. Installing the fonts on the machine is NOT a
+ * substitute: `scripts/install-fonts.sh` registers the variable files, which the
+ * OS names `Inter Variable` and `Source Serif 4 Variable` — names no stack here
+ * asks for. `fonts.css` is kept separate only so a host that already serves the
+ * faces need not ship 1.4 MB twice.
+ *
+ * This file itself is nothing but `@import`s. Each sheet has one owner and one
+ * reason to exist, so every rule has exactly one home:
+ *
+ *   tokens.css   GENERATED from `tokens.json` by `scripts/emit-tokens.mjs`.
+ *                Custom properties only — the single source of every value.
+ *                Never hand-edit it, and never write a literal hex, size, width
+ *                or opacity in any of the sheets below: use `var(--…)`.
+ *   chrome.css   Our own markup — the figure block and the legend, emitted by
+ *                `src/figure.tsx`. Permanent; TanStack never sees it.
+ *   patch.css    Cartesian TanStack corrections. Every rule is a workaround and
+ *                is expected to be DELETED when the library grows the API.
+ *   shapes.css   The same, for treemap / colour legend / radar (the shapes that
+ *                ship from `@growth-lab/gl-charts/shapes`).
+ *
+ * `tests/constraints.test.ts` is the tripwire for the last two: each test asserts
+ * that a TanStack limitation still exists, so a release that fixes one turns the
+ * test red and its message names the rule to remove.
+ *
+ * Not imported here, deliberately: `reference/reference.css`. It holds the
+ * `.gl-*` primitive vocabulary (`.gl-mark--line`, `.gl-axis__tick-label`,
+ * `.gl-gridline`, …), which nothing the shipped library renders can ever carry,
+ * because TanStack's marks take no `className`. Only the hand-written renderer
+ * in `reference/build-reference.mjs` emits those classes, and only its generated
+ * `spec-reference.html` links that sheet.
+ *
+ * The custom-property names are the ones the spec PDF itself uses (--c-1,
+ * --c-1-dark, --ink-2, --gridline, --axis, --accent), so spec text maps to code
+ * without translation. They are scoped to `.gl-figure` rather than `:root` so
+ * an unprefixed name like `--accent` cannot collide with a host application's
+ * own variables. Everything inside a figure inherits them.
+ *
+ * ORDER MATTERS. Tokens first — nothing resolves without them. Then chrome,
+ * then the patches, so that where a patch and the container typography touch the
+ * same element the patch wins. Shapes last.
+ *
+ * Bundlers inline CSS `@import` at build time — esbuild does, which is how
+ * `gallery/entry.tsx` consumes this file — so a consumer still ships one
+ * stylesheet. Browsers follow the `@import`s at load time, which is how
+ * `reference/spec-reference.html` gets them from a plain `<link>`.
+ */
+
+@import './tokens.css';
+@import './chrome.css';
+@import './patch.css';
+@import './shapes.css';

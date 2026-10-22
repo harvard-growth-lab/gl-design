@@ -1,0 +1,169 @@
+/**
+ * The hand-renderer's `.gl-*` primitive vocabulary.
+ *
+ * WHY THIS IS NOT IN THE SHIPPED STYLESHEET
+ * ─────────────────────────────────────────
+ * These class names describe the spec's in-chart primitives — a mark, an axis
+ * line, a tick label, a gridline, a zero baseline, a direct series label. They
+ * are the vocabulary `grammar.md` uses, and they are the right names.
+ *
+ * They are also unreachable from a TanStack chart. TanStack's marks take no
+ * `className` (`LineYOptions`, `DotOptions`, `RectOptions`, `AreaYOptions`,
+ * `TextOptions` have no such field — only `id`, and only the polar guides expose
+ * `className` / `labelClassName`), so nothing the shipped library renders ever
+ * carries one of these classes. Shipping them in `src/theme.css` meant every
+ * consumer downloaded ~130 lines of selectors that could not match anything, and
+ * — worse — made it look as though the shipped charts were styled by them.
+ *
+ * The one thing that does emit them is `reference/build-reference.mjs`: a
+ * hand-written SVG renderer whose only job is to draw the spec's own plates from
+ * `tokens.ts` so a browser diff can catch drift. `grep -o 'class="[^"]*"'` over
+ * that file finds exactly `gl-figure*`, `sheet` and `gl-gridline` — the figure
+ * chrome (which stays in the shipped sheet, since `src/figure.tsx` emits it too)
+ * plus one primitive. The rest of this file matches nothing even here.
+ *
+ * It is kept anyway, for two reasons:
+ *   1. It is the executable statement of what each primitive's paint IS. When a
+ *      downstream encoding (the R theme, the docx template) needs "what does a
+ *      muted line look like", this file answers in CSS instead of prose.
+ *   2. `build-reference.mjs` writes literal hex presentation attributes on every
+ *      element it draws, from `tokens.ts`, so the CSS here is belt-and-braces
+ *      there. If a future plate forgets an attribute, the class still paints it.
+ *
+ * Do not add a rule here for anything the shipped library emits — that belongs
+ * in `src/chrome.css` (our own markup) or `src/patch.css` / `src/shapes.css` (a
+ * TanStack presentation-attribute correction).
+ *
+ * Custom properties come from `src/tokens.css`, which the generated
+ * `spec-reference.html` pulls in by linking `../src/theme.css` alongside this
+ * file. They are scoped to `.gl-figure`, and every plate is wrapped in one.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   In-chart primitives
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Axis line and ticks: 1px --axis, ticks 4px and outward. */
+.gl-axis__line,
+.gl-axis__tick {
+  stroke: var(--axis);
+  stroke-width: var(--axis-width);
+  shape-rendering: crispEdges;
+}
+
+/* Gridlines: only where the reader must estimate a value off the axis. */
+.gl-gridline {
+  stroke: var(--gridline);
+  stroke-width: var(--gridline-width);
+  shape-rendering: crispEdges;
+}
+
+/* Zero baseline strokes at AXIS weight, never gridline weight. */
+.gl-baseline--zero {
+  stroke: var(--axis);
+  stroke-width: var(--axis-width);
+  shape-rendering: crispEdges;
+}
+
+.gl-axis__tick-label {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 400;
+  fill: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Y ticks right-align (flush to the axis) so variable-width labels keep a
+   constant gap; X ticks top-align under the axis. */
+.gl-axis--y .gl-axis__tick-label { text-anchor: end; }
+.gl-axis--x .gl-axis__tick-label { text-anchor: middle; dominant-baseline: hanging; }
+
+.gl-axis__label {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 500;
+  fill: var(--ink-2);
+}
+
+/* Direct labels and legend entries. Color is set per series to that series'
+   DARK tone — never inherited, never the main tone (Decision Rule 2). */
+.gl-series-label {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 600;
+}
+
+/* Text drawn over data carries a thin paper halo so it stays legible. The halo
+   never substitutes for the dark-tone rule — the glyphs stay in the dark tone.
+
+   The TanStack-reachable form of this halo is `.gl-chart--label-halo` in
+   `src/patch.css`, which opts a whole chart in because `text()` marks take no
+   class. */
+.gl-label--over-data {
+  paint-order: stroke fill;
+  stroke: var(--paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.gl-annotation {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 400;
+  fill: var(--ink-2);
+}
+
+/* ── Marks ──────────────────────────────────────────────────────────────── */
+
+/* Line: main tone, full opacity, round joins, solid. Dashed is reserved for
+   projections. */
+.gl-mark--line {
+  fill: none;
+  stroke-width: var(--line-width);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.gl-mark--line.is-focus { stroke-width: var(--line-width-focus); }
+
+/* Scatter circle — the only mark with reduced fill opacity. The same 0.8 on
+   fill and stroke lets overlapping points darken together into a density cue. */
+.gl-mark--point {
+  fill-opacity: var(--opacity-overlap);
+  stroke-opacity: var(--opacity-overlap);
+  stroke-width: var(--point-stroke-width);
+}
+
+/* Bars, areas, treemap tiles — main tone, full opacity, no stroke. */
+.gl-mark--bar,
+.gl-mark--area,
+.gl-mark--tile {
+  stroke: none;
+  fill-opacity: 1;
+}
+
+/* Choropleth polygon — full opacity, thin ink-3 border to separate regions. */
+.gl-mark--region {
+  stroke: var(--ink-3);
+  stroke-width: var(--map-stroke-width);
+  fill-opacity: 1;
+}
+
+/* Radar polygon — lower fill so gridlines and axis labels read through. */
+.gl-mark--radar {
+  fill-opacity: var(--opacity-radar-fill);
+  stroke-width: var(--radar-stroke-width, 2px);
+  stroke-linejoin: round;
+}
+
+/* Two-level treemaps are the exception to no-stroke: paper separators keep the
+   parent/child hierarchy legible. */
+.gl-mark--tile.is-nested { stroke: var(--paper); stroke-width: 1px; }
+.gl-treemap__parent      { stroke: var(--paper); stroke-width: 3px; fill: none; }
+
+/* ── Muted layer (the pop-up effect) ────────────────────────────────────── */
+
+.gl-mark.is-muted        { fill: var(--c-muted); stroke: var(--c-muted); }
+.gl-mark--line.is-muted  { fill: none; stroke: var(--c-muted); }
+/* A muted series' label still takes the dark tone — c-muted fails AA on paper. */
+.gl-series-label.is-muted { fill: var(--c-muted-dark); }

@@ -1,0 +1,135 @@
+/**
+ * GENERATED FILE — do not edit.
+ *
+ *   source:    packages/gl-charts/tokens.json
+ *   generator: packages/gl-charts/scripts/emit-tokens.mjs
+ *   verify:    node scripts/check-tokens.mjs   (fails if this file was hand-edited)
+ *
+ * Custom properties only. Figure chrome, TanStack patches and the reference
+ * vocabulary live in the hand-written sheets that @import this one.
+ *
+ * GL chart custom properties — the token layer of the theme.
+ *
+ * DOWNSTREAM COPY of `grammar.md`, via `tokens.json`. This file and
+ * `src/tokens.ts` are emitted from the same source, so they cannot disagree.
+ *
+ * The custom-property names are the ones the spec PDF itself uses (--c-1,
+ * --c-1-dark, --ink-2, --gridline, --axis, --accent), so spec text maps to code
+ * without translation. They are scoped to `.gl-figure` rather than `:root` so
+ * an unprefixed name like `--accent` cannot collide with a host application's
+ * own variables. Everything inside a figure inherits them.
+ */
+
+.gl-figure {
+  /* ── Ink — four-layer warm ramp ─────────────────────────────────────── */
+  --ink: #1a1714;
+  --ink-2: #2c2823;
+  --ink-3: #4f4a42;
+  --ink-4: #9a9389;
+
+  /* The spec PDF's in-chart aliases. Same values, spec-local names. */
+  --chart-title: var(--ink);
+  --chart-axis-label: var(--ink-2);
+  --chart-subtitle: var(--ink-3);
+  --chart-gridline: var(--gridline);
+  --chart-accent: var(--accent);
+
+  /* ── Accent (--accent === --c-1-dark, by design) ────────────────────── */
+  --accent: #1a5a8e;
+  --accent-deep: #003e6b;
+  --accent-soft: #3a85b8;
+  --accent-tint: #e1f0fa;
+
+  /* ── Paper & chrome ─────────────────────────────────────────────────── */
+  --paper: #ffffff;
+  --paper-warm: #f4f1ea;
+  --rule: #dddddd;
+  --gridline: #d8d4cc;
+  --axis: var(--ink-2);
+
+  /* ── Categorical — six hues, three tones each ───────────────────────── */
+  /* main = fills + lines · dark = strokes on overlap + ALL tied text
+     · light = backgrounds, faded states, sequential tail */
+  --c-1-light: #b5d5ea;  --c-1: #2f87c8;  --c-1-dark: #1a5a8e;
+  --c-2-light: #e89c9c;  --c-2: #cc4948;  --c-2-dark: #8a2c2b;
+  --c-3-light: #92d6bf;  --c-3: #2aa584;  --c-3-dark: #1a6b53;
+  --c-4-light: #b5a0cc;  --c-4: #7554a3;  --c-4-dark: #4a3470;
+  --c-5-light: #f4bc8a;  --c-5: #ea822d;  --c-5-dark: #a8580f;
+  --c-6-light: #e6e2a8;  --c-6: #cdc86b;  --c-6-dark: #8a8638;
+
+  /* De-emphasis — the "everyone else" layer of the pop-up effect. */
+  --c-muted-light: #cdd2d9;
+  --c-muted: #afb5be;
+  --c-muted-dark: #5f6773;
+
+  /* ── TanStack Charts bridge ─────────────────────────────────────────── */
+  /* `defaultChartTheme.palette` is six `var(--ts-chart-N, <hex>)` strings, so
+     redefining these six names re-skins any TanStack chart with no rebuild of
+     the definition. Mapping them to the GL main tones means even a chart built
+     with a bare `defineChart()` — no GL preset — lands on the GL palette.
+     `glTheme` (src/chart.ts) sets the same values on the definition; belt and
+     braces, because Canvas-rendered charts cannot see CSS variables. */
+  --ts-chart-1: var(--c-1);
+  --ts-chart-2: var(--c-2);
+  --ts-chart-3: var(--c-3);
+  --ts-chart-4: var(--c-4);
+  --ts-chart-5: var(--c-5);
+  --ts-chart-6: var(--c-6);
+
+  /* Label halo and focus fill default to the `Canvas` system color; on GL
+     paper they must be the paper white. */
+  --ts-chart-crosshair-label-halo: var(--paper);
+  --ts-chart-crosshair-marker-fill: var(--paper);
+  --ts-chart-focus-fill: var(--paper);
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* 12px is the floor for every piece of in-chart text. */
+  --size-chart-text: 12px;
+  --size-chart-title: 14px;
+
+  /* ── Geometry ───────────────────────────────────────────────────────── */
+  --axis-width: 1px;
+  --tick-width: 1px;
+  --tick-length: 4px;
+  --tick-label-offset: 6px;
+  --axis-label-offset: 20px;
+  --gridline-width: 1px;
+  --line-width: 2px;
+  --line-width-focus: 2.4px;
+  --point-radius: 6px;
+  --point-stroke-width: 1px;
+  --map-stroke-width: 0.5px;
+  --stack-gap: 1px;
+
+  /* Chrome vs. data (§3.4.2): a reference rule is dashed ink-3 at gridline
+     weight; a stem, connector, tick or arrow carries the series tone and
+     the line weight. Same geometry, opposite jobs. */
+  --rule-dash: 4 3;
+  --data-tick-length: 8px;
+  --arrow-head-length: 8px;
+  --vector-head-length: 6px;
+
+  /* Categorical axis padding — bars, points, and bins (§3.5). */
+  --band-padding: 0.28;
+  --point-padding: 0.2;
+  --bin-padding: 0;
+
+  /* Legend and annotation geometry (§3.11, §3.12). The legend mark is a
+     miniature of the mark it names, so its box is chrome the figure
+     block draws itself — unlike everything above it, which TanStack
+     draws and reads from the theme object instead. */
+  --legend-mark-size: 10px;
+  --legend-rule-length: 16px;
+  --legend-band-stroke-width: 1.5px;
+  --legend-mark-gap: 7px;
+  --legend-item-gap: 18px;
+  --annotation-clearance: 8px;
+  --leader-width: 1px;
+
+  /* ── Opacity — 0.8 is for OVERLAP only ──────────────────────────────── */
+  --opacity-overlap: 0.8;
+  --opacity-radar-fill: 0.25;
+}

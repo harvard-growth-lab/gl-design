@@ -1,0 +1,104 @@
+/**
+ * TanStack render corrections for the NON-CARTESIAN chart types — treemap,
+ * colour legend (choropleths and binned scales), radar.
+ *
+ * Same contract as `patch.css`, same expiry: every rule here exists only
+ * because TanStack bakes a value into a presentation attribute with no public
+ * API to change it, every rule cites the value it corrects and the test in
+ * `tests/constraints.test.ts` that watches for it, and every rule is expected to
+ * be **deleted** when TanStack grows the API rather than kept as a second source
+ * of truth for a value `tokens.json` already owns.
+ *
+ * It is a separate file only because the shapes it serves ship from a separate
+ * entry point (`@growth-lab/gl-charts/shapes` — `src/shapes/{radar,treemap,
+ * distribution,geo}.ts`). A consumer who never draws a radar or a treemap still
+ * needs `patch.css`; they get this too, because `theme.css` imports both and the
+ * selectors are inert without the markup.
+ */
+
+/* ── Treemap ────────────────────────────────────────────────────────────── */
+/**
+ * Treemap tiles take NO stroke at any depth. Separation is a `paper` gutter —
+ * 5px between siblings, 10px between parent blocks (`SPEC.md` §3.4.1) — and
+ * it is cut by the layout's `paddingInner`, not painted here. There is nothing
+ * for CSS to draw: a stroke straddles its edge and would eat half the gutter
+ * back on each side.
+ *
+ * `crispEdges` snaps tile edges to the pixel grid. The gutter's own edges are
+ * at fractional coordinates, so without it a 5px channel antialiases into two
+ * 6px-ish soft ones of visibly different weight down the same seam.
+ *
+ * Opt in with `glChartProps({ treemap: true })`.
+ *
+ * TanStack value corrected: `rect` emits no `shape-rendering`, and `RectOptions`
+ * has no option for it — it carries id, x/x1/x2, y/y1/y2, z, color, key, fill,
+ * fillOpacity, stroke, strokeWidth, inset, radius, states and nothing else. It
+ * also insets every rect by 0.75px unless told otherwise, which is why `glTile`
+ * pins `inset: 0`.
+ * Expiry: constraints.test.ts "rect emits no shape-rendering", "rect inset default".
+ */
+.gl-chart--treemap .ts-chart__rect rect {
+  shape-rendering: crispEdges;
+}
+
+/* ── Color legend (choropleths, binned scales) ──────────────────────────── */
+/**
+ * `colorLegend()` hard-codes 10px on the boundary labels and 11px on the legend
+ * title, then dilutes both with fill-opacity (0.72 / 0.78). No option overrides
+ * any of it — `ColorLegendOptions` is `label`, `itemWidth`, `width`, `format`.
+ * 12px is the floor for every piece of in-chart text and the ink is `ink-2` at
+ * full strength, so this is the same presentation-attribute override the
+ * gridline and axis rules in `patch.css` rely on.
+ *
+ * Legend height is reserved at 42px (55px with a title), which still clears
+ * 12px text with descenders. Six boundary labels get tight under the default
+ * 240px legend — `legend.width` is exposed for that.
+ *
+ * Expiry: constraints.test.ts "colorLegend label sizes".
+ */
+.gl-figure .ts-chart__legend text,
+.gl-chart .ts-chart__legend text {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  fill: var(--ink-2);
+  fill-opacity: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The legend's own title is an axis-label-class element: weight 500.
+   TanStack emits 600 on the `legend-label` node.
+   Expiry: constraints.test.ts "colorLegend label sizes". */
+.gl-figure .ts-chart__legend text[data-ts-key="legend-label"],
+.gl-chart .ts-chart__legend text[data-ts-key="legend-label"] {
+  font-weight: 500;
+}
+
+/* ── Radar ──────────────────────────────────────────────────────────────── */
+/**
+ * Font WEIGHT is the one part of spec §10 the polar API cannot reach.
+ * `PolarGuideStyle` exposes `labelFill`, `labelFontSize`, `labelAnchor`,
+ * `labelBaseline`, `labelDx/Dy`, `labelRotate` and `labelClassName` — but no
+ * `labelFontWeight`. Family, 12px size and tabular figures all arrive from the
+ * `.gl-chart` container; only the weight has to come from here.
+ *
+ * Note the polar guides bake in NO stroke-opacity, unlike the Cartesian axes
+ * (0.28) and grid (0.11) — so a radar needs none of the render corrections in
+ * `patch.css`.
+ *
+ * The two class names are supplied by `src/shapes/radar.ts` through
+ * `labelClassName`, which TanStack puts on the guide's label GROUP — hence the
+ * descendant `text` in these selectors.
+ *
+ * Expiry: constraints.test.ts "PolarGuideStyle has no labelFontWeight".
+ */
+.gl-figure .gl-radar__axis-label text,
+.gl-chart .gl-radar__axis-label text {
+  font-weight: 500;
+}
+
+/* 400 is the CSS default, but the guide label group inherits weight from the
+   page, so an inherited 500 or 600 would otherwise leak into the scale ticks. */
+.gl-figure .gl-radar__scale-tick text,
+.gl-chart .gl-radar__scale-tick text {
+  font-weight: 400;
+}

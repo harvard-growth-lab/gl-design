@@ -1,0 +1,219 @@
+/**
+ * TanStack render corrections — REQUIRED for spec compliance, and EXPECTED TO
+ * BE DELETED.
+ *
+ * ───────────────────────────────────────────────────────────────────────────
+ * Every rule in this file is a workaround, not a design decision. Each one
+ * exists for exactly one reason: TanStack Charts bakes a visual value into a
+ * presentation attribute (`stroke-opacity`, `font-size`, `fill-opacity`,
+ * `font-weight`) with no public API to change it. CSS declarations outrank SVG
+ * presentation attributes, so these rules do what the API cannot.
+ *
+ * That makes the whole file provisional. When TanStack grows the API — a
+ * typography block on `ChartTheme`, an opacity option on the grid, a stroke
+ * option on `barY` — the corresponding rule here must be **deleted**, not left
+ * behind as a second source of truth for a value `tokens.json` already owns.
+ *
+ * `tests/constraints.test.ts` is the tripwire. Every rule below cites the
+ * TanStack value it corrects and the test that watches for it; each test
+ * asserts the limitation still exists, so a TanStack release that fixes it
+ * turns the test red and the failure message names the rule to remove. Do not
+ * "fix" a red constraints test by loosening the assertion — delete the CSS.
+ * ───────────────────────────────────────────────────────────────────────────
+ *
+ * The values TanStack 0.6.5 bakes in, all in `dist/scene.js`:
+ *
+ *   gridlines      stroke-opacity 0.11          spec: #D8D4CC at full opacity
+ *   axis + ticks   stroke-opacity 0.28          spec: #2C2823 at full opacity
+ *   tick labels    font-size 11 (10 under 360px), fill-opacity 0.68
+ *                                               spec: 12px, full opacity
+ *   axis titles    font-size 11, weight 600, fill-opacity 0.76
+ *                                               spec: 12px, weight 500, full
+ *   areas          fill-opacity 0.2             spec: full opacity
+ *
+ * Recolouring through the theme object cannot fix these: at 0.11 alpha even
+ * pure black composites to rgb(227,227,227) on white, which is already lighter
+ * than the spec's gridline. The opacity itself has to go.
+ *
+ * These rules apply to the SVG renderer only — the Canvas renderer rasterizes
+ * and cannot be reached by a selector, which is why GL charts should stay on
+ * the default SVG path.
+ *
+ * Scope: only the Cartesian chrome lives here. The non-Cartesian corrections
+ * (treemap, colour legend, radar guide labels) are in `shapes.css`.
+ */
+
+/* Corrects `stroke-opacity: 0.11` on the grid group (dist/scene.js, the `grid`
+   SceneGroup style). Expiry: constraints.test.ts "gridline stroke-opacity". */
+.gl-figure .ts-chart__grid,
+.gl-chart .ts-chart__grid {
+  stroke: var(--gridline);
+  stroke-opacity: 1;
+  stroke-width: var(--gridline-width);
+}
+
+/**
+ * Zero baseline strokes at AXIS weight, never gridline weight — but only where
+ * zero is genuinely a baseline, which is why this is opt-in.
+ *
+ * The spec's rule is written for a chart whose marks grow *from* zero: a bar
+ * chart of gains and losses, where the zero line is the reference the reader
+ * measures against. It is not a rule about every axis that happens to contain
+ * zero. Promoting it unconditionally put a heavy dark rule through mid-plot on
+ * the Economic Complexity Index scatter — an index that crosses zero without
+ * zero meaning anything — where it read as a second x axis that the spec's own
+ * plate does not have.
+ *
+ * Opt in with `glChartProps({ zeroBaseline: true })` when zero is the reference.
+ *
+ * TanStack value corrected: a zero gridline is an ordinary member of the grid
+ * group, so it inherits the group's `stroke: theme.grid` / `stroke-width: 1`
+ * with nothing that distinguishes it. The `data-ts-key$=":number:0"` hook is
+ * TanStack's own scene key (`y-grid:number:0`), not something we add.
+ * Expiry: constraints.test.ts "zero gridline is indistinguishable".
+ */
+.gl-chart--zero-baseline .ts-chart__grid line[data-ts-key$=":number:0"] {
+  stroke: var(--axis);
+  stroke-width: var(--axis-width);
+}
+
+/* Axis lines and tick stubs: 1px --axis, full opacity.
+   Corrects `stroke-opacity: 0.28` on the `x-axis` / `y-axis` rules and on every
+   `*-tick-rule` (dist/scene.js `createAxes`).
+
+   `.ts-chart__facet-axes` is the SAME axis chrome under a different class. A
+   faceted chart renders its shared outer axes into `ts-chart__facet-axes` /
+   `ts-chart__facet-axis` inside the MARKS group (dist/facet.js `renderOuterAxes`)
+   rather than into the chart's own `ts-chart__axes`, so every correction below
+   has to name both or a small-multiple silently renders off-spec — which is
+   exactly what `gallery/audit.mjs` caught on the two facet specimens.
+   Expiry: constraints.test.ts "axis stroke-opacity". */
+.gl-figure .ts-chart__axes line,
+.gl-chart .ts-chart__axes line,
+.gl-figure .ts-chart__facet-axes line,
+.gl-chart .ts-chart__facet-axes line {
+  stroke: var(--axis);
+  stroke-opacity: 1;
+  stroke-width: var(--axis-width);
+}
+
+/* All axis text: Inter 12px, --ink-2, full opacity, tabular figures.
+   Corrects tick labels at `font-size: 11` (10 below a 360px container) with
+   `fill-opacity: 0.68`, and axis titles at `font-size: 11` with
+   `fill-opacity: 0.76`. `ChartTheme` carries no typography at all, so family
+   and tabular figures have to arrive here too.
+   A facet cell is narrower than the 360px breakpoint, so its tick labels come
+   through at TEN px rather than eleven — which is why the facet-axes selector
+   matters more here than anywhere else.
+   Expiry: constraints.test.ts "axis tick-label font-size", "ChartTheme fields". */
+.gl-figure .ts-chart__axes text,
+.gl-chart .ts-chart__axes text,
+.gl-figure .ts-chart__facet-axes text,
+.gl-chart .ts-chart__facet-axes text {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  fill: var(--ink-2);
+  fill-opacity: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tick labels 400 … (TanStack emits no weight, so the inherited page weight
+   would otherwise leak in).
+   Expiry: constraints.test.ts "tick labels carry no font-weight". */
+.gl-figure .ts-chart__axes text[data-ts-key^="x-tick-label"],
+.gl-figure .ts-chart__axes text[data-ts-key^="y-tick-label"],
+.gl-chart .ts-chart__axes text[data-ts-key^="x-tick-label"],
+.gl-chart .ts-chart__axes text[data-ts-key^="y-tick-label"],
+.gl-figure .ts-chart__facet-axes text[data-ts-key^="x-tick-label"],
+.gl-figure .ts-chart__facet-axes text[data-ts-key^="y-tick-label"],
+.gl-chart .ts-chart__facet-axes text[data-ts-key^="x-tick-label"],
+.gl-chart .ts-chart__facet-axes text[data-ts-key^="y-tick-label"] {
+  font-weight: 400;
+}
+
+/* … axis titles 500 (TanStack emits 600).
+   Expiry: constraints.test.ts "axis title font-weight". */
+.gl-figure .ts-chart__axes text[data-ts-key$="-label"],
+.gl-chart .ts-chart__axes text[data-ts-key$="-label"] {
+  font-weight: 500;
+}
+
+/* Areas default to fill-opacity 0.2 (`options.fillOpacity ?? 0.2` in
+   dist/area.js); the spec renders them at full opacity. `glArea` already sets
+   this on the mark — this is the safety net for a raw `areaY` that slipped past
+   the presets.
+   Expiry: constraints.test.ts "areaY fill-opacity default". */
+.gl-figure .ts-chart__area path,
+.gl-chart .ts-chart__area path {
+  fill-opacity: 1;
+}
+
+/* In-chart text marks inherit CSS type; pin the 12px floor. `text()` emits a
+   `fontSize` only when the caller passes one, and `ChartTheme` has no
+   typography, so an unstyled `text()` mark renders at whatever the host page
+   sets.
+   Expiry: constraints.test.ts "ChartTheme fields". */
+.gl-figure .ts-chart__text text,
+.gl-chart .ts-chart__text text {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+}
+
+/* Small-multiple cell titles: 12px floor, --ink-2, full opacity.
+   `facet()` hard-codes `fontSize: 11` and `fillOpacity: 0.78` on each cell's
+   label (dist/facet.js `facetCell`) with no option to change either — the same
+   shape of problem as the axis tick labels above, and the same fix. A facet
+   label names a panel, so it is a series label rather than chrome and takes the
+   500 weight the axis titles do, not TanStack's 600.
+   Expiry: constraints.test.ts "facet cell label font-size". */
+.gl-figure .ts-chart__facet-cell > text,
+.gl-chart .ts-chart__facet-cell > text {
+  font-family: var(--font-sans);
+  font-size: var(--size-chart-text);
+  font-weight: 500;
+  fill: var(--ink-2);
+  fill-opacity: 1;
+}
+
+/**
+ * Stacked bars take a 1px gap between segments. `barY` exposes no stroke
+ * option (only `fill`, `fillOpacity`, `layout`, `inset`, `radius`), and its
+ * `inset` trims the categorical edges — the width, not the height. A paper
+ * stroke is the way to cut the gap, and it is the same device the spec itself
+ * uses for two-level treemap separators. Opt in with `className="gl-chart--stacked"`.
+ *
+ * Expiry: constraints.test.ts "barY exposes no stroke".
+ */
+.gl-chart--stacked [data-ts-key^="bar-y"],
+.gl-chart--stacked [data-ts-key^="bar-x"] {
+  stroke: var(--paper);
+  stroke-width: var(--stack-gap);
+}
+
+/* Stacked AREAS are the exception: bands sit edge-to-edge with no gap, because
+   the lightness step between tones is what separates them. This undoes the
+   paper stroke above for the one mark that must not have it. */
+.gl-chart--stacked .ts-chart__area path {
+  stroke: none;
+}
+
+/**
+ * Text drawn over data carries a thin paper halo so it stays legible. The halo
+ * never substitutes for the dark-tone rule — the glyphs stay in the dark tone.
+ *
+ * `text()` marks take no class and TanStack's text mark has no halo option
+ * (`TextOptions` is x/y/text/fill/fontSize/fontWeight/anchor/baseline/dx/dy —
+ * no `paintOrder`, no `stroke`), so the only way to halo a label the library
+ * generated is to opt the whole chart in — spread `haloLabelProps` onto
+ * <Chart>. Charts whose labels sit in the margin (a line chart's end-labels) do
+ * not need it; charts whose labels land on top of marks (a bubble scatter's
+ * focus label) do.
+ *
+ * Expiry: constraints.test.ts "text mark has no halo option".
+ */
+.gl-chart--label-halo .ts-chart__text text {
+  paint-order: stroke fill;
+  stroke: var(--paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}

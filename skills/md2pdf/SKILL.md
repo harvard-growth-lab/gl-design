@@ -104,5 +104,7 @@ use the docx pipeline ([`../md2docx/`](../md2docx/)).
 
 Renders `playground/demo-report.md` to `demo-report.pdf` with full GL
 typography (Source Serif 4 + Inter, opsz-tuned headings, recipe color
-tokens). Inspect against [`nil/GL-report-sample.html`](../../docs/nil/GL-report-sample.html)
-for visual alignment.
+tokens). Inspect against the upstream typography deliverable —
+[`nil/typography-spec.html`](../../docs/nil/typography-spec.html), and the gaps already
+recorded in [`nil/typography-alignment-review.md`](../../docs/nil/typography-alignment-review.md)
+— for visual alignment.

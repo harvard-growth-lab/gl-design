@@ -1,0 +1,275 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GL charts — spec reference</title>
+<!-- The shipped sheet: tokens (which reference.css's var(--…) resolve against),
+     figure chrome, and the TanStack patches. Browsers follow its @imports. -->
+<link rel="stylesheet" href="../src/theme.css">
+<!-- The .gl-* primitive vocabulary. Reference-only: TanStack marks take no
+     className, so nothing the shipped library renders can carry these classes,
+     and the shipped sheet does not import this file. The SVG below writes literal
+     hex presentation attributes for everything anyway — this is belt and braces. -->
+<link rel="stylesheet" href="reference.css">
+<style>
+  body { margin: 0; padding: 40px; background: #FFFFFF; }
+  .sheet { display: flex; flex-direction: column; gap: 44px; width: 540px; margin: 0 auto; }
+  .gl-figure__title, .gl-figure__subtitle, .gl-figure__label, .gl-figure__source { max-width: 540px; }
+</style>
+<div class="sheet">
+<figure class="gl-figure">
+  <p class="gl-figure__label">Figure 1</p>
+  <h3 class="gl-figure__title">South Korea climbed the complexity ladder faster than its peers.</h3>
+  <p class="gl-figure__subtitle">GDP per capita vs. Economic Complexity Index, 2022.</p>
+  <div class="gl-figure__plot"><svg width="540" height="300" viewBox="0 0 540 300" role="img">
+<line class="gl-gridline" x1="74" x2="524" y1="221.33333333333334" y2="221.33333333333334" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="74" x2="524" y1="168" y2="168" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="74" x2="524" y1="114.66666666666666" y2="114.66666666666666" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="74" x2="524" y1="61.33333333333334" y2="61.33333333333334" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="74" x2="524" y1="8" y2="8" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="74" x2="74" y1="248" y2="8" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="70" x2="74" y1="221.33333333333334" y2="221.33333333333334" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="64" y="221.33333333333334" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">-1</text>
+<line x1="70" x2="74" y1="168" y2="168" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="64" y="168" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">0</text>
+<line x1="70" x2="74" y1="114.66666666666666" y2="114.66666666666666" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="64" y="114.66666666666666" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">1</text>
+<line x1="70" x2="74" y1="61.33333333333334" y2="61.33333333333334" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="64" y="61.33333333333334" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2</text>
+<line x1="70" x2="74" y1="8" y2="8" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="64" y="8" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">3</text>
+<text transform="translate(30.200000000000003,128) rotate(-90)" text-anchor="middle" font-family="Inter" font-size="12" font-weight="500" fill="#2C2823">Economic Complexity Index</text>
+<line x1="74" x2="524" y1="248" y2="248" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="74" x2="74" y1="248" y2="252" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="74" y="258" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">1k</text>
+<line x1="231.26825097560422" x2="231.26825097560422" y1="248" y2="252" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="231.26825097560422" y="258" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">5k</text>
+<line x1="366.73174902439575" x2="366.73174902439575" y1="248" y2="252" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="366.73174902439575" y="258" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">20k</text>
+<line x1="456.26825097560425" x2="456.26825097560425" y1="248" y2="252" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="456.26825097560425" y="258" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">50k</text>
+<line x1="524" x2="524" y1="248" y2="252" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="524" y="258" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">100k</text>
+<text x="299" y="290" text-anchor="middle" font-family="Inter" font-size="12" font-weight="500" fill="#2C2823">GDP per capita, PPP (log scale)</text>
+<circle cx="181.5" cy="159.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="349.6" cy="96.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="96.2" cy="195.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="236.4" cy="208.1" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="105.0" cy="181.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="511.8" cy="68.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="277.3" cy="153.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="346.3" cy="109.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="424.9" cy="109.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="287.3" cy="125.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="237.1" cy="173.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="115.4" cy="196.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="449.4" cy="105.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="154.5" cy="163.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="128.9" cy="215.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="279.3" cy="187.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="125.3" cy="203.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="421.8" cy="137.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="346.5" cy="97.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="193.6" cy="180.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="232.7" cy="188.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="304.6" cy="130.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="213.4" cy="208.1" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="467.4" cy="77.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="244.7" cy="129.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="292.1" cy="177.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="188.2" cy="156.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="338.6" cy="135.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="152.7" cy="208.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="154.4" cy="242.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="385.2" cy="96.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="139.1" cy="204.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="407.9" cy="78.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="241.1" cy="178.1" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="361.3" cy="100.2" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="300.6" cy="150.2" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="427.6" cy="65.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="220.0" cy="147.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="167.2" cy="215.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="501.4" cy="57.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="168.0" cy="233.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="206.2" cy="157.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="416.0" cy="129.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="303.2" cy="127.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="261.8" cy="176.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="232.5" cy="197.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="465.9" cy="111.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="379.5" cy="103.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="272.2" cy="177.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="309.7" cy="158.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="119.2" cy="224.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="283.7" cy="134.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="461.7" cy="67.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="178.2" cy="178.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="337.3" cy="169.2" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="408.1" cy="83.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="327.3" cy="110.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="99.6" cy="202.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="270.1" cy="120.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="484.0" cy="105.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="200.8" cy="157.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="439.4" cy="59.0" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="502.5" cy="112.2" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="471.7" cy="106.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="515.3" cy="90.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="490.0" cy="52.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="365.5" cy="119.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="241.4" cy="195.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="86.1" cy="242.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="134.7" cy="188.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="113.4" cy="228.2" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="295.1" cy="111.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="159.1" cy="196.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="302.0" cy="155.6" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="316.2" cy="178.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="378.6" cy="141.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="272.9" cy="184.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="410.4" cy="88.5" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="268.2" cy="191.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="484.4" cy="114.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="338.0" cy="162.8" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="454.3" cy="102.4" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="361.7" cy="129.3" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="195.1" cy="200.1" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="380.9" cy="135.0" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="80.1" cy="206.7" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="326.9" cy="131.0" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="417.5" cy="103.2" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="203.7" cy="208.0" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="503.5" cy="50.9" r="6" fill="#AFB5BE" fill-opacity="0.8" stroke="#5F6773" stroke-opacity="0.8" stroke-width="1"/>
+<circle cx="448.1" cy="32.0" r="6" fill="#2F87C8" fill-opacity="0.8" stroke="#1A5A8E" stroke-opacity="0.8" stroke-width="1"/>
+<text x="436.1205121283542" y="30.00000000000003" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#1A5A8E" paint-order="stroke fill" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round">South Korea</text></svg></div>
+  <figcaption class="gl-figure__source">Source: Growth Lab analysis of Atlas of Economic Complexity, 2022.</figcaption>
+</figure>
+<figure class="gl-figure">
+  <p class="gl-figure__label">Figure 2</p>
+  <h3 class="gl-figure__title">Mongolia and Chile broke from the pack on copper exports.</h3>
+  <p class="gl-figure__subtitle">Index of copper export value (2010 = 100), twelve mineral economies.</p>
+  <div class="gl-figure__plot"><svg width="540" height="300" viewBox="0 0 540 300" role="img">
+<line class="gl-gridline" x1="62" x2="468" y1="260" y2="260" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="468" y1="197" y2="197" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="468" y1="134" y2="134" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="468" y1="71" y2="71" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="468" y1="8" y2="8" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="62" x2="62" y1="260" y2="8" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="58" x2="62" y1="260" y2="260" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="260" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">50</text>
+<line x1="58" x2="62" y1="197" y2="197" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="197" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">100</text>
+<line x1="58" x2="62" y1="134" y2="134" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="134" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">150</text>
+<line x1="58" x2="62" y1="71" y2="71" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="71" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">200</text>
+<line x1="58" x2="62" y1="8" y2="8" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="8" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">250</text>
+<text transform="translate(11.299999999999997,134) rotate(-90)" text-anchor="middle" font-family="Inter" font-size="12" font-weight="500" fill="#2C2823">Index (2010 = 100)</text>
+<line x1="62" x2="468" y1="260" y2="260" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="62" x2="62" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="62" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2010</text>
+<line x1="178" x2="178" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="178" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2014</text>
+<line x1="294" x2="294" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="294" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2018</text>
+<line x1="410" x2="410" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="410" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2022</text>
+<line x1="468" x2="468" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="468" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2024</text>
+<path d="M62.0,201.4 L91.0,200.2 L120.0,200.3 L149.0,195.1 L178.0,186.9 L207.0,194.2 L236.0,189.0 L265.0,197.8 L294.0,187.3 L323.0,195.3 L352.0,196.3 L381.0,208.6 L410.0,201.5 L439.0,208.9 L468.0,216.9" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,193.3 L91.0,200.9 L120.0,214.3 L149.0,217.3 L178.0,218.4 L207.0,210.4 L236.0,200.1 L265.0,194.9 L294.0,197.7 L323.0,191.0 L352.0,198.5 L381.0,210.9 L410.0,216.3 L439.0,207.1 L468.0,205.3" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,201.1 L91.0,210.6 L120.0,200.2 L149.0,204.6 L178.0,215.6 L207.0,210.9 L236.0,198.1 L265.0,209.1 L294.0,207.1 L323.0,207.3 L352.0,203.3 L381.0,189.4 L410.0,198.5 L439.0,205.3 L468.0,204.6" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,193.7 L91.0,193.1 L120.0,182.2 L149.0,195.5 L178.0,198.7 L207.0,206.2 L236.0,219.3 L265.0,217.2 L294.0,219.2 L323.0,232.4 L352.0,238.4 L381.0,252.2 L410.0,247.9 L439.0,253.7 L468.0,253.7" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,196.5 L91.0,179.9 L120.0,188.8 L149.0,199.5 L178.0,194.9 L207.0,197.7 L236.0,188.7 L265.0,188.0 L294.0,182.3 L323.0,177.7 L352.0,162.6 L381.0,155.6 L410.0,140.0 L439.0,148.9 L468.0,133.2" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,202.0 L91.0,207.2 L120.0,196.3 L149.0,182.4 L178.0,188.6 L207.0,183.6 L236.0,182.2 L265.0,192.5 L294.0,202.2 L323.0,201.3 L352.0,189.8 L381.0,202.3 L410.0,190.2 L439.0,188.8 L468.0,179.2" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,192.0 L91.0,203.1 L120.0,191.2 L149.0,200.8 L178.0,195.7 L207.0,207.8 L236.0,207.6 L265.0,200.5 L294.0,196.4 L323.0,198.6 L352.0,194.9 L381.0,203.6 L410.0,210.7 L439.0,213.2 L468.0,225.2" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,186.9 L91.0,174.3 L120.0,170.4 L149.0,166.0 L178.0,158.9 L207.0,172.0 L236.0,161.5 L265.0,162.7 L294.0,163.1 L323.0,153.9 L352.0,155.5 L381.0,155.8 L410.0,152.5 L439.0,163.5 L468.0,153.7" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,182.6 L91.0,171.0 L120.0,167.8 L149.0,161.5 L178.0,148.1 L207.0,146.4 L236.0,147.7 L265.0,148.0 L294.0,144.8 L323.0,131.8 L352.0,122.4 L381.0,113.7 L410.0,110.4 L439.0,120.8 L468.0,121.2" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,201.3 L91.0,202.0 L120.0,206.3 L149.0,217.5 L178.0,212.4 L207.0,224.7 L236.0,229.6 L265.0,224.0 L294.0,215.2 L323.0,211.2 L352.0,217.6 L381.0,205.6 L410.0,194.5 L439.0,206.9 L468.0,219.1" fill="none" stroke="#AFB5BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,202.6 L91.0,189.2 L120.0,173.7 L149.0,166.4 L178.0,151.0 L207.0,153.0 L236.0,157.4 L265.0,151.8 L294.0,131.1 L323.0,109.7 L352.0,89.7 L381.0,73.7 L410.0,56.2 L439.0,57.0 L468.0,45.3" fill="none" stroke="#CC4948" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M62.0,182.7 L91.0,183.1 L120.0,176.0 L149.0,158.7 L178.0,153.1 L207.0,128.7 L236.0,128.7 L265.0,121.6 L294.0,101.0 L323.0,84.4 L352.0,85.3 L381.0,71.6 L410.0,51.2 L439.0,48.1 L468.0,42.5"  fill="none" stroke="#2F87C8" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="474" y="36.3876821388817" text-anchor="start" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#1A5A8E" paint-order="stroke fill" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round">Mongolia</text>
+<text x="474" y="51.3876821388817" text-anchor="start" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#8A2C2B" paint-order="stroke fill" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round">Chile</text></svg></div>
+  <figcaption class="gl-figure__source">Source: Growth Lab analysis of UN Comtrade. HS 2603, 7402.</figcaption>
+</figure>
+<figure class="gl-figure">
+  <p class="gl-figure__label">Figure 3</p>
+  <h3 class="gl-figure__title">Services took over the export basket.</h3>
+  <p class="gl-figure__subtitle">Export composition by sector, 2010–2024, share of total exports.</p>
+  <div class="gl-figure__plot"><svg width="540" height="300" viewBox="0 0 540 300" role="img">
+<line class="gl-gridline" x1="62" x2="456" y1="260" y2="260" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="456" y1="209.6" y2="209.6" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="456" y1="159.2" y2="159.2" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="456" y1="108.80000000000001" y2="108.80000000000001" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="456" y1="58.39999999999998" y2="58.39999999999998" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line class="gl-gridline" x1="62" x2="456" y1="8" y2="8" stroke="#D8D4CC" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="62" x2="62" y1="260" y2="8" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="58" x2="62" y1="260" y2="260" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="260" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">0</text>
+<line x1="58" x2="62" y1="209.6" y2="209.6" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="209.6" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">20</text>
+<line x1="58" x2="62" y1="159.2" y2="159.2" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="159.2" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">40</text>
+<line x1="58" x2="62" y1="108.80000000000001" y2="108.80000000000001" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="108.80000000000001" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">60</text>
+<line x1="58" x2="62" y1="58.39999999999998" y2="58.39999999999998" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="58.39999999999998" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">80</text>
+<line x1="58" x2="62" y1="8" y2="8" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="52" y="8" text-anchor="end" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">100</text>
+<text transform="translate(11.299999999999997,134) rotate(-90)" text-anchor="middle" font-family="Inter" font-size="12" font-weight="500" fill="#2C2823">Share of exports (%)</text>
+<line x1="62" x2="456" y1="260" y2="260" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<line x1="86.625" x2="86.625" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="86.625" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2010</text>
+<line x1="135.875" x2="135.875" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="135.875" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2012</text>
+<line x1="185.125" x2="185.125" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="185.125" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2014</text>
+<line x1="234.375" x2="234.375" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="234.375" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2016</text>
+<line x1="283.625" x2="283.625" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="283.625" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2018</text>
+<line x1="332.875" x2="332.875" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="332.875" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2020</text>
+<line x1="382.125" x2="382.125" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="382.125" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2022</text>
+<line x1="431.375" x2="431.375" y1="260" y2="264" stroke="#2C2823" stroke-width="1" shape-rendering="crispEdges"/>
+<text x="431.375" y="270" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="12" font-weight="400" fill="#2C2823" style="font-variant-numeric:tabular-nums">2024</text>
+<rect x="68.9" y="174.3" width="35.5" height="84.7" fill="#EA822D"/>
+<rect x="68.9" y="118.9" width="35.5" height="54.4" fill="#2AA584"/>
+<rect x="68.9" y="53.4" width="35.5" height="64.5" fill="#CC4948"/>
+<rect x="68.9" y="8.0" width="35.5" height="44.4" fill="#2F87C8"/>
+<rect x="118.1" y="179.4" width="35.5" height="79.6" fill="#EA822D"/>
+<rect x="118.1" y="126.4" width="35.5" height="51.9" fill="#2AA584"/>
+<rect x="118.1" y="60.9" width="35.5" height="64.5" fill="#CC4948"/>
+<rect x="118.1" y="8.0" width="35.5" height="51.9" fill="#2F87C8"/>
+<rect x="167.4" y="184.4" width="35.5" height="74.6" fill="#EA822D"/>
+<rect x="167.4" y="131.5" width="35.5" height="51.9" fill="#2AA584"/>
+<rect x="167.4" y="66.0" width="35.5" height="64.5" fill="#CC4948"/>
+<rect x="167.4" y="8.0" width="35.5" height="57.0" fill="#2F87C8"/>
+<rect x="216.6" y="189.4" width="35.5" height="69.6" fill="#EA822D"/>
+<rect x="216.6" y="139.0" width="35.5" height="49.4" fill="#2AA584"/>
+<rect x="216.6" y="73.5" width="35.5" height="64.5" fill="#CC4948"/>
+<rect x="216.6" y="8.0" width="35.5" height="64.5" fill="#2F87C8"/>
+<rect x="265.9" y="194.5" width="35.5" height="64.5" fill="#EA822D"/>
+<rect x="265.9" y="146.6" width="35.5" height="46.9" fill="#2AA584"/>
+<rect x="265.9" y="81.1" width="35.5" height="64.5" fill="#CC4948"/>
+<rect x="265.9" y="8.0" width="35.5" height="72.1" fill="#2F87C8"/>
+<rect x="315.1" y="199.5" width="35.5" height="59.5" fill="#EA822D"/>
+<rect x="315.1" y="154.2" width="35.5" height="44.4" fill="#2AA584"/>
+<rect x="315.1" y="88.6" width="35.5" height="64.5" fill="#CC4948"/>
+<rect x="315.1" y="8.0" width="35.5" height="79.6" fill="#2F87C8"/>
+<rect x="364.4" y="204.6" width="35.5" height="54.4" fill="#EA822D"/>
+<rect x="364.4" y="159.2" width="35.5" height="44.4" fill="#2AA584"/>
+<rect x="364.4" y="96.2" width="35.5" height="62.0" fill="#CC4948"/>
+<rect x="364.4" y="8.0" width="35.5" height="87.2" fill="#2F87C8"/>
+<rect x="413.6" y="209.6" width="35.5" height="49.4" fill="#EA822D"/>
+<rect x="413.6" y="166.8" width="35.5" height="41.8" fill="#2AA584"/>
+<rect x="413.6" y="103.8" width="35.5" height="62.0" fill="#CC4948"/>
+<rect x="413.6" y="8.0" width="35.5" height="94.8" fill="#2F87C8"/>
+<rect x="468" y="13" width="10" height="10" fill="#2F87C8"/><text x="483" y="18" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#1A5A8E">Services</text>
+<rect x="468" y="31" width="10" height="10" fill="#CC4948"/><text x="483" y="36" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#8A2C2B">Manuf.</text>
+<rect x="468" y="49" width="10" height="10" fill="#2AA584"/><text x="483" y="54" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#1A6B53">Agri.</text>
+<rect x="468" y="67" width="10" height="10" fill="#EA822D"/><text x="483" y="72" dominant-baseline="middle" font-family="Inter" font-size="12" font-weight="600" fill="#A8580F">Minerals</text></svg></div>
+  <figcaption class="gl-figure__source">Source: Growth Lab analysis of national statistics.</figcaption>
+</figure>
+</div>
