@@ -386,6 +386,9 @@ save_fig("half", "small-sidebar-chart.png")
 | `half` | 3.167 × 3.0" | Side-by-side pair |
 | `half_tall` | 3.167 × 5.0" | Tall narrow chart |
 | `slide` | 10 × 5.625" | 16:9 slide deck (Marp, PowerPoint) |
+| `slide_half` | 4.9 × 5.0" | one side of a two-up slide |
+| `slide_wide` | 11.5 × 4.4" | wide, short chart on a slide (ranked bars) |
+| `slide_fill` | 12.4 × 5.4" | fills a gl-pptx chart slide's image area (aspect 2.29, wider than 16:9) |
 
 Figures land in `imgs/` by default. To redirect a whole script, set
 `options(gl.fig.dir = "path/to/dir")` once at the top (or pass `dir =` per
@@ -664,6 +667,47 @@ directly); a **two-level treemap** (products within sectors) takes thin
 around each sector block so the hierarchy stays legible. In-tile labels that
 don't fit at the 12px floor are **dropped, never shrunk** — with
 `treemapify`, that means `min.size` stays at the floor (≈9pt), not below it.
+
+### 5b. Figures headed for a slide deck: `gl_export_fig()`
+
+`save_fig()` writes a PNG, which is all a **report** needs — the document carries the
+figure label, title and source. A **deck** has no document to carry them: the deck builder
+(`gl-pptx`) fills the slide's own title and source placeholders, and a PNG cannot tell it
+what they say.
+
+`gl_export_fig()` writes the PNG *and* records its title, source and language in a
+`figures.json` manifest beside it:
+
+```r
+gl_setup(mode = "slide")
+p <- ggplot(d, aes(year, value)) + geom_line() + theme_gl(mode = "slide")
+
+gl_export_fig("macro", "exports-index", plot = p,
+              title  = "Mongolia pulls away after 2018.",   # the finding, with a period
+              source = "Source: Growth Lab analysis of WDI data.",
+              size   = "slide")
+
+# same figure in Spanish -> a second language variant of the same name
+gl_export_fig("macro", "exports-index", plot = p_es, lang = "es",
+              title = "Mongolia se despega después de 2018.",
+              source = "Fuente: análisis del Growth Lab.")
+```
+
+This writes `<figs>/macro/exports-index_en.png` plus the manifest entry. The figures root
+resolves as `root =` argument → `options(gl.figs.dir)` → `$GL_FIGS_DIR` → the nearest
+`figs/` directory at or above the working directory → `./figs`.
+
+The schema is identical to the one the Python side writes, so **an R figure arrives in a
+deck exactly as complete as a Python one** — `gl-pptx` cannot tell which language produced
+it. Schema and the deck-side details: `skills/gl-pptx/references/figures.md`.
+
+Needs the **`jsonlite`** package, and only this function does — the theme and `save_fig()`
+work without it. `gl_export_fig()` errors with the install command if it is missing.
+
+Use `save_fig()` for report figures and `gl_export_fig()` for deck figures. Do not bake the
+title and source into a deck-bound image (`mode = "slide"` renders them in-chart): the
+slide's placeholders carry them, and two copies is how a caption ends up disagreeing with
+its chart.
 
 ## Complete example
 
