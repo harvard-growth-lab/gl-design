@@ -16,6 +16,14 @@ Thumbs.db
 .RData
 .Rproj.user/
 
+# Python artifacts
+__pycache__/
+
+# gl-graph-modes chart-brief questionnaire: answers and autosaved drafts from
+# dogfood runs stay local (in a real project, keep briefs/*.answers.md)
+**/briefs/*.answers.json
+*.draft.json
+
 
 
 # Claude Files
