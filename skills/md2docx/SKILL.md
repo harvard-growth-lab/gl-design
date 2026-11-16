@@ -31,13 +31,16 @@ Bundled themes live in [assets/templates/](assets/templates/):
 |-----------|----------------------------------------------------------------------|
 | `default` | Original template (Garamond, 12pt, Office colors)                    |
 | `gl`      | Growth Lab design system (Source Serif 4 + Inter, ink ramp, GL chart palette — see `grammar.md` and `recipes/report.md`) |
+| `gl-print` | Same styles at 0.75pt per px (body 9pt, H1 25.5pt): the older reading of Nil's px. Since 2026-11-16 `gl` (her numbers as points: body 12pt, H1 34pt) matches the md2pdf PDF and is what gl-docx-retheme uses. |
+
+Both GL themes set leading to print the same as the PDF: the recipe's line-height divided by each family's own line height (Inter 1.21em, Source Serif 4 1.371em), because Word's "auto" spacing multiplies the font's line height rather than its size. Table cells use the PDF's 1.45 (header row 1.3), flush left.
 
 The `--theme` flag selects a reference document from `assets/templates/{name}.docx`. All themes share the same Lua filter, citation style, and cross-reference support.
 
 The `gl` template is generated — never edit it by hand. Rebuild with:
 
 ```bash
-python3 assets/build_gl_template.py   # template.docx → templates/gl.docx + gl.dotx
+python3 assets/build_gl_template.py   # template.docx → templates/gl.docx + gl.dotx, gl-print.docx + gl-print.dotx
 ```
 
 ### Which Word file is which
@@ -81,7 +84,10 @@ styled table, all applied from named styles in the Styles gallery.
   above in `Table Caption` with a `SEQ Table` field (the starter shows one).
 - **TOC / footnotes / citations**: References → Table of Contents,
   References → Insert Footnote, and Zotero's bibliography all land on
-  GL-styled rails automatically.
+  GL-styled rails automatically. The TOC styles follow Nil §9, as md2pdf's
+  `toc: true` does: major entries serif 14pt with an ink rule above,
+  sub-entries Inter 12pt indented 18pt, page numbers flush right with no dot
+  leaders. Use two levels ("Show levels: 2").
 - The figure styles are priority-clustered in the Styles pane (label →
   title → subtitle → image → source); pipeline-only plumbing styles
   (`Compact`, `Body Text`, …) are hidden from the ribbon gallery.

@@ -32,9 +32,23 @@ import shutil
 import sys
 import zipfile
 
+# gl: Nil's spec numbers as points (body 12pt, H1 34pt, display 56pt), the
+# same sizes the md2pdf deliverable prints since 2026-11-16.
+# `--template .../gl-print.docx` gives the old 0.75pt-per-px sizes.
 DEFAULT_TEMPLATE = os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "..", "..", "md2docx", "assets", "templates", "gl.docx"))
+
+
+def embed_fonts(settings_xml):
+    """Ask Word to embed the fonts it uses (subsetted) on its next save, so a
+    reader without Inter / Source Serif 4 still sees them. Only takes effect
+    when the file is saved in Word on a machine that has the fonts."""
+    if "<w:embedTrueTypeFonts" not in settings_xml:
+        settings_xml = re.sub(r'(<w:settings\b[^>]*>)',
+                              r'\1<w:embedTrueTypeFonts/><w:saveSubsetFonts/>',
+                              settings_xml, count=1)
+    return settings_xml
 
 GL_PGMAR = ('<w:pgMar w:top="1440" w:right="1440" w:bottom="1800" '
             'w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>')
@@ -94,6 +108,90 @@ def strip_direct_formatting(xml):
     return xml
 
 
+AUTO_SPACING_RE = re.compile(r'<w:spacing\b[^>]*\bw:line="[^"]*"[^>]*/>')
+
+PARA_RE = re.compile(r'<w:p(?:\s[^>]*)?>.*?</w:p>', re.DOTALL)
+PAGE_BR = '<w:br w:type="page"/>'
+
+
+def strip_page_breaks(xml):
+    """Remove the original's manual page breaks (break-only paragraphs, breaks
+    inside text, direct pageBreakBefore). They were placed for the original
+    layout and land at random once styles change; the GL template starts
+    each Heading 1 on a new page instead, as md2pdf does. Everything up to
+    the first section break (the cover, and a colophon page after it) is
+    left alone. Returns (xml, paragraphs removed, breaks removed)."""
+    m = re.search(r'<w:sectPr\b', xml)
+    body_start = xml.find('<w:body>')
+    start = body_start
+    if m:
+        end_p = xml.find('</w:p>', m.start())
+        last_sect = xml.rfind('<w:sectPr')
+        if end_p != -1 and m.start() != last_sect:
+            start = end_p + len('</w:p>')
+    head, tail = xml[:start], xml[start:]
+    removed_p = removed_br = 0
+
+    def fix(pm):
+        nonlocal removed_p, removed_br
+        p = pm.group(0)
+        if PAGE_BR not in p and '<w:pageBreakBefore' not in p:
+            return p
+        if '<w:sectPr' in p or '<w:drawing' in p or '<w:pict' in p:
+            n = p.count(PAGE_BR)
+            removed_br += n
+            return p.replace(PAGE_BR, '')
+        text = ''.join(re.findall(r'<w:t(?:\s[^>]*)?>([^<]*)</w:t>', p)).strip()
+        if not text and PAGE_BR in p:
+            removed_p += 1
+            return ''
+        removed_br += p.count(PAGE_BR)
+        p = p.replace(PAGE_BR, '')
+        return re.sub(r'<w:pageBreakBefore(?:\s[^>]*)?/>', '', p)
+
+    tail = PARA_RE.sub(fix, tail)
+    return head + tail, removed_p, removed_br
+
+
+def strip_auto_leading(xml):
+    """Drop direct proportional line spacing (w:line with lineRule auto or
+    unset) so the GL styles' leading shows through. Exact / atLeast spacing
+    is kept: it is deliberate (cover title, fixed-height figure anchors)."""
+    def fix(m):
+        el = m.group(0)
+        rule = re.search(r'w:lineRule="(\w+)"', el)
+        if rule and rule.group(1) != "auto":
+            return el
+        el = re.sub(r'\s+w:line="[^"]*"', '', el)
+        el = re.sub(r'\s+w:lineRule="auto"', '', el)
+        return '' if re.fullmatch(r'<w:spacing\s*/>', el) else el
+    return AUTO_SPACING_RE.sub(fix, xml)
+
+
+SYMBOL_FONTS = {"Symbol", "Wingdings", "Wingdings 2", "Wingdings 3",
+                "Courier New", "Webdings"}
+
+
+def strip_numbering_fonts(xml):
+    """List and heading numbers carry their own font/size/color in
+    numbering.xml (e.g. a Georgia 18pt '1.' before a 25.5pt H1). Remove them
+    so numbers take the paragraph's style; keep bullet symbol fonts."""
+    def fix_rpr(m):
+        rpr = m.group(0)
+        for pat in (r'<w:sz\b[^>]*/>', r'<w:szCs\b[^>]*/>',
+                    r'<w:color\b[^>]*/>'):
+            rpr = re.sub(pat, '', rpr)
+        f = re.search(r'<w:rFonts\b[^>]*/>', rpr)
+        if f:
+            ascii_ = re.search(r'w:ascii="([^"]+)"', f.group(0))
+            if not (ascii_ and ascii_.group(1) in SYMBOL_FONTS):
+                rpr = rpr.replace(f.group(0), '')
+        return rpr
+    return re.sub(r'(?s)<w:lvl\b.*?</w:lvl>',
+                  lambda lvl: re.sub(r'(?s)<w:rPr>.*?</w:rPr>', fix_rpr,
+                                     lvl.group(0)), xml)
+
+
 def set_margins(xml):
     return re.sub(r'<w:pgMar[^/]*/>', GL_PGMAR, xml)
 
@@ -103,7 +201,7 @@ def main():
     ap.add_argument("input")
     ap.add_argument("output")
     ap.add_argument("--template", default=DEFAULT_TEMPLATE,
-                    help="GL reference doc (default: md2docx templates/gl.docx)")
+                    help="GL reference doc (default: md2docx templates/gl-print.docx, true print sizes)")
     ap.add_argument("--strip-direct", action="store_true",
                     help="strip run-level font/size/color overrides from the "
                          "body, footnotes and endnotes")
@@ -141,11 +239,20 @@ def main():
                 if not args.keep_margins:
                     xml = set_margins(xml)
                 if args.strip_direct:
-                    xml = strip_direct_formatting(xml)
+                    xml = strip_auto_leading(strip_direct_formatting(xml))
+                    xml, n_p, n_br = strip_page_breaks(xml)
+                    if n_p or n_br:
+                        print(f"Manual page breaks removed: {n_p} break-only "
+                              f"paragraph(s), {n_br} break(s) in text")
                 data = xml.encode("utf-8")
-            elif args.strip_direct and item.filename in strip_parts:
-                data = strip_direct_formatting(
+            elif args.strip_direct and item.filename == "word/numbering.xml":
+                data = strip_numbering_fonts(
                     data.decode("utf-8")).encode("utf-8")
+            elif item.filename == "word/settings.xml":
+                data = embed_fonts(data.decode("utf-8")).encode("utf-8")
+            elif args.strip_direct and item.filename in strip_parts:
+                data = strip_auto_leading(strip_direct_formatting(
+                    data.decode("utf-8"))).encode("utf-8")
 
             zout.writestr(item, data)
 

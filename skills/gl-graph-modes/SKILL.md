@@ -26,7 +26,9 @@ helper below is the exception: Claude launches it.)
   deck", "for the memo", "publication-ready", "to send", etc.
 - **On entering production mode, get the brief before writing any code**
   (see "The production brief" below). The author states what each chart says,
-  in their own words; Claude does not propose the message first.
+  in their own words; Claude does not propose the message first. When the
+  charts sit in a document whose text already states each message, use that
+  text instead of asking (see "When a document already states the message").
 
 ## The production brief
 
@@ -48,6 +50,29 @@ avoid it. Every brief covers:
 Skip anything unambiguous from the conversation, except the main message.
 **Never offer Claude-written messages as options to pick from**; that is
 the offloading this step exists to prevent.
+
+### When a document already states the message
+
+If the charts belong to a document the author wrote or approved (a report,
+brief, memo or deck draft whose text refers to each chart), the main message
+is already written: take it from the sentence(s) that cite the chart
+("(Graphique 2)", "see Figure 3") and skip the chat questions and the
+questionnaire. Record, for each chart, the passage you used.
+
+Then check each chart against its passage. Use AskUserQuestion, one question
+per chart (up to four per call), when:
+
+- the data are **ambiguous** against the message: the chart supports it only
+  for some years, some countries or one definition, or another reading is
+  equally visible; or
+- the data **contradict** the message: a number, ranking, date or direction
+  in the passage does not match what the chart shows.
+
+Each question quotes the passage and states the finding with its numbers.
+The options are what to do (change the text to match the data, change the
+chart to show the claim, keep both with a note), not alternative
+Claude-written messages. Charts whose data match their passage need no
+question.
 
 ### 1–3 charts: ask in the chat
 
@@ -231,7 +256,7 @@ Purpose: deliverables compliant with the GL visual grammar. After the brief
 `skills/gl-ggplot/SKILL.md` is the authority; its core rules, geom defaults,
 and checklist all apply unchanged. `gl_setup_graph(mode = "report"|"slide")`
 delegates straight to `gl_setup(mode)`, restoring the strict upstream
-defaults: muted-by-default geoms, 6-hue palette, report 9pt / slide 12pt base.
+defaults: muted-by-default geoms, 6-hue palette, report 12pt / slide 12pt base (report charts print Nil's px as points since 2026-11-16).
 
 The brief maps onto the grammar (the questionnaire's fields are in the table
 under "From answers to code"):

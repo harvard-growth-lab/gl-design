@@ -34,6 +34,62 @@ pdf_options:
 ---
 ```
 
+## Cover page
+
+A `title` in the frontmatter produces the recipe's cover (cover paper, eyebrow
++ date, display title, accent rule, byline, pattern artwork, GL logo top
+right). Cover keys:
+
+```yaml
+---
+title: "City Growth Diagnostic: Ben Guerir"   # inline string; `\` + newline for a line break
+subtitle: "Optional subtitle"
+author:
+  - "Adeline Hipps, Jesús Daboin, Tim O'Brien and Issam Samiri"
+date: "September 24, 2026"
+series: "Draft for comments"       # eyebrow line; omit when the source has none
+cover-pattern: report               # report (circle) | working-paper (rect, the default) | false | path
+partner-logos:                      # optional; shown after the GL logo, hairline-separated
+  - src: cover/ecu_logo.png         # relative to the markdown file
+    alt: "Economics and Complexity Unit, UM6P"
+cover-note: |                       # optional partnership/disclaimer text under the byline
+  This report is part of a research partnership between ...
+colophon: |                         # optional page 2 (Nil §4): affiliations, disclaimers,
+  * Assistant Professor, ...        #   citation, when they do not fit on the cover
+cover-logo: path/to/other-logo.png  # optional; overrides the default GL logo
+toc: true                           # optional "Contents" page after the cover (Nil §9)
+---
+```
+
+Sizes are Nil's px numbers printed as points (body 12pt, display 56pt). The
+cover holds one page only: if page 2 starts with cover text (a long byline or
+note), move the note to `colophon:` (serif 14pt, white page, no folio). With
+partner logos the meta-row logos step down (GL 28pt, partner 30pt) so the row
+never forces Chromium to shrink every page; the size check after rendering
+warns when body text comes out under 12pt.
+
+Full reports use `cover-pattern: report`; working papers use the default.
+Block scalars (`|`) also work for title/subtitle/author.
+
+## Alt text
+
+Give each figure its alt text with `fig-alt`; it becomes the `<img alt>` and
+the tagged PDF's `/Alt`. Without it the alt falls back to the caption.
+
+```markdown
+![Exports stagnated after 2014. // Share of GDP, percent](fig03.png){#fig:exports fig-alt="Line chart of ..."}
+```
+
+## Page scaling check
+
+Chromium shrinks **every** page when any element is wider than the text
+column. The stylesheet lets long tokens wrap and tightens wide tables to
+prevent it. After rendering, md2pdf fits the text sizes against the recipe
+and prints `WARNING: pages printed at N% scale` if the document came out
+shrunk. This needs PyMuPDF (`fitz`) and is skipped without it. Fix the
+offending element (usually a very wide table or an unbreakable string) and
+re-render.
+
 ## Markdown → grammar role mapping
 
 | Markdown          | Role                                        | Spec                                          |
@@ -52,7 +108,7 @@ pdf_options:
 | `Source: ...`     | Chart source (paragraph after image)        | Source Serif 4 italic 12pt ink-2              |
 | `| col | col |`   | Table                                       | Recipe table (top/bottom ink rules)           |
 | `---`             | Horizontal rule                             | 1px `rule` (#DDDDDD)                          |
-| `[^1]` footnotes  | Footnote                                    | Inter 9pt ink-3 at document end               |
+| `[^1]` footnotes  | Footnote                                    | Inter 9pt ink-3 at document end (Nil's 9px as pt) |
 
 ## Conventions
 
@@ -83,15 +139,18 @@ md2pdf does **not** render today:
 
 | Recipe feature                    | Status                                         |
 |-----------------------------------|------------------------------------------------|
-| Cover page (display + rule + byline + pattern) | Not rendered. Document starts at page 1 as content. See [`followups.md`](../../docs/followups.md) #8. |
+| Cover page (display + rule + byline + pattern) | Rendered from the frontmatter: see *Cover page* above. |
+| Colophon page (page 2)            | Not rendered. |
+| Annex figure labels ("Figure A1") | Not supported: crossref numbers are numeric. Workaround: an unnumbered figure with `[Figure A1]{.fig-label}` at the start of the caption. |
 | Running head (series tag + logo)  | Not rendered. Only the folio (page number) is in the bottom-right margin. |
 | Figure label ("FIGURE 4")         | Rendered: pandoc-crossref numbers figures with a `{#fig:label}` id; `gl-figure.lua` styles "FIGURE N" as an accent eyebrow. Unnumbered images get title + optional subtitle only. |
 | Pandoc fenced divs (`:::`)        | Plain remark doesn't parse them. Renders as literal `:::`. |
-| TOC                               | Not generated. md-to-pdf has no built-in TOC. |
+| TOC                               | `toc: true`: a "Contents" page after the cover (and colophon), Heading 1 and 2 (`toc-depth:` to change), Nil §9 styles, no folio. Chromium has no `target-counter()`, so md2pdf prints twice and fills the page numbers from the PDF's own links (`scripts/toc_pages.py`, needs PyMuPDF). `{.unlisted}` leaves a heading out. |
 | Optical sizing                    | CSS `font-variation-settings: 'opsz' N` is set on headings; Chromium honors it via Source Serif 4's variable axis. |
 
-For full report fidelity (cover page, running head, TOC, cross-references),
-use the docx pipeline ([`../md2docx/`](../md2docx/)).
+The PDF is the report deliverable (see the report recipe). The Word pipelines
+([`../md2docx/`](../md2docx/), `gl-docx-retheme`) give an editable copy with a
+live TOC, but at 1px→1pt sizes and without the GL cover.
 
 ## Quick example
 

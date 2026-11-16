@@ -30,8 +30,10 @@ systemfonts), sets the theme globally, and configures the default discrete
 color/fill palette. You do **not** need to call `theme_set()` or set
 `ggplot2.discrete.colour` yourself — `gl_setup()` handles it.
 
-Base size resolves by mode: **report charts use 9pt** (they are placed 1:1
-into the page, where 9pt renders exactly Nil's specced 12px chart text);
+Base size resolves by mode: **report charts use 12pt** (since 2026-11-16 the
+reports print Nil's px numbers as points, so her 12px chart text is 12pt; line
+weights and spacing scale with it via `gl$k`; `options(gl.px = 0.75)` before
+sourcing restores the old 9pt sizes);
 **slide charts use 12pt** (distance viewing; slides sit outside Nil's
 report-only spec). Override with `gl_setup(base_size = ...)` only with reason.
 
@@ -49,7 +51,7 @@ After calling `gl_setup()`, the following are available:
 | `accent` | `gl$accent` (`#1A5A8E`) — **non-data UI chrome only** (eyebrows, figure labels, links). Do **not** use as a data-mark fill — that is the typography↔data-viz mix-up to avoid |
 | `c_muted` | `gl$c_muted` (`#AFB5BE`) — "everyone-else" gray for de-emphasis |
 | `highlight_sz` | `linewidth` for the highlighted focus line (`0.84` = 2.4px). Standard/muted lines default to `0.70` (= 2px) — the focus is 1.2× thicker, per spec §5 (not a 2× jump) |
-| `gl_text_size` | `size` for `geom_text`/`geom_label`/`annotate` (≈3.16 = 9pt = Nil's 12px). Already the geom default; it is the **floor** — never pass anything smaller |
+| `gl_text_size` | `size` for `geom_text`/`geom_label`/`annotate` (≈4.22 = 12pt = Nil's 12px). Already the geom default; it is the **floor** — never pass anything smaller |
 | `gl_zero_line()` | Zero baseline: solid 1px `ink_2` at axis weight (Nil §4). `gl_zero_line()` for y = 0, `gl_zero_line("x")` for x = 0. The bare `geom_hline`/`geom_vline` default (dashed `ink_3`) is for reference *thresholds*, not zero lines |
 | `gl_dark()` | Maps any GL main/light tone to its dark partner — for label/stroke colors (decision rule 2) |
 | `gl_endlabel()` | Direct line-end series labels (wraps `geom_text_repel` with house conventions: dark tone, 12px floor, paper halo) |
@@ -523,12 +525,13 @@ reduce the number of ticks, abbreviate the label text, or resize the figure
 — do not shrink the type.
 
 **Units differ by layer — don't eyeball the numbers.** Report figures are
-saved at physical size and placed 1:1 into the page, where CSS px is an
-absolute unit (96px = 1in). The conversions:
+saved at physical size and placed 1:1 into the page. Since 2026-11-16 Nil's px
+print as points (`recipes/report.md` §3): the theme's 0.75-per-px values below
+are multiplied by `gl$k` (1.333) in report mode. The conversions:
 
-| Spec (px) | Theme (`element_text`, pt = px × 0.75) | Geoms (`size`, = pt / 2.845) |
+| Spec (px) | Theme (`element_text`, pt = px × 0.75, × `gl$k` in report mode) | Geoms (`size`, = pt / 2.845) |
 |-----------|------------------------------------------|-------------------------------|
-| 12px chart text | 9pt — the report-mode `base_size` | `gl_text_size` (≈ 3.16) — the geom default |
+| 12px chart text | 9pt — the report-mode `base_size` (× `gl$k` = 12pt since 2026-11-16) | `gl_text_size` (≈ 3.16; × `gl$k` ≈ 4.22) — the geom default |
 | 14px chart title | 10.5pt (`rel(14/12)`) | — |
 
 So in report mode everything is already right: `base_size = 9` and the
@@ -666,7 +669,7 @@ directly); a **two-level treemap** (products within sectors) takes thin
 `gl$paper` separators between child tiles and a thicker `gl$paper` border
 around each sector block so the hierarchy stays legible. In-tile labels that
 don't fit at the 12px floor are **dropped, never shrunk** — with
-`treemapify`, that means `min.size` stays at the floor (≈9pt), not below it.
+`treemapify`, that means `min.size` stays at the floor (12pt in report mode), not below it.
 
 ### 5b. Figures headed for a slide deck: `gl_export_fig()`
 

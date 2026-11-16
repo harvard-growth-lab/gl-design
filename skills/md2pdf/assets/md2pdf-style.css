@@ -13,6 +13,11 @@
  *   <section class="footnotes">        from [^1] footnotes
  *   <div id="refs"> .csl-entry         citeproc bibliography
  *   <span class="citation">            from [@key]
+ *
+ * Units: Nil's spec numbers print as points (decided 2026-11-16 for the
+ * Morocco reports): body 12pt, H1 34pt, H2 20pt, display 56pt, footnotes and
+ * page chrome 9pt. Every length her spec gives in px is written here in pt;
+ * page geometry stays in inches. Comments that say "px" quote her spec.
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400;1,8..60,600&family=Inter:wght@400;500;600;700&display=swap');
@@ -46,7 +51,7 @@
     @bottom-right {
         content: counter(page);
         font-family: var(--font-sans);
-        font-size: 9px;
+        font-size: 9pt;
         font-weight: 500;
         color: var(--ink-3);
         font-variant-numeric: tabular-nums;
@@ -73,7 +78,7 @@ html, body {
 
 body {
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 12pt;
     line-height: 1.6;
     max-width: 100%;
     /* Browser rendering: grayscale antialiasing matches Nil's reference;
@@ -133,14 +138,103 @@ header#title-block-header .cover-meta-text {
 }
 
 header#title-block-header .cover-logo {
-    height: 36px;
+    height: 36pt;
     width: auto;
     display: block;
 }
 
+/* GL logo plus any partner logos (YAML `partner-logos:` list of {src, alt}),
+ * right-aligned in one row, separated by a hairline. */
+header#title-block-header .cover-logos {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16pt;
+}
+
+header#title-block-header .cover-partner-logo {
+    height: 40pt;
+    padding-left: 16pt;
+    border-left: 1pt solid var(--rule);
+}
+
+/* The meta row must never be wider than the column: Chromium would print
+ * EVERY page smaller to fit it. With a partner logo the pair steps down
+ * (GL 28pt / partner 30pt), and the logo block may shrink rather than push. */
+header#title-block-header .cover-meta { gap: 16pt; }
+header#title-block-header .cover-meta-text { flex: 0 0 auto; }
+header#title-block-header .cover-logos {
+    flex: 0 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+}
+header#title-block-header .cover-logos:has(.cover-partner-logo) .cover-logo { height: 28pt; }
+header#title-block-header .cover-logos:has(.cover-partner-logo) .cover-partner-logo { height: 30pt; }
+
+/* Colophon (Nil §4) — page 2 of the report, YAML `colophon:`. Holds the
+ * imprint, affiliations and disclaimers when they do not fit on the cover.
+ * White page, small GL mark top-right, no running head or folio, serif 14pt
+ * on 1.55, 16pt between paragraphs. */
+@page colophon {
+    @bottom-right { content: none; }
+}
+section.colophon {
+    page: colophon;
+    break-before: page;
+    break-after: page;
+    page-break-after: always;
+}
+section.colophon .colophon-logo-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 0.75in;
+}
+section.colophon .colophon-logo { height: 25pt; width: auto; }
+section.colophon .colophon-body,
+section.colophon .colophon-body p {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--ink-2);
+    font-variation-settings: 'opsz' 14;
+    text-align: left;
+}
+section.colophon .colophon-body p { margin: 0 0 16pt; }
+
+/* Partnership / disclaimer note under the byline (YAML `cover-note:`). */
+header#title-block-header .cover-note {
+    font-family: var(--font-serif);
+    font-size: 11pt;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--ink-3);
+    max-width: 75%;
+    margin: 24pt 0 0;
+}
+
+/* Title / subtitle / author given as YAML block scalars (`|`) arrive wrapped
+ * in <p>, which would otherwise take body-text size inside the cover slots. */
+header#title-block-header .title p,
+header#title-block-header .subtitle p,
+header#title-block-header .author p {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    margin: 0;
+}
+
+header#title-block-header .cover-note p {
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    margin: 0 0 4pt;
+}
+
 header#title-block-header .cover-series {
     font-family: var(--font-sans);
-    font-size: 11px;            /* match Nil literally (was 11pt ≈ 14.67px in browser) */
+    font-size: 11pt;            /* match Nil literally (was 11pt ≈ 14.67px in browser) */
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -150,12 +244,12 @@ header#title-block-header .cover-series {
 
 header#title-block-header .cover-date {
     font-family: var(--font-sans);
-    font-size: 11px;            /* match Nil literally */
+    font-size: 11pt;            /* match Nil literally */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.18em;
     color: var(--accent);
-    margin: 4px 0 0;            /* Nil: margin-top:4px */
+    margin: 4pt 0 0;            /* Nil: margin-top:4px */
 }
 
 /* Title + rule + byline cluster */
@@ -165,40 +259,40 @@ header#title-block-header .cover-body {
 
 header#title-block-header .title {
     font-family: var(--font-serif);
-    font-size: 56px;            /* matches Nil literally (was 42pt ≈ 56px) */
+    font-size: 56pt;            /* matches Nil literally (was 42pt ≈ 56px) */
     font-weight: 400;
     line-height: 1.2;
     letter-spacing: -0.025em;
     font-variation-settings: 'opsz' 60;
     color: var(--ink);
-    margin: 0 0 24px;
-    max-width: 90%;
+    margin: 0 0 24pt;
+    max-width: 100%;            /* full column: at 56pt a 90% cap wraps long titles past Nil's three lines */
 }
 
 header#title-block-header .title-rule {
     border: none;
-    border-top: 3px solid var(--accent);
+    border-top: 3pt solid var(--accent);
     width: 50%;
-    margin: 0 0 32px;           /* match Nil literally */
+    margin: 0 0 32pt;           /* match Nil literally */
 }
 
 header#title-block-header .subtitle {
     font-family: var(--font-serif);
-    font-size: 18px;            /* Nil-equivalent for a subtitle slot */
+    font-size: 18pt;            /* Nil-equivalent for a subtitle slot */
     font-weight: 300;
     font-style: italic;
     line-height: 1.4;
     color: var(--ink-2);
-    margin: 0 0 24px;
+    margin: 0 0 24pt;
     font-variation-settings: 'opsz' 18;
 }
 
 header#title-block-header .author {
     font-family: var(--font-serif);
-    font-size: 14px;            /* match Nil literally */
+    font-size: 14pt;            /* match Nil literally */
     font-weight: 400;
     color: var(--ink);
-    margin: 0 0 4px;
+    margin: 0 0 4pt;
     line-height: 1.5;
     font-variation-settings: 'opsz' 14;
 }
@@ -206,20 +300,38 @@ header#title-block-header .author {
 /* Bottom decorative pattern — pinned to the bottom of the cover via
  * `margin-top: auto` (flex layout). The header has a fixed height that
  * fits within one page, so the SVG renders on-page. */
+/* The pattern takes whatever height the cover text leaves (up to 2.5in) and
+ * shrinks — never spills onto page 2 — when a long byline or cover note fills
+ * the page. */
 header#title-block-header .cover-pattern {
     margin-top: auto;
     margin-bottom: 0;
     width: 100%;
     line-height: 0;
+    flex: 0 1 2.5in;
+    min-height: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+    container-type: size;
 }
 
 header#title-block-header .cover-pattern img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
     max-height: 2.5in;
     object-fit: contain;
     object-position: center bottom;
+}
+
+/* Under ~1.25in of room the artwork would print as a speck; leave it off.
+ * (Must come after the rule above, which sets display: block.) */
+@container (max-height: 1.25in) {
+    header#title-block-header .cover-pattern img {
+        display: none;
+    }
 }
 
 /* Leave pandoc's auto-generated .date alone (used in body, not cover) */
@@ -254,7 +366,7 @@ h1, h2, h3, h4, h5, h6 {
 /* h1 inside title-block-header is the cover; everything else is a section */
 h1 {
     font-family: var(--font-serif);
-    font-size: 34px;
+    font-size: 34pt;
     font-weight: 500;
     line-height: 1.08;
     letter-spacing: -0.018em;
@@ -268,7 +380,7 @@ section.level1 > h1:first-child {
 
 h2 {
     font-family: var(--font-serif);
-    font-size: 20px;
+    font-size: 20pt;
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: -0.010em;
@@ -279,7 +391,7 @@ h2 {
 /* h3 is a recipe extension — Nil's spec has only section (h1) + subsection (h2). */
 h3 {
     font-family: var(--font-serif);
-    font-size: 16px;
+    font-size: 16pt;
     font-weight: 600;
     line-height: 1.30;
     letter-spacing: -0.005em;
@@ -290,7 +402,7 @@ h3 {
 
 h4 {
     font-family: var(--font-sans);
-    font-size: 11px;
+    font-size: 11pt;
     font-weight: 600;
     color: var(--accent);
     text-transform: uppercase;
@@ -301,7 +413,7 @@ h4 {
 /* ---- Body copy ---- */
 p {
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 12pt;
     font-weight: 400;
     line-height: 1.6;
     color: var(--ink-2);
@@ -327,7 +439,7 @@ a {
 /* Lead paragraph — opt-in via HTML class, since markdown can't tag it */
 p.lead, .lead > p {
     font-family: var(--font-serif);
-    font-size: 17px;
+    font-size: 17pt;
     font-weight: 300;
     line-height: 1.4;
     font-variation-settings: 'opsz' 18;
@@ -338,7 +450,7 @@ p.lead, .lead > p {
 /* ---- Lists ---- */
 ul, ol {
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 12pt;
     line-height: 1.6;
     color: var(--ink-2);
     padding-left: 1.4em;
@@ -356,7 +468,7 @@ li::marker {
 /* ---- Horizontal rule ---- */
 hr {
     border: none;
-    border-top: 1px solid var(--rule);
+    border-top: 1pt solid var(--rule);
     margin: 1.8em 0;
 }
 
@@ -365,10 +477,10 @@ table {
     width: 100%;
     border-collapse: collapse;
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 12pt;
     margin: 1.2em 0;
-    border-top: 1px solid var(--ink);
-    border-bottom: 1px solid var(--ink);
+    border-top: 1pt solid var(--ink);
+    border-bottom: 1pt solid var(--ink);
     break-inside: avoid;
     page-break-inside: avoid;
 }
@@ -378,21 +490,49 @@ thead th {
     color: var(--ink);
     background: transparent;
     text-align: left;
-    padding: 10px 12px 8px;
-    border-bottom: 1px solid var(--ink);
+    padding: 10pt 12pt 8pt;
+    border-bottom: 1pt solid var(--ink);
     line-height: 1.3;
 }
 
 tbody td {
     color: var(--ink-2);
-    padding: 11px 12px;
-    border-bottom: 1px solid var(--rule);
+    padding: 11pt 12pt;
+    border-bottom: 1pt solid var(--rule);
     vertical-align: top;
     line-height: 1.45;
 }
 
 tbody tr:last-child td {
     border-bottom: none;
+}
+
+/* ---- Keep everything inside the text column ----
+ * Chromium's print path scales the WHOLE document down when any one element
+ * is wider than the page (a wide table, a long URL, a run of NBSPs), so a
+ * single overflow silently takes body text from 9pt to ~6pt. Let long tokens
+ * break, and tighten padding on wide tables, so nothing forces that scaling. */
+p, li, td, th, a, figcaption, .footnotes, .csl-entry {
+    overflow-wrap: anywhere;
+}
+table:has(tr > :nth-child(6)) thead th,
+table:has(tr > :nth-child(6)) tbody td {
+    padding-left: 6pt;
+    padding-right: 6pt;
+}
+table:has(tr > :nth-child(8)) {
+    font-size: 11pt;
+}
+img, svg, video {
+    max-width: 100%;
+    height: auto;
+}
+@media print {
+    pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        overflow-x: visible;
+    }
 }
 
 th[style*="text-align: right"],
@@ -404,7 +544,7 @@ caption {
     caption-side: top;
     font-family: var(--font-serif);
     font-weight: 500;
-    font-size: 14px;
+    font-size: 14pt;
     color: var(--ink);
     text-align: left;
     margin-bottom: 0.4em;
@@ -442,7 +582,7 @@ figure img {
 
 figure figcaption {
     /* 14px gap from the caption stack down to the plot (Nil uses 12px). */
-    margin: 0 0 14px;
+    margin: 0 0 14pt;
     /* pandoc adds aria-hidden — undo any visual hiding it might imply */
     visibility: visible;
 }
@@ -452,12 +592,12 @@ figure figcaption .fig-label {
     display: block;
     font-family: var(--font-sans);
     font-weight: 600;
-    font-size: 12px;
+    font-size: 12pt;
     line-height: 1.2;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--accent);
-    margin: 0 0 6px;
+    margin: 0 0 6pt;
     font-variant-numeric: tabular-nums;
 }
 
@@ -466,7 +606,7 @@ figure figcaption .fig-title {
     display: block;
     font-family: var(--font-serif);
     font-weight: 500;
-    font-size: 14px;
+    font-size: 14pt;
     line-height: 1.25;
     letter-spacing: -0.005em;
     color: var(--ink);
@@ -477,17 +617,17 @@ figure figcaption .fig-subtitle {
     display: block;
     font-family: var(--font-sans);
     font-weight: 400;
-    font-size: 12px;
+    font-size: 12pt;
     line-height: 1.4;
     color: var(--ink-3);
-    margin: 2px 0 0;
+    margin: 2pt 0 0;
 }
 
 /* Chart source — the paragraph immediately after a figure */
 figure + p {
     font-family: var(--font-serif);
     font-style: italic;
-    font-size: 12px;
+    font-size: 12pt;
     font-weight: 400;
     color: var(--ink-2);
     line-height: 1.45;
@@ -504,7 +644,7 @@ img {
 /* ---- Callout box (::: {.box title="..."} → <div class="box" title="...">) ---- */
 div.box {
     background: var(--paper-warm);
-    border-left: 3px solid var(--accent);
+    border-left: 3pt solid var(--accent);
     padding: 0.9em 1.2em;
     margin: 1.4em 0;
     color: var(--ink-2);
@@ -516,7 +656,7 @@ div.box[title]::before {
     content: attr(title);
     display: block;
     font-family: var(--font-sans);
-    font-size: 11px;
+    font-size: 11pt;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -535,7 +675,7 @@ div.box p:last-of-type {
 /* ---- Blockquote — small accent panel ---- */
 blockquote {
     background: var(--accent-tint);
-    border-left: 3px solid var(--accent);
+    border-left: 3pt solid var(--accent);
     padding: 0.8em 1.2em;
     margin: 1.4em 0;
     color: var(--ink-2);
@@ -551,7 +691,7 @@ code {
     font-size: 0.88em;
     background: var(--paper-warm);
     padding: 1pt 4pt;
-    border-radius: 2px;
+    border-radius: 2pt;
     color: var(--ink);
 }
 
@@ -562,7 +702,7 @@ pre {
     background: var(--paper-warm);
     color: var(--ink);
     padding: 0.8em 1em;
-    border-radius: 3px;
+    border-radius: 3pt;
     overflow-x: auto;
     line-height: 1.5;
     margin: 1em 0;
@@ -576,16 +716,16 @@ pre code {
 
 /* ---- Footnotes (pandoc emits <section class="footnotes">) ---- */
 section.footnotes {
-    border-top: 1px solid var(--rule);
+    border-top: 1pt solid var(--rule);
     margin-top: 2em;
     padding-top: 0.6em;
-    font-size: 9px;
+    font-size: 9pt;
     color: var(--ink-3);
     line-height: 1.5;
 }
 
 section.footnotes ol {
-    font-size: 9px;
+    font-size: 9pt;
     padding-left: 1.2em;
 }
 
@@ -621,7 +761,7 @@ div#refs {
 
 div#refs .csl-entry {
     font-family: var(--font-sans);
-    font-size: 10px;
+    font-size: 10pt;
     line-height: 1.55;
     color: var(--ink-2);
     padding-left: 1.5em;
@@ -636,53 +776,87 @@ div#refs .csl-entry i,
 div#refs .csl-entry em {
     font-family: var(--font-serif);
     font-style: italic;
-    font-size: 11px;
+    font-size: 11pt;
     font-variation-settings: 'opsz' 14;
 }
 
-/* ---- Table of contents (--toc) ---- */
+/* ---- Table of contents (Nil §9) ----
+ * YAML `toc: true` (md2pdf passes --toc, depth 2 unless `toc-depth:`).
+ * Own named page: starts after the cover / colophon, no folio (Nil §10).
+ * Major entry: serif 14pt 600 ink, 1pt ink rule above. Sub-entry: Inter
+ * 12pt 400 ink-2, 18pt indent. Page numbers flush right, no leaders,
+ * tabular: major Inter 11pt 700 ink, sub Inter 11pt 500 ink-2. md2pdf fills
+ * the numbers in a second pass (Chromium has no target-counter()).
+ * Headings with class `.unlisted` are left out (pandoc). */
+@page toc {
+    @bottom-right { content: none; }
+}
 nav#TOC {
+    page: toc;
+    break-before: page;
     break-after: page;
     page-break-after: always;
-    margin: 0 0 2em;
+    margin: 0;
 }
-
+nav#TOC h2#toc-title {
+    font-family: var(--font-serif);
+    font-size: 34pt;
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.018em;
+    font-variation-settings: 'opsz' 36;
+    color: var(--ink);
+    margin: 0 0 24pt;
+}
 nav#TOC ul {
     list-style: none;
     padding-left: 0;
     margin: 0;
 }
-
-nav#TOC > ul > li {
-    font-family: var(--font-serif);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink);
-    margin: 0.7em 0 0.2em;
-    border-top: 1px solid var(--ink);
-    padding-top: 0.5em;
+nav#TOC li { margin: 0; padding: 0; }
+nav#TOC a {
+    display: flex;
+    align-items: baseline;
+    gap: 12pt;
+    text-decoration: none;
+    break-inside: avoid;
 }
-
-nav#TOC > ul > li > a {
-    color: var(--ink);
-}
-
-nav#TOC ul ul {
-    margin-left: 1em;
-    margin-top: 0.3em;
-}
-
-nav#TOC ul ul li {
+nav#TOC .toc-text { flex: 1 1 auto; }
+nav#TOC .toc-pg {
+    flex: 0 0 auto;
     font-family: var(--font-sans);
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--ink-2);
-    border: none;
-    margin: 0.25em 0;
+    font-size: 11pt;
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: normal;
+    font-style: normal;
 }
-
-nav#TOC ul ul li a {
+nav#TOC > ul > li > a {
+    font-family: var(--font-serif);
+    font-size: 14pt;
+    font-weight: 600;
+    line-height: 1.3;
+    font-variation-settings: 'opsz' 14;
+    color: var(--ink);
+    border-top: 1pt solid var(--ink);
+    padding: 10pt 0 6pt;
+    margin-top: 6pt;
+    break-after: avoid;
+}
+nav#TOC > ul > li:first-child > a { margin-top: 0; }
+nav#TOC > ul > li > a .toc-pg { font-weight: 700; color: var(--ink); }
+nav#TOC ul ul li > a {
+    font-family: var(--font-sans);
+    font-size: 12pt;
+    font-weight: 400;
+    line-height: 1.35;
     color: var(--ink-2);
+    padding: 4pt 0 4pt 18pt;
+}
+nav#TOC ul ul li > a .toc-pg { font-weight: 500; color: var(--ink-2); }
+nav#TOC ul ul ul li > a {
+    font-style: italic;
+    color: var(--ink-3);
+    padding-left: 36pt;
 }
 
 /* ---- Print fidelity ---- */
@@ -732,9 +906,9 @@ nav#TOC ul ul li a {
         padding: 1in 1in 1.25in;
         box-sizing: border-box;
         background: var(--paper);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10),
-                    0 0 0 1px rgba(0, 0, 0, 0.04);
-        border-radius: 1px;
+        box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.10),
+                    0 0 0 1pt rgba(0, 0, 0, 0.04);
+        border-radius: 1pt;
     }
 
     /* Cover keeps its warm background; height fills its panel naturally */
