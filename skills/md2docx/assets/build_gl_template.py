@@ -54,7 +54,28 @@ PAPER_WARM = "F4F1EA"
 C1, C2, C3, C4, C5, C6 = "2F87C8", "CC4948", "2AA584", "7554A3", "EA822D", "CDC86B"
 
 SERIF = "Source Serif 4"
+# Cover-title cut: Source Serif 4 at opsz 60, as Nil sets the display (md2pdf
+# gets it from the variable font). Static instance from gl-docx-retheme's
+# make_word_fonts.py; the text cut is 9% wider and wraps 56pt titles early.
+SERIF_DISPLAY = "Source Serif 4 Display"
 SANS = "Inter"
+
+# Text width of the template page (US Letter, 1in margins) in twips: where TOC
+# page numbers sit (right tab). gl_toc.py recomputes it from each document.
+LIVE_TW = 9360
+
+# Leading. The style table states leading the CSS way (w:line = line-height
+# x 240, e.g. body 1.6 -> 384). Word's "auto" spacing is a multiple of the
+# font's own line height (OS/2 win ascent + descent), not of the font size,
+# so those values print 21% (Inter) / 37% (Source Serif 4) looser than the
+# PDF. word_line() divides by each family's line height so Word's baseline
+# step equals the CSS one (body 9pt x 1.6 = 14.4pt in both).
+LINE_RATIO = {SANS: 1.21, SERIF: 1.371, SERIF_DISPLAY: 1.371}
+BODY_LINE = 384  # 1.6, the recipe's body leading
+
+
+def word_line(css_line, font=SANS):
+    return round(css_line / LINE_RATIO.get(font, LINE_RATIO[SANS]))
 
 # Office theme slots. accent1-6 feed Word's color picker and chart defaults,
 # so they carry the chart palette; dk/lt carry ink and paper.
@@ -89,7 +110,7 @@ GL_THEME_COLORS = {
 #            omit both keys to leave a style's visibility metadata untouched)
 # ---------------------------------------------------------------------------
 
-S = {
+S_BASE = {
     # Body. docDefaults already carry Inter 12pt ink-2, justified, 1.6 leading;
     # restated here so the named style survives docDefault edits.
     "Normal": dict(font=SANS, sz=24, color=INK2, after=120,
@@ -98,7 +119,7 @@ S = {
     # Cover roles (pandoc emits these from YAML metadata).
     # Title carries the 3pt accent title rule as a bottom border — Word can't
     # do Nil's 50%-width rule, so it runs full column width (approximation).
-    "Title": dict(font=SERIF, sz=112, color=INK, tracking=-28, after=240,
+    "Title": dict(font=SERIF_DISPLAY, sz=112, color=INK, tracking=-28, after=240,
                   line=288, jc="left", border_bottom=(24, ACCENT, 16),
                   prio=10, gallery=True),
     "Subtitle": dict(font=SERIF, sz=34, color=INK2, after=240, line=336,
@@ -107,10 +128,20 @@ S = {
                    prio=12, gallery=True),
     "Date": dict(font=SANS, sz=22, color=ACCENT, bold=True, caps=True,
                  tracking=40, after=480, jc="left", prio=13, gallery=True),
+    # Cover meta and note (recipes/report.md "Cover meta"), used by the
+    # retheme cover builder: series eyebrow (Inter 11px 600 ink-3 UPPER,
+    # 0.18em) and the partnership / disclaimer note (serif italic 11px ink-3).
+    "CoverSeries": dict(font=SANS, sz=22, color=INK3, bold=True, caps=True,
+                        tracking=40, after=80, line=240, jc="left",
+                        prio=14, gallery=False),
+    "CoverNote": dict(font=SERIF, sz=22, color=INK3, italic=True,
+                      before=480, after=80, line=360, jc="left",
+                      prio=15, gallery=False),
 
     # Section headings (H3 is the recipe extension; H4-6 mild fallbacks).
     "Heading1": dict(font=SERIF, sz=68, color=INK, bold=True, tracking=-12,
                      before=480, after=160, line=259, keep_next=True,
+                     page_before=True,  # each section starts a page, as md2pdf
                      jc="left", outline=0, prio=9, gallery=True),
     "Heading2": dict(font=SERIF, sz=40, color=INK, bold=True, tracking=-4,
                      before=560, after=160, line=288, keep_next=True,
@@ -172,13 +203,24 @@ S = {
     "FootnoteReference": dict(font=SERIF, color=ACCENT, italic=True,
                               rpr_only=True),
 
-    # TOC. pPr kept — it carries the dot-leader tab stops and indents.
+    # TOC (Nil §9; the same standard as md2pdf and gl-docx-retheme's
+    # gl_toc.py): title = Heading 1 look on its own page; major entry serif
+    # 14 600 ink with a 1pt ink rule above (top + between, so consecutive
+    # majors each get one); sub-entry Inter 12 ink-2 at an 18pt indent;
+    # sub-sub italic ink-3 at 36pt. Page numbers on a right tab at the text
+    # width, no dot leaders.
     "TOCHeading": dict(font=SERIF, sz=68, color=INK, bold=True, tracking=-12,
-                       before=480, after=160, line=259, jc="left", outline=9),
-    "TOC1": dict(font=SERIF, sz=28, color=INK, bold=True, rpr_only=True),
-    "TOC2": dict(font=SANS, sz=24, color=INK2, rpr_only=True),
-    "TOC3": dict(font=SANS, sz=24, color=INK3, italic=True, rpr_only=True),
-    "TOC4": dict(font=SANS, sz=24, color=INK3, italic=True, rpr_only=True),
+                       before=0, after=480, line=259, jc="left", outline=9,
+                       page_before=True),
+    "TOC1": dict(font=SERIF, sz=28, color=INK, bold=True, keep_next=True,
+                 rule_above=(8, INK, 6), tab_right=LIVE_TW, before=200,
+                 after=100, line=312, jc="left"),
+    "TOC2": dict(font=SANS, sz=24, color=INK2, tab_right=LIVE_TW, before=40,
+                 after=40, line=324, ind_left=360, jc="left"),
+    "TOC3": dict(font=SANS, sz=24, color=INK3, italic=True, tab_right=LIVE_TW,
+                 before=40, after=40, line=324, ind_left=720, jc="left"),
+    "TOC4": dict(font=SANS, sz=24, color=INK3, italic=True, tab_right=LIVE_TW,
+                 before=40, after=40, line=324, ind_left=1080, jc="left"),
 
     # Character styles / inline roles.
     "Strong": dict(color=INK, bold=True, rpr_only=True),
@@ -248,6 +290,8 @@ NEW_STYLES = {
     "FigureSubtitle": ("Figure Subtitle", "paragraph", "Normal"),
     "Author": ("Author", "paragraph", "Normal"),
     "Date": ("Date", "paragraph", "Normal"),
+    "CoverSeries": ("Cover Series", "paragraph", "Normal"),
+    "CoverNote": ("Cover Note", "paragraph", "Normal"),
     "BodyText": ("Body Text", "paragraph", "Normal"),
     "FirstParagraph": ("First Paragraph", "paragraph", "BodyText"),
     "Compact": ("Compact", "paragraph", "BodyText"),
@@ -290,17 +334,33 @@ def make_ppr(d):
     parts = []
     if d.get("keep_next"):
         parts.append("<w:keepNext/><w:keepLines/>")
+    if d.get("page_before"):
+        parts.append("<w:pageBreakBefore/>")
     if d.get("border_bottom"):
         sz, color, space = d["border_bottom"]
         parts.append(f'<w:pBdr><w:bottom w:val="single" w:sz="{sz}" '
                      f'w:space="{space}" w:color="{color}"/></w:pBdr>')
+    if d.get("rule_above"):
+        # top + between: Word draws one top border per run of identical
+        # paragraphs, so "between" gives each following paragraph its rule.
+        sz, color, space = d["rule_above"]
+        rule = f'w:val="single" w:sz="{sz}" w:space="{space}" w:color="{color}"'
+        parts.append(f'<w:pBdr><w:top {rule}/><w:between {rule}/></w:pBdr>')
+    if d.get("tab_right"):
+        parts.append(f'<w:tabs><w:tab w:val="right" w:leader="none" '
+                     f'w:pos="{d["tab_right"]}"/></w:tabs>')
     spacing_attrs = []
     if d.get("before") is not None:
         spacing_attrs.append(f'w:before="{d["before"]}"')
     if d.get("after") is not None:
         spacing_attrs.append(f'w:after="{d["after"]}"')
-    if d.get("line"):
-        spacing_attrs.append(f'w:line="{d["line"]}" w:lineRule="auto"')
+    font = d.get("font") or SANS
+    # A serif style with no stated leading would inherit the Inter-corrected
+    # body value from docDefaults; restate 1.6 for its own family instead.
+    css_line = d.get("line") or (BODY_LINE if font != SANS else None)
+    if css_line:
+        spacing_attrs.append(
+            f'w:line="{word_line(css_line, font)}" w:lineRule="auto"')
     if spacing_attrs:
         parts.append(f'<w:spacing {" ".join(spacing_attrs)}/>')
     if d.get("ind_left") or d.get("ind_right") or d.get("ind_hanging"):
@@ -435,49 +495,85 @@ def replace_style_block(content, sid, d, char_variant=False):
     return content[:m.start()] + new_block + content[m.end():], True
 
 
-def build_doc_defaults():
-    """Inter 12pt ink-2, 1.6 leading, 6pt after, justified, tabular numerals."""
+def scaled_styles(styles, f):
+    """The style table at another px->pt factor. Sizes, spacing, tracking and
+    rule weights scale; leading (w:line, proportional) and indents (inches in
+    the recipe) do not."""
+    if f == 1.0:
+        return styles
+    out = {}
+    for sid, d in styles.items():
+        d = dict(d)
+        for key in ("sz", "before", "after", "tracking"):
+            if d.get(key):
+                d[key] = max(1, round(d[key] * f)) if d[key] > 0 \
+                    else round(d[key] * f)
+        if d.get("border_bottom"):
+            sz, color, space = d["border_bottom"]
+            d["border_bottom"] = (max(2, round(sz * f)), color,
+                                  round(space * f))
+        out[sid] = d
+    return out
+
+
+def build_doc_defaults(f=1.0):
+    """Inter body ink-2, 1.6 leading, 6px after, justified, tabular numerals."""
+    sz = round(24 * f)
+    after = round(120 * f)
     return ('<w:docDefaults>'
             '<w:rPrDefault><w:rPr>'
             f'<w:rFonts w:ascii="{SANS}" w:hAnsi="{SANS}" '
             f'w:eastAsia="{SANS}" w:cs="{SANS}"/>'
             f'<w:color w:val="{INK2}"/>'
-            '<w:sz w:val="24"/><w:szCs w:val="24"/>'
+            # Kern every size (Word's "Kerning for fonts: 1pt and above"):
+            # browsers kern by default, so the PDF's line breaks rely on it.
+            '<w:kern w:val="2"/>'
+            f'<w:sz w:val="{sz}"/><w:szCs w:val="{sz}"/>'
             '<w14:numSpacing w14:val="tabular"/>'
             '</w:rPr></w:rPrDefault>'
             '<w:pPrDefault><w:pPr>'
-            '<w:spacing w:after="120" w:line="384" w:lineRule="auto"/>'
+            f'<w:spacing w:after="{after}" w:line="{word_line(BODY_LINE)}" '
+            'w:lineRule="auto"/>'
             '<w:jc w:val="both"/>'
             '</w:pPr></w:pPrDefault>'
             '</w:docDefaults>')
 
 
-def build_table_style():
+def build_table_style(f=1.0):
     """Nil table: ink top/bottom rules, `rule` row dividers, bold ink header."""
+    ink_rule = max(2, round(8 * f))
+    thin_rule = max(2, round(4 * f))
+    pad_v, pad_r = round(80 * f), round(160 * f)
     return ('<w:style w:type="table" w:styleId="Table">'
             '<w:name w:val="Table"/>'
             '<w:uiPriority w:val="39"/>'
             '<w:qFormat/>'
+            # Cell text: CSS td leading 1.45, no paragraph gap, flush left
+            # (Normal inherits justified from docDefaults otherwise).
+            f'<w:pPr><w:spacing w:after="0" w:line="{word_line(348)}" '
+            'w:lineRule="auto"/><w:jc w:val="left"/></w:pPr>'
             '<w:tblPr>'
             '<w:tblBorders>'
-            f'<w:top w:val="single" w:sz="8" w:space="0" w:color="{INK}"/>'
+            f'<w:top w:val="single" w:sz="{ink_rule}" w:space="0" w:color="{INK}"/>'
             '<w:left w:val="none" w:sz="0" w:space="0" w:color="auto"/>'
-            f'<w:bottom w:val="single" w:sz="8" w:space="0" w:color="{INK}"/>'
+            f'<w:bottom w:val="single" w:sz="{ink_rule}" w:space="0" w:color="{INK}"/>'
             '<w:right w:val="none" w:sz="0" w:space="0" w:color="auto"/>'
-            f'<w:insideH w:val="single" w:sz="4" w:space="0" w:color="{RULE}"/>'
+            f'<w:insideH w:val="single" w:sz="{thin_rule}" w:space="0" w:color="{RULE}"/>'
             '<w:insideV w:val="none" w:sz="0" w:space="0" w:color="auto"/>'
             '</w:tblBorders>'
             '<w:tblCellMar>'
-            '<w:top w:w="80" w:type="dxa"/>'
+            f'<w:top w:w="{pad_v}" w:type="dxa"/>'
             '<w:left w:w="0" w:type="dxa"/>'
-            '<w:bottom w:w="80" w:type="dxa"/>'
-            '<w:right w:w="160" w:type="dxa"/>'
+            f'<w:bottom w:w="{pad_v}" w:type="dxa"/>'
+            f'<w:right w:w="{pad_r}" w:type="dxa"/>'
             '</w:tblCellMar>'
             '</w:tblPr>'
             '<w:tblStylePr w:type="firstRow">'
+            f'<w:pPr><w:spacing w:line="{word_line(312)}" '
+            'w:lineRule="auto"/></w:pPr>'
             f'<w:rPr><w:b/><w:bCs/><w:color w:val="{INK}"/></w:rPr>'
             '<w:tcPr><w:tcBorders>'
-            f'<w:bottom w:val="single" w:sz="8" w:space="0" w:color="{INK}"/>'
+            f'<w:bottom w:val="single" w:sz="{ink_rule}" w:space="0" w:color="{INK}"/>'
             '</w:tcBorders></w:tcPr>'
             '</w:tblStylePr>'
             '</w:style>')
@@ -509,13 +605,16 @@ def fix_root_namespaces(content):
     return content.replace(root, new_root, 1)
 
 
-def transform_styles_xml(content):
+def transform_styles_xml(content, f=1.0):
+    S = scaled_styles(S_BASE, f)
+
     # 0. Root namespace hygiene (pre-existing defect in the base template)
     content = fix_root_namespaces(content)
 
     # 1. docDefaults
     content = re.sub(r'<w:docDefaults>.*?</w:docDefaults>',
-                     build_doc_defaults(), content, flags=re.DOTALL)
+                     lambda _m: build_doc_defaults(f), content,
+                     flags=re.DOTALL)
 
     # 2. Named styles — wholesale pPr/rPr replacement
     missing = []
@@ -544,7 +643,7 @@ def transform_styles_xml(content):
 
     # 5. Replace the pandoc "Table" table style wholesale
     content = re.sub(r'<w:style w:type="table" w:styleId="Table">.*?</w:style>',
-                     build_table_style(), content, flags=re.DOTALL)
+                     lambda _m: build_table_style(f), content, flags=re.DOTALL)
 
     # 6. Sweep remaining legacy fonts/colors in untouched styles
     for legacy in ("Garamond", "Times New Roman", "Segoe UI",
@@ -698,9 +797,21 @@ def transform_header_xml(content):
 # Main
 # ---------------------------------------------------------------------------
 
-def build_template():
-    os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
-    tmp = OUTPUT + ".tmp"
+# Two builds from one style table:
+#   gl.docx        1px -> 1pt   (body 12pt) — editable default for md2docx
+#   gl-print.docx  1px -> 0.75pt (body 9pt) — the PDF's true print sizes
+#                  (CSS 96px = 72pt), used by gl-docx-retheme so the Word
+#                  copy matches the md2pdf deliverable.
+VARIANTS = {
+    "gl": 1.0,
+    "gl-print": 0.75,
+}
+
+
+def build_template(name="gl", f=1.0):
+    output = os.path.join(SCRIPT_DIR, "templates", f"{name}.docx")
+    os.makedirs(os.path.dirname(output), exist_ok=True)
+    tmp = output + ".tmp"
 
     with zipfile.ZipFile(SOURCE, "r") as zin, \
          zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
@@ -709,26 +820,29 @@ def build_template():
             if item.filename == "word/theme/theme1.xml":
                 data = build_theme_xml().encode("utf-8")
             elif item.filename == "word/styles.xml":
-                data = transform_styles_xml(data.decode("utf-8")).encode("utf-8")
+                data = transform_styles_xml(data.decode("utf-8"), f).encode("utf-8")
             elif item.filename == "word/document.xml":
-                data = transform_document_xml(data.decode("utf-8")).encode("utf-8")
+                xml = transform_document_xml(data.decode("utf-8"))
+                if f != 1.0:
+                    xml = xml.replace("Inter 12 pt", f"Inter {12 * f:g} pt")
+                data = xml.encode("utf-8")
             elif item.filename == "word/header2.xml":
                 data = transform_header_xml(data.decode("utf-8")).encode("utf-8")
             zout.writestr(item, data)
 
-    shutil.move(tmp, OUTPUT)
-    print(f"Built: {OUTPUT}")
-    build_dotx()
+    shutil.move(tmp, output)
+    print(f"Built: {output}")
+    build_dotx(output)
 
 
-def build_dotx():
+def build_dotx(output=OUTPUT):
     """gl.dotx — same package with the Word *template* content type, so
     double-clicking creates a new document instead of opening (and risking
     clobbering) the team template. For manual Word use only; pandoc keeps
     using gl.docx."""
-    dotx = OUTPUT[:-5] + ".dotx"
+    dotx = output[:-5] + ".dotx"
     tmp = dotx + ".tmp"
-    with zipfile.ZipFile(OUTPUT, "r") as zin, \
+    with zipfile.ZipFile(output, "r") as zin, \
          zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
         for item in zin.infolist():
             data = zin.read(item.filename)
@@ -745,7 +859,8 @@ def main():
     if not os.path.exists(SOURCE):
         print(f"Error: base template not found at {SOURCE}")
         sys.exit(1)
-    build_template()
+    for name, f in VARIANTS.items():
+        build_template(name, f)
 
 
 if __name__ == "__main__":

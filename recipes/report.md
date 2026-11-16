@@ -63,16 +63,21 @@ and block placement.
 ## 3. Type sizes
 
 Applies the [grammar's role hierarchy](../grammar.md#role-hierarchy) at
-report sizes. Anchor body at **12px / 19.2px leading**.
+report sizes. Anchor body at **12px / 19.2px leading**, printed as 12pt on
+19.2pt.
 
-Sizes are Nil's spec values in **px**, used as-is. The report ships as
-HTML → PDF (headless Chromium), where CSS px is an absolute print unit
-(`96px = 72pt = 1in`), so px renders deterministically on the page — there is
-no reason to translate to pt. Nil designed her reference at real Letter
-geometry (8.5 × 11in pages), so her px values *are* the print sizes; e.g. body
-12px = 9pt on the page. The `.docx` export (md2docx) can't express px and
-approximates these in pt — treat Word as a lower-fidelity secondary output, not
-the source of truth.
+Sizes are Nil's spec values, written in **px** as she wrote them, and they
+**print as points: 1px in these tables = 1pt on the page** (decided
+2026-11-16). Body text is 12pt, H1 34pt, H2 20pt, display 56pt, footnotes and
+page chrome 9pt, chart text 12pt. The md2pdf stylesheet, the R theme's report
+mode (`gl$k`) and the Word template (`gl.docx`) all print these sizes, so the
+PDF and the Word copy match.
+
+*History.* Until 2026-11-16 the recipe read the px literally as CSS px
+(`96px = 72pt`), so body 12px printed at 9pt and every size at 0.75 of its
+number. On real reports (the Morocco Y1 series) that read as too small, so the
+numbers now print as points. `gl-print.docx` keeps the old 0.75 reading for
+anyone who needs it. See `docs/followups.md` §9.
 
 ### Display tier
 

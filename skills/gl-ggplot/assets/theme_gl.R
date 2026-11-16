@@ -29,6 +29,13 @@
 # (2.845 = 72.27/25.4), so linewidth = px / 2.845. Text: fontsize is in pt
 # (= px × 0.75) and geom text size × 2.845 = fontsize, so 12px → 9pt → 3.16.
 # Point stroke: lwd = stroke × 1.89, so 1px → 0.53.
+#
+# Since 2026-11-16 report charts print Nil's numbers as POINTS (gl_px = 1),
+# matching the documents (body 12pt): every value in the table above is the
+# 0.75-per-px figure and is multiplied by gl$k = gl_px / 0.75 (1.333) in
+# report mode, so 12px chart text = 12pt, 1px axis = 1pt (linewidth 0.47).
+# options(gl.px = 0.75) before sourcing restores the old sizes. Slide mode
+# keeps gl$k = 1.
 
 library(ggplot2)
 library(systemfonts)
@@ -103,11 +110,14 @@ lead_finding_dark <- gl$c_2_dark  # #8A2C2B — stroke/label for the lead findin
 c_muted      <- gl$c_muted    # cool grey, "everyone else"
 accent       <- gl$accent     # #1A5A8E — non-data UI chrome only (eyebrows,
                               # figure labels, links). NOT a data-mark fill.
-highlight_sz <- 0.84          # linewidth for the highlighted focus line = 2.4px
+# Points per spec px for report charts (see the Units note at the top).
+gl_px <- getOption("gl.px", 1.0)
+gl$k  <- gl_px / 0.75         # report-mode scale; gl_setup("slide") resets to 1
+highlight_sz <- 0.84 * gl$k   # linewidth for the highlighted focus line = 2.4px
                               # (Nil §5). Standard/muted lines default to 0.70
                               # (= 2px); the focus is 1.2x thicker, not a 2x
                               # jump. px / 2.845 = linewidth (see header table).
-gl_text_size <- 9 / ggplot2::.pt  # geom_text/label size for Nil's 12px chart
+gl_text_size <- 9 * gl$k / ggplot2::.pt  # geom_text/label size for Nil's 12px chart
                                   # text (12px = 9pt; size is pt / 2.845 ≈ 3.16).
                                   # This is the FLOOR for all in-chart text.
 
@@ -230,7 +240,8 @@ theme_gl <- function(base_size = NULL, mode = "report") {
     # Report charts place 1:1 into the page, so Nil's 12px chart text (§3)
     # means 9pt here (px × 0.75). Slide charts are viewed at distance and are
     # not covered by Nil's report-only spec — they keep a 12pt base.
-    if (is.null(base_size)) base_size <- if (identical(mode, "slide")) 12 else 9
+    k <- if (identical(mode, "slide")) 1 else gl_px / 0.75
+    if (is.null(base_size)) base_size <- if (identical(mode, "slide")) 12 else 9 * k
 
     t <- theme_minimal(base_size = base_size) %+replace%
         theme(
@@ -242,7 +253,7 @@ theme_gl <- function(base_size = NULL, mode = "report") {
                 family = "gl_serif", face = "bold",
                 size = rel(14 / 12), hjust = 0,
                 color = gl$ink,
-                margin = margin(b = 4)
+                margin = margin(b = 4 * k)
             ),
 
             # Chart subtitle — Inter 12px ink-3.
@@ -250,7 +261,7 @@ theme_gl <- function(base_size = NULL, mode = "report") {
                 family = "gl_sans",
                 size = rel(1.0), hjust = 0,
                 color = gl$ink_3,
-                margin = margin(b = 10)
+                margin = margin(b = 10 * k)
             ),
 
             # Chart source — Source Serif 4 italic 12px ink-2.
@@ -258,7 +269,7 @@ theme_gl <- function(base_size = NULL, mode = "report") {
                 family = "gl_serif", face = "italic",
                 size = rel(1.0), hjust = 0,
                 color = gl$ink_2,
-                margin = margin(t = 8)
+                margin = margin(t = 8 * k)
             ),
 
             # Axes — Inter, ink-2. Label weight 500, tick weight 400.
@@ -269,8 +280,8 @@ theme_gl <- function(base_size = NULL, mode = "report") {
             # (Nil data-vis §4 / Decision rule). Was 6pt — too tight.
             axis.title   = element_text(family = "gl_sans_medium", color = gl$ink_2,
                                         size = rel(1.0)),
-            axis.title.x = element_text(margin = margin(t = 15)),
-            axis.title.y = element_text(margin = margin(r = 15), angle = 90),
+            axis.title.x = element_text(margin = margin(t = 15 * k)),
+            axis.title.y = element_text(margin = margin(r = 15 * k), angle = 90),
             # Tick label sits 6px (= 4.5pt) outside the axis: 3pt tick + 1.5pt gap.
             # %+replace% wipes theme_minimal's justification, so restate it:
             # y ticks right-align (hjust 1) so variable-width labels keep a
@@ -278,14 +289,14 @@ theme_gl <- function(base_size = NULL, mode = "report") {
             # (Eval finding 2026-07-06: labels were rendering ragged-right.)
             axis.text    = element_text(family = "gl_sans", color = gl$ink_2,
                                         size = rel(1.0)),
-            axis.text.x  = element_text(margin = margin(t = 1.5), vjust = 1),
-            axis.text.y  = element_text(margin = margin(r = 1.5), hjust = 1),
+            axis.text.x  = element_text(margin = margin(t = 1.5 * k), vjust = 1),
+            axis.text.y  = element_text(margin = margin(r = 1.5 * k), hjust = 1),
 
             # Axis line + ticks: 1px (lw 0.35) ink-2; ticks 4px (3pt) long,
             # outward. Bottom + left only.
-            axis.line          = element_line(color = gl$ink_2, linewidth = 0.35),
-            axis.ticks         = element_line(color = gl$ink_2, linewidth = 0.35),
-            axis.ticks.length  = unit(3, "pt"),
+            axis.line          = element_line(color = gl$ink_2, linewidth = 0.35 * k),
+            axis.ticks         = element_line(color = gl$ink_2, linewidth = 0.35 * k),
+            axis.ticks.length  = unit(3 * k, "pt"),
 
             # No panel border, paper background.
             panel.background   = element_rect(fill = gl$paper, color = NA),
@@ -293,7 +304,7 @@ theme_gl <- function(base_size = NULL, mode = "report") {
             panel.border       = element_blank(),
 
             # Gridlines: 1px, horizontal only by default; no vertical, no minor.
-            panel.grid.major.y = element_line(color = gl$gridline, linewidth = 0.35),
+            panel.grid.major.y = element_line(color = gl$gridline, linewidth = 0.35 * k),
             panel.grid.major.x = element_blank(),
             panel.grid.minor   = element_blank(),
 
@@ -309,7 +320,7 @@ theme_gl <- function(base_size = NULL, mode = "report") {
             strip.background = element_blank(),
             strip.text       = element_text(family = "gl_sans", color = gl$ink_2,
                                             size = rel(1.0), face = "bold",
-                                            margin = margin(b = 6))
+                                            margin = margin(b = 6 * k))
         )
 
     if (mode == "report") {
@@ -321,8 +332,8 @@ theme_gl <- function(base_size = NULL, mode = "report") {
             plot.caption         = element_blank(),
             legend.position      = "bottom",
             legend.justification = "left",
-            legend.margin        = margin(t = 4),
-            legend.key.size      = unit(0.4, "cm")
+            legend.margin        = margin(t = 4 * k),
+            legend.key.size      = unit(0.4 * k, "cm")
         )
     }
 
@@ -373,9 +384,9 @@ gl_set_geom_defaults <- function() {
     # geom_line(color = highlight). Using c_muted (not c_muted_dark) also keeps
     # the end-label rule intact: a muted line's label is c_muted_dark, and no
     # label may share its mark's hex (grammar §3.3).
-    update_geom_defaults("line",    list(colour = gl$c_muted, linewidth = 0.70))
-    update_geom_defaults("path",    list(colour = gl$c_muted, linewidth = 0.70))
-    update_geom_defaults("step",    list(colour = gl$c_muted, linewidth = 0.70))
+    update_geom_defaults("line",    list(colour = gl$c_muted, linewidth = 0.70 * gl$k))
+    update_geom_defaults("path",    list(colour = gl$c_muted, linewidth = 0.70 * gl$k))
+    update_geom_defaults("step",    list(colour = gl$c_muted, linewidth = 0.70 * gl$k))
 
     # Points: a filled circle (shape 21) so EVERY point has a fill (a tone) AND
     # a 1px stroke in the darker version of that tone (spec §5, radius 5–7px:
@@ -385,21 +396,21 @@ gl_set_geom_defaults <- function() {
     # (focus rows excluded from this muted layer), else its blue is diluted by
     # the panel and muddied by the grey dot underneath. See highlight block below.
     update_geom_defaults("point",   list(shape = 21, fill = gl$c_muted,
-                                         colour = gl$c_muted_dark, stroke = 0.53,
-                                         size = 3, alpha = 0.8))
+                                         colour = gl$c_muted_dark, stroke = 0.53 * gl$k,
+                                         size = 3 * gl$k, alpha = 0.8))
 
     # Bars: muted fill. A 1px paper-colored stroke gives the spec's separation
     # between stacked segments (§8); on a single bar it is invisible against
     # the white panel. Areas stay edge-to-edge (no stroke) — the spec keeps
     # stacked areas gapless.
-    update_geom_defaults("col",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35))
-    update_geom_defaults("bar",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35))
+    update_geom_defaults("col",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35 * gl$k))
+    update_geom_defaults("bar",     list(fill = gl$c_muted, colour = gl$paper, linewidth = 0.35 * gl$k))
     update_geom_defaults("area",    list(fill = gl$c_muted, colour = NA))
     update_geom_defaults("ribbon",  list(fill = gl$c_muted_light, colour = NA, alpha = 0.5))
 
     # Trendlines are ink-4 (grammar §1: "the line behind a sparse trend"),
     # standard 2px, with a soft ribbon.
-    update_geom_defaults("smooth",  list(colour = gl$ink_4, linewidth = 0.70,
+    update_geom_defaults("smooth",  list(colour = gl$ink_4, linewidth = 0.70 * gl$k,
                                          fill = gl$c_muted_light, alpha = 0.5))
 
     # Boxplots and violins most often show the BACKGROUND distribution (peers)
@@ -414,16 +425,16 @@ gl_set_geom_defaults <- function() {
 
     # Choropleth / map polygons: 0.5px ink-3 borders between regions (Nil §12).
     tryCatch(
-        update_geom_defaults("sf", list(colour = gl$ink_3, linewidth = 0.18)),
+        update_geom_defaults("sf", list(colour = gl$ink_3, linewidth = 0.18 * gl$k)),
         error = function(e) NULL)
 
     # Reference thresholds: dashed ink-3, 1px. A ZERO BASELINE is not a
     # reference line — it is part of the frame (Nil §4: "stroke at ink weight,
     # never gridline weight"): use gl_zero_line().
     update_geom_defaults("hline",   list(colour = gl$ink_3, linetype = "dashed",
-                                         linewidth = 0.35))
+                                         linewidth = 0.35 * gl$k))
     update_geom_defaults("vline",   list(colour = gl$ink_3, linetype = "dashed",
-                                         linewidth = 0.35))
+                                         linewidth = 0.35 * gl$k))
     # Annotations: Inter, ink-2, at the 12px floor.
     update_geom_defaults("text",    list(colour = gl$ink_2, family = "gl_sans",
                                          size = gl_text_size))
@@ -479,10 +490,10 @@ gl_zero_line <- function(axis = c("y", "x"), ...) {
     axis <- match.arg(axis)
     if (axis == "y") {
         geom_hline(yintercept = 0, colour = gl$ink_2, linetype = "solid",
-                   linewidth = 0.35, ...)
+                   linewidth = 0.35 * gl$k, ...)
     } else {
         geom_vline(xintercept = 0, colour = gl$ink_2, linetype = "solid",
-                   linewidth = 0.35, ...)
+                   linewidth = 0.35 * gl$k, ...)
     }
 }
 
@@ -554,7 +565,7 @@ gl_endlabel <- function(data, mapping, color, size = gl_text_size,
 #' coord_cartesian(clip = "off"), drops the legend (the labels replace it),
 #' and reserves a right margin (in pt). Don't combine with another coord_*
 #' call — the last coord wins.
-gl_endlabel_room <- function(right = 95) {
+gl_endlabel_room <- function(right = 95 * gl$k) {
     list(coord_cartesian(clip = "off"),
          theme(legend.position = "none",
                plot.margin = margin(5, right, 5, 5)))
@@ -910,12 +921,18 @@ gl_register_fonts <- function() {
 #'
 #' @param mode "report" (suppresses title/subtitle/caption) or "slide"
 #' @param base_size Base font size in pt. Default NULL resolves by mode:
-#'   9pt for report (report figures place 1:1 into the page, so 9pt renders
-#'   Nil's specced 12px chart text), 12pt for slide (distance viewing; slides
+#'   12pt for report (Nil's 12px chart text printed as points, gl_px = 1;
+#'   9pt with options(gl.px = 0.75)), 12pt for slide (distance viewing; slides
 #'   are outside Nil's report-only spec).
 gl_setup <- function(mode = "report", base_size = NULL) {
     mode <- match.arg(mode, c("report", "slide"))   # invented modes error here
     gl_register_fonts()
+
+    # Size scale for this mode (Units note at the top): report charts print
+    # Nil's px as gl_px points; slides keep the original constants.
+    gl$k <<- if (identical(mode, "slide")) 1 else gl_px / 0.75
+    highlight_sz <<- 0.84 * gl$k
+    gl_text_size <<- 9 * gl$k / ggplot2::.pt
 
     # Non-interactive R (`Rscript foo.R`) defaults to the pdf() device, which
     # cannot resolve the systemfonts registry families — so a top-level ggplot

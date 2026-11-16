@@ -35,12 +35,15 @@ COVER_LOGO_DEFAULT="$SCRIPT_DIR/../../../assets/design-library/logos/GL_logo_bla
 find_chromium() {
     # Prefer chrome-headless-shell (smaller / faster than full Chrome).
     local hs ch sys
+    # The .exe names cover Windows (Git Bash), where Puppeteer installs
+    # chrome-headless-shell.exe / chrome.exe.
     hs=$(find "$HOME/.cache/puppeteer/chrome-headless-shell" \
-            -name "chrome-headless-shell" -type f -executable 2>/dev/null \
+            \( -name "chrome-headless-shell" -o -name "chrome-headless-shell.exe" \) \
+            -type f -executable 2>/dev/null \
             | sort -V | tail -1)
     if [ -n "$hs" ]; then echo "$hs"; return; fi
     ch=$(find "$HOME/.cache/puppeteer/chrome" \
-            -name "chrome" -type f -executable 2>/dev/null \
+            \( -name "chrome" -o -name "chrome.exe" \) -type f -executable 2>/dev/null \
             | sort -V | tail -1)
     if [ -n "$ch" ]; then echo "$ch"; return; fi
     sys=$(command -v chromium 2>/dev/null \
@@ -49,6 +52,23 @@ find_chromium() {
           || true)
     if [ -n "$sys" ]; then echo "$sys"; return; fi
     echo ""
+}
+
+# ---- Paths Chromium can read -------------------------------------------------
+
+# On Windows (Git Bash) paths look like /c/Users/..., which a Windows Chromium
+# cannot open; cygpath -m turns them into C:/Users/.... Elsewhere cygpath does
+# not exist and paths pass through unchanged.
+native_path() {
+    if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else echo "$1"; fi
+}
+file_url() {
+    local p
+    p="$(native_path "$1")"
+    case "$p" in
+        /*) echo "file://$p" ;;
+        *)  echo "file:///$p" ;;
+    esac
 }
 
 # ---- Parse args --------------------------------------------------------------
@@ -124,19 +144,63 @@ PANDOC_ARGS=(
     --lua-filter="$SCRIPT_DIR/../assets/gl-figure.lua"
 )
 
-# Cover pattern — default to the rect pattern. Authors can override via
-# `cover-pattern: ...` in their YAML frontmatter (path relative to the
-# markdown source, or absolute), or `cover-pattern: false` to suppress.
-if [ -f "$COVER_PATTERN_DEFAULT" ]; then
-    PATTERN_ABS="$(realpath "$COVER_PATTERN_DEFAULT")"
-    PANDOC_ARGS+=(--metadata=cover-pattern:"file://$PATTERN_ABS")
+# Read one key from the document's leading YAML block ("" when absent).
+# Needed because a --metadata value on the command line overrides the
+# document's YAML, so defaults must only be passed when the author set none.
+frontmatter_value() {
+    awk -v key="$1" '
+        NR == 1 && $0 != "---" { exit }
+        NR > 1 && ($0 == "---" || $0 == "...") { exit }
+        NR > 1 {
+            k = $0; sub(/:.*/, "", k)
+            if (k == key) { v = $0; sub(/^[^:]*:[ \t]*/, "", v); gsub(/^["'\'']|["'\'']$/, "", v); print v; exit }
+        }' "$ABS_INPUT"
+}
+
+# Cover pattern — default to the rect pattern (working paper). Authors can set
+# `cover-pattern:` in their YAML frontmatter to `report` (circle medallion, the
+# recipe's default for full reports), `working-paper` (rect), a path relative
+# to the markdown source or absolute, or `false` to suppress.
+PATTERN_DIR="$(dirname "$COVER_PATTERN_DEFAULT")"
+PATTERN_YAML="$(frontmatter_value cover-pattern)"
+case "$PATTERN_YAML" in
+    "")             PATTERN_SRC="$COVER_PATTERN_DEFAULT" ;;
+    report)         PATTERN_SRC="$PATTERN_DIR/circle-pattern.svg" ;;
+    working-paper)  PATTERN_SRC="$PATTERN_DIR/rect-pattern.svg" ;;
+    false|no|none)  PATTERN_SRC="" ;;
+    /*|[A-Za-z]:*)  PATTERN_SRC="$PATTERN_YAML" ;;
+    *)              PATTERN_SRC="$INPUT_DIR/$PATTERN_YAML" ;;
+esac
+if [ "$PATTERN_YAML" = "false" ] || [ "$PATTERN_YAML" = "no" ] || [ "$PATTERN_YAML" = "none" ]; then
+    PANDOC_ARGS+=(--metadata=cover-pattern:false)
+elif [ -n "$PATTERN_SRC" ] && [ -f "$PATTERN_SRC" ]; then
+    PATTERN_ABS="$(realpath "$PATTERN_SRC")"
+    PANDOC_ARGS+=(--metadata=cover-pattern:"$(file_url "$PATTERN_ABS")")
+elif [ -n "$PATTERN_YAML" ]; then
+    echo "Warning: cover-pattern '$PATTERN_YAML' not found; rendering without a pattern." >&2
+    PANDOC_ARGS+=(--metadata=cover-pattern:false)
 fi
 
 # Cover logo — default to GL_logo_black.png in the top-right of the cover.
-if [ -f "$COVER_LOGO_DEFAULT" ]; then
+# An author-set `cover-logo:` in the frontmatter is left to pandoc.
+if [ -z "$(frontmatter_value cover-logo)" ] && [ -f "$COVER_LOGO_DEFAULT" ]; then
     LOGO_ABS="$(realpath "$COVER_LOGO_DEFAULT")"
-    PANDOC_ARGS+=(--metadata=cover-logo:"file://$LOGO_ABS")
+    PANDOC_ARGS+=(--metadata=cover-logo:"$(file_url "$LOGO_ABS")")
 fi
+
+# Table of contents: YAML `toc: true` (Nil §9). Two levels unless
+# `toc-depth:` says otherwise; titled "Contents" unless `toc-title:`. Headings
+# marked {.unlisted} are left out. Page numbers are filled in after printing
+# (toc_pages.py), because Chromium has no target-counter().
+TOC=0
+case "$(frontmatter_value toc)" in
+    true|yes)
+        TOC=1
+        TOC_DEPTH="$(frontmatter_value toc-depth)"
+        PANDOC_ARGS+=(--toc --toc-depth="${TOC_DEPTH:-2}")
+        [ -z "$(frontmatter_value toc-title)" ] && PANDOC_ARGS+=(--metadata=toc-title:"Contents")
+        ;;
+esac
 
 # Citations only if a references.bib is present alongside the input.
 if [ -f "$BIB" ]; then
@@ -155,17 +219,82 @@ PANDOC_ARGS+=(-o "$HTML")
 
 pandoc "${PANDOC_ARGS[@]}"
 
-"$CHROMIUM" \
-    --headless \
-    --disable-gpu \
-    --no-sandbox \
-    --no-pdf-header-footer \
-    --allow-file-access-from-files \
-    --print-to-pdf="$OUTPUT" \
-    "file://$HTML" 2>&1 | grep -v "^$" || true
+print_pdf() {
+    "$CHROMIUM" \
+        --headless \
+        --disable-gpu \
+        --no-sandbox \
+        --no-pdf-header-footer \
+        --allow-file-access-from-files \
+        --print-to-pdf="$(native_path "$OUTPUT")" \
+        "$(file_url "$HTML")" 2>&1 | grep -v "^$" || true
+}
+
+# Python with PyMuPDF (fitz), for the TOC page numbers and the size check.
+PYFITZ=""
+for PY in python3 python py; do
+    if "$PY" -I -c "import fitz" >/dev/null 2>&1; then PYFITZ="$PY"; break; fi
+done
+
+if [ "$TOC" -eq 1 ] && [ -n "$PYFITZ" ]; then
+    "$PYFITZ" -I "$SCRIPT_DIR/toc_pages.py" mark "$(native_path "$HTML")"
+    print_pdf >/dev/null
+    # Fill in the numbers and print again until they hold (a number's width
+    # can re-wrap a long entry). Three rounds is plenty.
+    for _ in 1 2 3; do
+        rc=0
+        "$PYFITZ" -I "$SCRIPT_DIR/toc_pages.py" fill "$(native_path "$HTML")" "$(native_path "$OUTPUT")" || rc=$?
+        [ "$rc" -eq 3 ] || break
+        print_pdf
+    done
+else
+    [ "$TOC" -eq 1 ] && echo "Warning: PyMuPDF (fitz) not found; the TOC prints without page numbers." >&2
+    print_pdf
+fi
 
 if [ "$KEEP_HTML" -eq 0 ]; then
     rm -f "$HTML"
 fi
 
 echo "Created: $OUTPUT"
+
+# ---- Size check ---------------------------------------------------------------
+# Chromium shrinks every page when any element overflows the text column. Body
+# text is Nil's 12 (her px print as pt); warn if text came out smaller.
+# Needs PyMuPDF (`fitz`); skipped quietly when it is not installed.
+for PY in $PYFITZ; do
+    if true; then
+        "$PY" -I - "$(native_path "$OUTPUT")" <<'PYEOF' || true
+import sys, collections, fitz
+doc = fitz.open(sys.argv[1])
+# Chromium scales the whole document by one factor. Find the factor that best
+# maps the rendered text sizes onto Nil's type scale (her px print as pt:
+# display, H1, H2, subtitle, lead, H3, colophon/fig title, body, cover meta,
+# references, footnote/running head).
+RECIPE = [56.0, 34.0, 20.0, 18.0, 17.0, 16.0, 14.0, 12.0, 11.0, 10.0, 9.0]
+chars = collections.Counter()
+for page in doc:
+    for b in page.get_text("dict")["blocks"]:
+        for l in b.get("lines", []):
+            for s in l["spans"]:
+                n = len(s["text"].strip())
+                if n:
+                    chars[round(s["size"], 2)] += n
+def score(f):
+    return sum(n for size, n in chars.items()
+               if any(abs(size - k * f) < 0.03 for k in RECIPE))
+# Body text dominates any report, so the most common size is the body size:
+# its ratio to 12pt is the page scale. A 1000-step factor fit confirms it
+# (a coarse grid let a 96.7% shrink tie with 97% and pass).
+body = chars.most_common(1)[0][0] if chars else 12.0
+best = max((x / 1000 for x in range(400, 1001)), key=lambda f: (score(f), -abs(f - body / 12)))
+scale = min(body / 12, best)
+if chars and scale < 0.995 and score(scale) >= score(1.0):
+    print(f"WARNING: pages printed at {scale:.0%} scale (body text ~{12 * scale:.1f}pt, "
+          "not 12pt). Something is wider than the text column (a wide table, long "
+          "URL or unbreakable run), and Chromium shrank every page to fit it.",
+          file=sys.stderr)
+PYEOF
+        break
+    fi
+done

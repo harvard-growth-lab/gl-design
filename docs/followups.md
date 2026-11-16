@@ -139,8 +139,9 @@ previously dropped to Normal.
 
 Known, accepted limits of the Word path (PDF remains the source of truth):
 
-- **Sizes are 1px→1pt** (body 12pt) — ~33% larger than the canonical PDF
-  (12px = 9pt). User decision 2026-06-11: Word stays editable/readable.
+- **Sizes are 1px→1pt** (body 12pt). Since 2026-11-16 the PDF prints the
+  same sizes (§9), so Word and PDF now match. (Before, Word was ~33% larger
+  than the PDF's 12px = 9pt; user decision 2026-06-11.)
 - **Weight 500/600 render bold (700)** — Word's `<w:b/>` is boolean.
 - **Title rule is full content width** — Word can't do Nil's 50% left rule.
 - **Cover artwork / colophon pattern** — still HTML-or-PDF-first; no SVG
@@ -148,7 +149,9 @@ Known, accepted limits of the Word path (PDF remains the source of truth):
 - **Reference titles** are italic Inter, not serif italic — pandoc emits no
   run style to hook the serif treatment onto.
 - **TOC renders empty until fields update** (md2docx sets
-  `updateFields=false` to suppress Word's prompt) — update manually in Word.
+  `updateFields=false` to suppress Word's prompt) — update manually in Word,
+  or run `skills/gl-docx-retheme/scripts/gl_toc.py --update`, which builds the
+  standard TOC (as md2pdf's `toc: true`) and has Word fill it in.
 - **LibreOffice preview quirks** — side-by-side figures stack vertically and
   similar artifacts in `soffice` conversion; real Word renders fine.
 
@@ -163,7 +166,17 @@ judgment remaps (pseudo-headings, figure blocks, tables), and Word-comment
 flags for what only the author can fix (chart regeneration, finding-style
 titles, cover rebuild).
 
-## 9. Typography size history — px vs pt (RESOLVED: px everywhere)
+## 9. Typography size history — px vs pt (RESOLVED 2026-11-16: px print as pt)
+
+**Update 2026-11-16 — supersedes the 2026-06 resolution below.** Nil's px
+numbers now print as **points** (1px = 1pt): body 12pt, H1 34pt, H2 20pt,
+display 56pt, chrome and footnotes 9pt, chart text 12pt. The 12px = 9pt
+reading produced pages that read as too small on real reports (Morocco Y1
+series), so the numbers are used as points. Implemented in the md2pdf CSS
+(px → pt), `theme_gl.R` report mode (`gl$k = 1/0.75`;
+`options(gl.px = 0.75)` restores the old sizes), the md2docx `gl` template
+(now also the gl-docx-retheme default) and `gl_pages.py`. `gl-print.docx`
+keeps the 0.75 reading. `recipes/report.md` §3 states the rule.
 
 Nil's typography-spec.html writes sizes in **CSS px** at real Letter geometry
 (8.5 × 11in pages), so her px values *are* print sizes (12px body = 9pt on the

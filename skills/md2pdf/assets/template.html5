@@ -46,9 +46,14 @@ $if(date)$
       <div class="cover-date">$date$</div>
 $endif$
     </div>
+    <div class="cover-logos">
 $if(cover-logo)$
-    <img class="cover-logo" src="$cover-logo$" alt="Growth Lab" />
+      <img class="cover-logo" src="$cover-logo$" alt="Growth Lab" />
 $endif$
+$for(partner-logos)$
+      <img class="cover-logo cover-partner-logo" src="$partner-logos.src$" alt="$partner-logos.alt$" />
+$endfor$
+    </div>
   </div>
 
   <div class="cover-body">
@@ -60,6 +65,9 @@ $endif$
 $for(author)$
     <p class="author">$author$</p>
 $endfor$
+$if(cover-note)$
+    <div class="cover-note">$cover-note$</div>
+$endif$
   </div>
 
 $if(cover-pattern)$
@@ -75,6 +83,16 @@ $if(abstract)$
   </div>
 $endif$
 </header>
+$if(colophon)$
+<!-- Colophon (Nil §4, page 2): imprint, affiliations, disclaimers that do
+     not fit on the cover. YAML `colophon:` block. -->
+<section class="colophon">
+$if(cover-logo)$
+  <div class="colophon-logo-row"><img class="colophon-logo" src="$cover-logo$" alt="Growth Lab" /></div>
+$endif$
+  <div class="colophon-body">$colophon$</div>
+</section>
+$endif$
 $endif$
 $if(toc)$
 <nav id="$idprefix$TOC" role="doc-toc">

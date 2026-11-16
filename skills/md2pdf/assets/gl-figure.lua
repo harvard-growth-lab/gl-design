@@ -39,7 +39,7 @@ function Figure(fig)
   local label, rest = nil, inlines
   if numbered then
     for i, el in ipairs(inlines) do
-      if el.t == "Str" and el.text:match("^%d+:$") then
+      if el.t == "Str" and el.text:match("^%d[%d%.]*:$") then  -- "12:" or a chapter label "1.2:"
         label = slice(inlines, 1, i)
         label[#label] = pandoc.Str(el.text:gsub(":$", ""))  -- drop the ":"
         rest = slice(inlines, i + 1, #inlines)
@@ -83,5 +83,19 @@ function Figure(fig)
   end
 
   fig.caption.long = { pandoc.Plain(caption) }
+
+  -- 4. Alt text: `{fig-alt="..."}` on the image becomes the <img alt>, which
+  --    Chromium carries into the tagged PDF's /Alt. Without it the alt falls
+  --    back to the caption ("Figure N: title // subtitle").
+  fig = pandoc.walk_block(fig, {
+    Image = function(img)
+      local alt = img.attributes["fig-alt"]
+      if alt and alt ~= "" then
+        img.caption = pandoc.Inlines({ pandoc.Str(alt) })
+        img.attributes["fig-alt"] = nil
+        return img
+      end
+    end,
+  })
   return fig
 end
